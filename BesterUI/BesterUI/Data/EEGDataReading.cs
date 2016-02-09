@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Web.Script.Serialization;
 
 namespace BesterUI.Data
 {
     class EEGDataReading : DataReading
     {
-        static StreamWriter writer;
-
-        public Dictionary<ELECTRODE, double> data = new Dictionary<ELECTRODE, double>();
+        public Dictionary<string, double> data = new Dictionary<string, double>();
 
         public enum ELECTRODE
         {
@@ -32,35 +31,17 @@ namespace BesterUI.Data
 
         public EEGDataReading() : base()
         {
-            if (writer == null)
-            {
-                writer = new StreamWriter("EEG.json");
-                writer.WriteAsync("{\"EEGData\": {"+
-                    "\"startTime\": \"" + DataReading.startTime + "\"," +
-                    "\"Data\": [");
-                writer.FlushAsync();
-            }
+            
         }
 
         public override void Write()
         {
-            writer.WriteAsync("{ \"timestamp\":" + timestamp + ",");
-            foreach (ELECTRODE e in Enum.GetValues(typeof(ELECTRODE)))
-            {
-                if (data.ContainsKey(e))
-                {
-                    writer.WriteAsync("\"" + Enum.GetName(e.GetType(), e) + "\":" + data[e] + ",");
-                }
-            }
-            writer.WriteAsync("},");
-            writer.FlushAsync();
+            DataReading.StaticWrite("EEG", this);
         }
 
         public override void EndWrite()
         {
-            writer.WriteAsync(
-                @"]}}");
-            writer.FlushAsync();
+            DataReading.StaticEndWrite("EEG");
         }
     }
 }

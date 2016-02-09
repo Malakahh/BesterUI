@@ -3,28 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using System.Web.Script.Serialization;
 
 namespace BesterUI.Data
 {
-    class GSRDataReading : DataReading
+    class BandDataReading : DataReading
     {
-        public int resistance;
 
-        public GSRDataReading() : base()
+
+        public BandDataReading()
         {
-            
+
         }
 
         public override void Write()
         {
-            DataReading.StaticWrite("GSR", this);
+            throw new NotImplementedException();
         }
 
         public override void EndWrite()
         {
-            DataReading.StaticEndWrite("GSR");
+            throw new NotImplementedException();
         }
     }
 }
