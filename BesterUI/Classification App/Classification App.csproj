@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Feature.cs" />
     <Compile Include="Classifier.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Form1.cs">
@@ -88,6 +89,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BesterUI\BesterUI.csproj">
+      <Project>{bd90c387-df86-4039-8fe0-7415e1bf4cb2}</Project>
+      <Name>BesterUI</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -9,13 +9,13 @@ using System.Web.Script.Serialization;
 
 namespace BesterUI.Data
 {
-    abstract class DataReading
+    public abstract class DataReading
     {
         public static DateTime? startTime = null;
         static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
-        public long timestamp;      
+        public long timestamp;
 
         public DataReading()
         {
@@ -35,19 +35,31 @@ namespace BesterUI.Data
 
         public static void StaticWrite(string deviceName, object obj)
         {
-            string fileName = ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss") + "_" + deviceName + ".json";
+            string dir = "PhysData";
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
             string json = "";
             if (!writers.ContainsKey(deviceName))
             {
+                string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss");
+                if (!Directory.Exists(readingDir))
+                {
+                    Directory.CreateDirectory(readingDir);
+                }
+
+                string fileName = readingDir + "/" + deviceName + ".json";
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                json += "{\"" + deviceName + "\": {" +
-                    "\"startTime\":\"" + startTime + "\"," +
-                    "\"Data\":[";
+                json += "{\n\"" + deviceName + "\": {\n" +
+                    "\"startTime\":\"" + startTime + "\",\n" +
+                    "\"Data\":[\n";
             }
 
             json += new JavaScriptSerializer().Serialize(obj);
-            writers[deviceName].Write(json + ",");
+            writers[deviceName].Write(json + ",\n");
             writers[deviceName].Flush();
         }
 
@@ -55,6 +67,8 @@ namespace BesterUI.Data
         {
             writers[deviceName].Write("]}}");
             writers[deviceName].Flush();
+            writers[deviceName].Dispose();
+            writers.Remove(deviceName);
         }
 
         public abstract void Write();
