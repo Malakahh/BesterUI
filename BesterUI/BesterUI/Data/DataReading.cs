@@ -9,13 +9,13 @@ using System.Web.Script.Serialization;
 
 namespace BesterUI.Data
 {
-    abstract class DataReading
+    public abstract class DataReading
     {
         public static DateTime? startTime = null;
         static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
-        public long timestamp;      
+        public long timestamp;
 
         public DataReading()
         {
