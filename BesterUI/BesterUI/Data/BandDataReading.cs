@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BesterUI.Data
 {
-    class BandDataReading : DataReading
+    public class BandDataReading : DataReading
     {
         public enum QUALITY { LOCKED, ACQUIRING }
 

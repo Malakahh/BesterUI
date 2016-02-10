@@ -7,14 +7,14 @@ using BesterUI.Data;
 
 namespace Classification_App
 {
-    class Feature<T> where T : DataReading
+    public class Feature
     {
         public readonly string name;
-        Func<List<T>, SAMDataPoint, double> featureCalculator;
-        List<T> dataReadings;
+        Func<List<DataReading>, SAMDataPoint, double> featureCalculator;
+        List<DataReading> dataReadings;
         Dictionary<SAMDataPoint, double> cachedResults = new Dictionary<SAMDataPoint, double>();
 
-        public Feature(string name, Func<List<T>, SAMDataPoint, double> featureCalculator)
+        public Feature(string name, Func<List<DataReading>, SAMDataPoint, double> featureCalculator)
         {
             this.name = name;
             this.featureCalculator = featureCalculator;
@@ -40,7 +40,7 @@ namespace Classification_App
             return cachedResults[sam];
         }
 
-        public void SetData(List<T> dataReadings)
+        public void SetData(List<DataReading> dataReadings)
         {
             this.dataReadings = dataReadings;
             cachedResults.Clear();
