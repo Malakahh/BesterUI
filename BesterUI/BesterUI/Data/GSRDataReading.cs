@@ -12,7 +12,12 @@ namespace BesterUI.Data
     {
         public int resistance;
 
-        public GSRDataReading() : base()
+        public GSRDataReading(bool beginTimer) : base(beginTimer)
+        {
+
+        }
+
+        public GSRDataReading() : this(true)
         {
 
         }

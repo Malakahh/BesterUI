@@ -35,7 +35,12 @@ namespace BesterUI.Data
             //A2
         }
 
-        public EEGDataReading() : base()
+        public EEGDataReading(bool beginTimer) : base(beginTimer)
+        {
+
+        }
+
+        public EEGDataReading() : this(true)
         {
 
         }

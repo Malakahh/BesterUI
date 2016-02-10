@@ -17,37 +17,56 @@ namespace BesterUI.Data
 
         public long timestamp;
 
-        public DataReading()
+        public DataReading(bool beginTimer)
         {
-            if (startTime == null)
+            if (beginTimer)
             {
-                startTime = DateTime.Now;
-            }
+                if (startTime == null || stopWatch == null)
+                {
+                    startTime = DateTime.UtcNow;
+                    stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                }
 
-            if (stopWatch == null)
-            {
-                stopWatch = new Stopwatch();
-                stopWatch.Start();
+                timestamp = stopWatch.ElapsedMilliseconds;
             }
+        }
 
-            timestamp = stopWatch.ElapsedMilliseconds;
+        public static void ResetTimers()
+        {
+            startTime = null;
+            stopWatch = null;
         }
 
         public static void StaticWrite(string deviceName, object obj)
         {
-            string fileName = ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss") + "_" + deviceName + ".json";
+            string dir = "PhysData";
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
             string json = "";
+            bool isFirst = false;
             if (!writers.ContainsKey(deviceName))
             {
+                isFirst = true;
+                string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss");
+                if (!Directory.Exists(readingDir))
+                {
+                    Directory.CreateDirectory(readingDir);
+                }
+
+                string fileName = readingDir + "/" + deviceName + ".json";
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                json += "{\"" + deviceName + "\": {" +
-                    "\"startTime\":\"" + startTime + "\"," +
-                    "\"Data\":[";
+                json += "{\n\"" + deviceName + "\": {\n" +
+                    "\"startTime\":\"" + startTime + "\",\n" +
+                    "\"Data\":[\n";
             }
 
             json += new JavaScriptSerializer().Serialize(obj);
-            writers[deviceName].Write(json + ",");
+            writers[deviceName].Write(((isFirst) ? "" : ",\n") + json);
             writers[deviceName].Flush();
         }
 
@@ -55,6 +74,8 @@ namespace BesterUI.Data
         {
             writers[deviceName].Write("]}}");
             writers[deviceName].Flush();
+            writers[deviceName].Dispose();
+            writers.Remove(deviceName);
         }
 
         public abstract void Write();
