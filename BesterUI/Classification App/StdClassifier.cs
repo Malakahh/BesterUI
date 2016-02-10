@@ -3,25 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LibSVMsharp;
 
 namespace Classification_App
 {
     class StdClassifier : Classifier
     {
-        public StdClassifier(string Name) : base(Name)
+        private List<double>[] features;
+        public override List<SVMParameter> Parameters { get; set; }
+
+        public StdClassifier(string Name, List<SVMParameter> Parameters, List<List<double>> Features) : base(Name, Parameters)
         {
+            Features.CopyTo(this.features);
         }
 
-        protected override void CrossValidate(List<double> CTypes, List<double> GTypes, bool RunCombinations)
+        public StdClassifier(string Name, SVMParameter Parameter, List<List<double>> Features) : base(Name, Parameter)
         {
-            throw new NotImplementedException();
+            Features.CopyTo(this.features);
         }
 
+        public void CrossValidate(bool RunCombinations)
+        {
+            
+        }
 
         public override void PrintResults()
         {
             throw new NotImplementedException();
         }
-
+        
     }
 }

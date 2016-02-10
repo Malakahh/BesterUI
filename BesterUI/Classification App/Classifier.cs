@@ -13,13 +13,21 @@ namespace Classification_App
     abstract class Classifier
     {
         public string Name { get; private set; }
+        public abstract List<SVMParameter> Parameters { get; set; }
 
-        public Classifier(string Name)
+        public Classifier(string Name, List<SVMParameter> Parameters)
         {
             this.Name = Name;
+            this.Parameters = Parameters;
         }
 
-        protected abstract void CrossValidate(List<double> CTypes, List<double> GTypes, bool RunCombinations);
+        public Classifier(string Name, SVMParameter Parameter)
+        {
+            this.Name = Name;
+            this.Parameters = new List<SVMParameter>() { Parameter };
+        }
+
+        //public abstract void CrossValidate(List<SVMParameter> Parameters, bool RunCombinations);
 
 
         #region [Helper Functions]
