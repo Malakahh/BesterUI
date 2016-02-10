@@ -8,13 +8,18 @@ using System.Web.Script.Serialization;
 
 namespace BesterUI.Data
 {
-    class GSRDataReading : DataReading
+    public class GSRDataReading : DataReading
     {
         public int resistance;
 
-        public GSRDataReading() : base()
+        public GSRDataReading(bool beginTimer) : base(beginTimer)
         {
             
+        }
+
+        public GSRDataReading() : this(true)
+        {
+
         }
 
         public override void Write()

@@ -6,14 +6,19 @@ using System.Threading.Tasks;
 
 namespace BesterUI.Data
 {
-    class BandDataReading : DataReading
+    public class BandDataReading : DataReading
     {
         public enum QUALITY { LOCKED, ACQUIRING }
 
         public string quality;
         public int heartRate;
 
-        public BandDataReading()
+        public BandDataReading(bool beginTimer) : base(beginTimer)
+        {
+
+        }
+
+        public BandDataReading() : this(true)
         {
 
         }

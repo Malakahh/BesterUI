@@ -8,7 +8,7 @@ using System.Web.Script.Serialization;
 
 namespace BesterUI.Data
 {
-    class EEGDataReading : DataReading
+    public class EEGDataReading : DataReading
     {
         public Dictionary<string, double> data = new Dictionary<string, double>();
 
@@ -29,9 +29,14 @@ namespace BesterUI.Data
             A2
         }
 
-        public EEGDataReading() : base()
+        public EEGDataReading(bool beginTimer) : base(beginTimer)
         {
             
+        }
+
+        public EEGDataReading() : this(true)
+        {
+
         }
 
         public override void Write()
