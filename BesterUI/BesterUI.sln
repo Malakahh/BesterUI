@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BesterUI", "BesterUI\BesterUI.csproj", "{BD90C387-DF86-4039-8FE0-7415E1BF4CB2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Classification App", "Classification App\Classification App.csproj", "{435D1E19-9401-4B43-BA99-AC0E339D82E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +15,6 @@ Global
 		{BD90C387-DF86-4039-8FE0-7415E1BF4CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD90C387-DF86-4039-8FE0-7415E1BF4CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD90C387-DF86-4039-8FE0-7415E1BF4CB2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{435D1E19-9401-4B43-BA99-AC0E339D82E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{435D1E19-9401-4B43-BA99-AC0E339D82E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{435D1E19-9401-4B43-BA99-AC0E339D82E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{435D1E19-9401-4B43-BA99-AC0E339D82E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -39,10 +39,9 @@ namespace BesterUI
 
             for (int i = 0; i < 200; i++)
             {
-
-            GSRDataReading gsr = new GSRDataReading();
-            gsr.resistance = 4;
-            gsr.Write();
+                GSRDataReading gsr = new GSRDataReading();
+                gsr.resistance = 4;
+                gsr.Write();
             }
 
             GSRDataReading gsr6 = new GSRDataReading();
@@ -50,6 +49,19 @@ namespace BesterUI
             gsr6.Write();
             gsr6.EndWrite();
 
+
+            for (int i = 0; i < 200; i++)
+            {
+                BandDataReading band = new BandDataReading();
+                band.heartRate = 5;
+                band.quality = BandDataReading.QUALITY.ACQUIRING.GetName();
+                band.Write();
+            }
+
+            BandDataReading band1 = new BandDataReading();
+            band1.heartRate = 1337;
+            band1.quality = BandDataReading.QUALITY.LOCKED.GetName();
+            band1.Write();
         }
     }
 }
