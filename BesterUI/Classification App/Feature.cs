@@ -9,7 +9,7 @@ namespace Classification_App
 {
     class Feature<T> where T : DataReading
     {
-        string name;
+        public readonly string name;
         Func<List<T>, SAMDataPoint, double> featureCalculator;
         List<T> dataReadings;
         Dictionary<SAMDataPoint, double> cachedResults = new Dictionary<SAMDataPoint, double>();
