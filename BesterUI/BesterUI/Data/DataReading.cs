@@ -35,19 +35,25 @@ namespace BesterUI.Data
 
         public static void StaticWrite(string deviceName, object obj)
         {
-            string fileName = ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss") + "_" + deviceName + ".json";
+            string dir = "PhysData";
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
             string json = "";
             if (!writers.ContainsKey(deviceName))
             {
+                string fileName = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss") + "_" + deviceName + ".json";
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                json += "{\"" + deviceName + "\": {" +
-                    "\"startTime\":\"" + startTime + "\"," +
-                    "\"Data\":[";
+                json += "{\n\"" + deviceName + "\": {\n" +
+                    "\"startTime\":\"" + startTime + "\",\n" +
+                    "\"Data\":[\n";
             }
 
             json += new JavaScriptSerializer().Serialize(obj);
-            writers[deviceName].Write(json + ",");
+            writers[deviceName].Write(json + ",\n");
             writers[deviceName].Flush();
         }
 

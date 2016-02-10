@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using BesterUI.Data;
+using Microsoft.Kinect.Face;
 
 namespace BesterUI
 {
@@ -62,6 +63,19 @@ namespace BesterUI
             band1.heartRate = 1337;
             band1.quality = BandDataReading.QUALITY.LOCKED.GetName();
             band1.Write();
+            band1.EndWrite();
+
+
+            KinectDataReading k = new KinectDataReading();
+            k.data.Add(FaceShapeAnimations.JawSlideRight.GetName(), 0.5);
+            k.data.Add(FaceShapeAnimations.LeftcheekPuff.GetName(), 0.5);
+            k.Write();
+
+            KinectDataReading k2 = new KinectDataReading();
+            k2.data.Add(FaceShapeAnimations.JawSlideRight.GetName(), 0.6);
+            k2.data.Add(FaceShapeAnimations.LeftcheekPuff.GetName(), 0.7);
+            k2.Write();
+            k2.EndWrite();
         }
     }
 }
