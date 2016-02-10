@@ -44,7 +44,13 @@ namespace BesterUI.Data
             string json = "";
             if (!writers.ContainsKey(deviceName))
             {
-                string fileName = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss") + "_" + deviceName + ".json";
+                string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss");
+                if (!Directory.Exists(readingDir))
+                {
+                    Directory.CreateDirectory(readingDir);
+                }
+
+                string fileName = readingDir + "/" + deviceName + ".json";
                 writers.Add(deviceName, new StreamWriter(fileName));
 
                 json += "{\n\"" + deviceName + "\": {\n" +
@@ -61,6 +67,8 @@ namespace BesterUI.Data
         {
             writers[deviceName].Write("]}}");
             writers[deviceName].Flush();
+            writers[deviceName].Dispose();
+            writers.Remove(deviceName);
         }
 
         public abstract void Write();
