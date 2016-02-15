@@ -70,6 +70,33 @@ namespace Classification_App
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return epoch.AddMilliseconds(unixTime);
         }
+
+        public static int GetNumberOfLabels(SAMDataPoint.FeelingModel feelingsModel)
+        {
+            switch (feelingsModel)
+            {
+                case SAMDataPoint.FeelingModel.Arousal2High:
+                case SAMDataPoint.FeelingModel.Arousal2Low:
+                case SAMDataPoint.FeelingModel.Valence2High:
+                case SAMDataPoint.FeelingModel.Valence2Low:
+                    return 2;
+
+                case SAMDataPoint.FeelingModel.Valence3:
+                case SAMDataPoint.FeelingModel.Arousal3:
+                case SAMDataPoint.FeelingModel.ValenceArousal3:
+                    return 3;
+
+                case SAMDataPoint.FeelingModel.Valence9:
+                case SAMDataPoint.FeelingModel.Arousal9:
+                    return 9;
+
+                default:
+                    return 0;
+            }
+        }
+
+
+
     }
 
     public class SAMDataPoint
@@ -95,44 +122,44 @@ namespace Classification_App
             this.imageType = imageType;
         }
 
-        public int ToAVCoordinate(EEGClass classType, bool useControlValues = false)
+        public int ToAVCoordinate(FeelingModel classType, bool useControlValues = false)
         {
             int valenceToUse = useControlValues ? (int)(ctrlValence - 0.5) : valence - 1;
             int arousalToUse = useControlValues ? (int)(ctrlArousal - 0.5) : arousal - 1;
 
             switch (classType)
             {
-                case EEGClass.Valence9:
+                case FeelingModel.Valence9:
                     return valenceToUse;
-                case EEGClass.Valence3:
+                case FeelingModel.Valence3:
                     return valenceToUse < 3 ? 0 : (valenceToUse < 4 ? 1 : 2);
-                case EEGClass.Valence2Low:
+                case FeelingModel.Valence2Low:
                     return valenceToUse < 4 ? 0 : 1;
-                case EEGClass.Valence2High:
+                case FeelingModel.Valence2High:
                     return valenceToUse < 5 ? 0 : 1;
-                case EEGClass.Arousal9:
+                case FeelingModel.Arousal9:
                     return arousalToUse;
-                case EEGClass.Arousal3:
+                case FeelingModel.Arousal3:
                     return arousalToUse < 3 ? 0 : (arousalToUse < 6 ? 1 : 2);
-                case EEGClass.Arousal2Low:
+                case FeelingModel.Arousal2Low:
                     return arousalToUse < 4 ? 0 : 1;
-                case EEGClass.Arousal2High:
+                case FeelingModel.Arousal2High:
                     return arousalToUse < 5 ? 0 : 1;
-                case EEGClass.ValenceArousal9:
+                case FeelingModel.ValenceArousal9:
                     return (valenceToUse) * 9 + arousalToUse;
-                case EEGClass.ValenceArousal3:
+                case FeelingModel.ValenceArousal3:
                     int val3 = valenceToUse < 3 ? 0 : (valenceToUse < 6 ? 1 : 2);
                     int aro3 = arousalToUse < 3 ? 0 : (arousalToUse < 6 ? 1 : 2);
                     return val3 * 3 + aro3;
                 default:
                     {
-                        //Log.LogMessage("wat");
                         return -1;
                     }
             }
         }
+        
 
-        public enum EEGClass
+        public enum FeelingModel
         {
             Valence9,
             Valence3,

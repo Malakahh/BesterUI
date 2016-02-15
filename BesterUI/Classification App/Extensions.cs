@@ -17,8 +17,9 @@ namespace Classification_App
         /// <param name="original"></param>
         /// <param name="nFold"></param>
         /// <returns>returns null if the collection can't be nfolded</returns>
-        public static List<Tuple<SVMProblem, SVMProblem>> GetCrossValidationSets<T>(this IEnumerable<List<double>> original,  int nFold)
+        public static List<Tuple<SVMProblem, SVMProblem>> GetCrossValidationSets<T>(this IEnumerable<List<double>> original, SAMData samData, SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool UseIAPSRatings = false)
         {
+            //TODO: Needs to be tested, can't test before data can be loaded into the program
             List<Tuple<SVMProblem, SVMProblem>> allSets = new List<Tuple<SVMProblem, SVMProblem>>();
 
             if (original.Count() % nFold != 0)
@@ -26,37 +27,47 @@ namespace Classification_App
                 return null;
             }
 
-
-
+            List<int> counter = new List<int>();
+            for (int k = 0; k < original.Count(); k++)
+            {
+                counter.Add(k);
+            }
+            List<List<int>> trainIndicies = new List<List<int>>();
+            List<List<int>> predictIndicies = new List<List<int>>();
             for (int i = 0; i < original.Count(); i += nFold)
             {
-                List<List<double>> trainList = original.Except(original.Skip(i).Take(nFold)).ToList();
-                SVMProblem trainingProblem = new SVMProblem();
-
-                for (int j = 0; j < trainList[0].Count; j++)
-                {
-                    SVMProblem problem = new SVMProblem();
-
-                    for (int i = 0; i < samDataPoint.Count; i++)
-                    {
-                        SVMNode[] featureVector = new SVMNode[machineFeatures[j].features.Count];
-                        for (int w = 0; w < machineFeatures[j].features.Count; w++)
-                        {
-                            featureVector[w] = new SVMNode(w + 1, machineFeatures[j].features[w].func(samDataPoint[i]));
-                        }
-                        problem.Add(featureVector, samDataPoint[i].ToAVCoordinate(feelingModel));
-                    }
-                }
-
-                List<List<double>> predictList = original.Except(trainList).ToList();
-                SVMProblem predictionProblem = new SVMProblem();
-
-
-
-
-                allSets.Add(new Tuple<SVMProblem, SVMProblem>(trainingProblem, predictionProblem));
+                var temp = counter.Skip(i).Take(nFold).ToList();
+                predictIndicies.Add(temp);
+                trainIndicies.Add(counter.Except(temp).ToList());
             }
 
+            for (int j = 0; j < original.Count(); j++)
+            {
+                SVMProblem trainSVMProblem = new SVMProblem();
+                SVMProblem predictSVMProblem = new SVMProblem();
+                foreach (int trainIndex in trainIndicies[j])
+                {
+                    SVMNode[] featureVector = new SVMNode[original.ElementAt(trainIndex).Count];
+                    for (int w = 0; w < original.ElementAt(trainIndex).Count; w++)
+                    {
+                        featureVector[w] = new SVMNode(w + 1, original.ElementAt(trainIndex)[w]);
+                    }
+                    trainSVMProblem.Add(featureVector, samData.dataPoints[trainIndex].ToAVCoordinate(feelingsmodel, UseIAPSRatings));
+                }
+                foreach (int predictIndex in predictIndicies[j])
+                {
+
+                    SVMNode[] featureVector = new SVMNode[original.ElementAt(predictIndex).Count];
+                    for (int w = 0; w < original.ElementAt(predictIndex).Count; w++)
+                    {
+                        featureVector[w] = new SVMNode(w + 1, original.ElementAt(predictIndex)[w]);
+                    }
+                    predictSVMProblem.Add(featureVector, samData.dataPoints[predictIndex].ToAVCoordinate(feelingsmodel, UseIAPSRatings));
+                }
+
+                allSets.Add(new Tuple<SVMProblem, SVMProblem>(trainSVMProblem, predictSVMProblem));
+            }
+            
             return allSets;
         }
 
