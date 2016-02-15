@@ -40,6 +40,22 @@ namespace Classification_App
             return cachedResults[sam];
         }
 
+        public List<double> GetAllValues()
+        {
+            if (dataReadings == null)
+            {
+                throw new Exception("ERROR: You need to call SetData before this function is usable");
+            }
+
+            List<double> values = new List<double>();
+            foreach(SAMDataPoint sd in cachedResults.Keys)
+            {
+                values.Add(cachedResults[sd]);
+            }
+            return values;
+
+        }
+
         public void SetData(List<DataReading> dataReadings)
         {
             this.dataReadings = dataReadings;

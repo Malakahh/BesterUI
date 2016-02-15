@@ -27,11 +27,13 @@ namespace Classification_App
                 return null;
             }
 
+            //Full List of indicies
             List<int> counter = new List<int>();
             for (int k = 0; k < original.Count(); k++)
             {
                 counter.Add(k);
             }
+            //Divide indicies into correct nfold
             List<List<int>> trainIndicies = new List<List<int>>();
             List<List<int>> predictIndicies = new List<List<int>>();
             for (int i = 0; i < original.Count(); i += nFold)
@@ -41,10 +43,12 @@ namespace Classification_App
                 trainIndicies.Add(counter.Except(temp).ToList());
             }
 
+
             for (int j = 0; j < original.Count(); j++)
             {
+                //Create training problem
                 SVMProblem trainSVMProblem = new SVMProblem();
-                SVMProblem predictSVMProblem = new SVMProblem();
+                //Foreach training index, add features to the problem
                 foreach (int trainIndex in trainIndicies[j])
                 {
                     SVMNode[] featureVector = new SVMNode[original.ElementAt(trainIndex).Count];
@@ -54,9 +58,13 @@ namespace Classification_App
                     }
                     trainSVMProblem.Add(featureVector, samData.dataPoints[trainIndex].ToAVCoordinate(feelingsmodel, UseIAPSRatings));
                 }
+
+
+                //Create predict problem
+                SVMProblem predictSVMProblem = new SVMProblem();
+                //Foreach predict index, add features to the problem
                 foreach (int predictIndex in predictIndicies[j])
                 {
-
                     SVMNode[] featureVector = new SVMNode[original.ElementAt(predictIndex).Count];
                     for (int w = 0; w < original.ElementAt(predictIndex).Count; w++)
                     {
