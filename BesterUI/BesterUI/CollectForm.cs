@@ -7,21 +7,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using BesterUI.Helpers;
 namespace BesterUI
 {
     public partial class CollectForm : Form
     {
         FusionData fusionData = new FusionData();
-
+        
         public CollectForm()
         {
             InitializeComponent();
+            Log.LogBox = logTextBox;
         }
 
         private void dummyDataBtn_Click(object sender, EventArgs e)
         {
-            fusionData.CreateDummyData();
+           fusionData.CreateDummyData();
+            
         }
 
         private void loadFromFileBtn_Click(object sender, EventArgs e)

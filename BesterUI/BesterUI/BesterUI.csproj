@@ -71,6 +71,7 @@
     <Compile Include="Data\KinectDataReading.cs" />
     <Compile Include="EnumExtension.cs" />
     <Compile Include="FusionData.cs" />
+    <Compile Include="Helpers\Log.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="CollectForm.resx">
