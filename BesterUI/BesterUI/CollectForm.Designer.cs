@@ -30,6 +30,7 @@
         {
             this.dummyDataBtn = new System.Windows.Forms.Button();
             this.loadFromFileBtn = new System.Windows.Forms.Button();
+            this.logTextBox = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // dummyDataBtn
@@ -52,11 +53,20 @@
             this.loadFromFileBtn.UseVisualStyleBackColor = true;
             this.loadFromFileBtn.Click += new System.EventHandler(this.loadFromFileBtn_Click);
             // 
+            // logTextBox
+            // 
+            this.logTextBox.Location = new System.Drawing.Point(12, 175);
+            this.logTextBox.Name = "logTextBox";
+            this.logTextBox.Size = new System.Drawing.Size(797, 124);
+            this.logTextBox.TabIndex = 2;
+            this.logTextBox.Text = "";
+            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.ClientSize = new System.Drawing.Size(821, 311);
+            this.Controls.Add(this.logTextBox);
             this.Controls.Add(this.loadFromFileBtn);
             this.Controls.Add(this.dummyDataBtn);
             this.Name = "CollectForm";
@@ -69,5 +79,6 @@
 
         private System.Windows.Forms.Button dummyDataBtn;
         private System.Windows.Forms.Button loadFromFileBtn;
+        private System.Windows.Forms.RichTextBox logTextBox;
     }
 }
