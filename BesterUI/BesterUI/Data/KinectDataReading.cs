@@ -11,15 +11,13 @@ namespace BesterUI.Data
     {
         public Dictionary<string, double> data = new Dictionary<string, double>();
 
-        public KinectDataReading(bool beginTimer) : base(beginTimer)
+        public KinectDataReading(bool startReading) : base(startReading)
         {
 
         }
 
         public KinectDataReading() : this(true)
-        {
-
-        }
+        { }
 
         public override void Write()
         {
@@ -29,6 +27,41 @@ namespace BesterUI.Data
         public override void EndWrite()
         {
             DataReading.StaticEndWrite("Kinect");
+        }
+
+        public static List<KinectDataReading> LoadFromFile(string json)
+        {
+            //Timestamp
+            string[] commaSeparated = json.Split(new string[] { ",", "{" }, StringSplitOptions.RemoveEmptyEntries);
+            string startTimeString = commaSeparated.First(s => s.Contains("startTime"));
+            startTimeString = startTimeString.Split(new string[] { "\"" }, StringSplitOptions.RemoveEmptyEntries)[3];
+            DateTime loadedStartTime;
+            DateTime.TryParse(startTimeString, out loadedStartTime);
+
+            List<KinectDataReading> list = new List<KinectDataReading>();
+            string[] data = json.Split(new string[] { "[", "]" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] readings = data[1].Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string r in readings)
+            {
+                KinectDataReading kinect = new KinectDataReading(false);
+                kinect.loadedStartTime = loadedStartTime;
+
+                string[] stats = r.Split(new string[] { ",", "{", "}" }, StringSplitOptions.RemoveEmptyEntries);
+
+                for (int i = 1; i < stats.Length - 1; i++)
+                {
+                    string[] si = stats[i].Split(new string[] { ":", "\"" }, StringSplitOptions.RemoveEmptyEntries);
+                    kinect.data.Add(si[0], double.Parse(si[1]));
+                }
+
+                string s = stats[stats.Length - 1].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                kinect.timestamp = long.Parse(s);
+
+                list.Add(kinect);
+            }
+
+            return list;
         }
     }
 }

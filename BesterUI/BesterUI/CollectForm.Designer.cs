@@ -30,7 +30,6 @@
         {
             this.dummyDataBtn = new System.Windows.Forms.Button();
             this.loadFromFileBtn = new System.Windows.Forms.Button();
-            this.openFileDialogLoadFromFile = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
             // dummyDataBtn
@@ -53,10 +52,6 @@
             this.loadFromFileBtn.UseVisualStyleBackColor = true;
             this.loadFromFileBtn.Click += new System.EventHandler(this.loadFromFileBtn_Click);
             // 
-            // openFileDialogLoadFromFile
-            // 
-            this.openFileDialogLoadFromFile.FileName = "openFileDialog1";
-            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -74,6 +69,5 @@
 
         private System.Windows.Forms.Button dummyDataBtn;
         private System.Windows.Forms.Button loadFromFileBtn;
-        private System.Windows.Forms.OpenFileDialog openFileDialogLoadFromFile;
     }
 }

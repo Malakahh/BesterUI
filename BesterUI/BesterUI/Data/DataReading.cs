@@ -16,10 +16,11 @@ namespace BesterUI.Data
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
         public long timestamp;
+        public DateTime loadedStartTime;
 
-        public DataReading(bool beginTimer)
+        public DataReading(bool startReadings)
         {
-            if (beginTimer)
+            if (startReadings)
             {
                 if (startTime == null || stopWatch == null)
                 {

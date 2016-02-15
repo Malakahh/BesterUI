@@ -7,8 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using BesterUI.Data;
-using Microsoft.Kinect.Face;
 
 namespace BesterUI
 {
@@ -28,7 +26,14 @@ namespace BesterUI
 
         private void loadFromFileBtn_Click(object sender, EventArgs e)
         {
-            openFileDialogLoadFromFile.ShowDialog();
+            OpenFileDialog fb = new OpenFileDialog();
+            fb.Multiselect = true;
+            DialogResult res = fb.ShowDialog();
+
+            if (res == DialogResult.OK)
+            {
+                fusionData.LoadFromFile(fb.FileNames);
+            }
         }
     }
 }

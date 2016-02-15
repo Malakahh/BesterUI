@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BesterUI.Data;
 using Microsoft.Kinect.Face;
+using System.IO;
 
 namespace BesterUI
 {
@@ -20,9 +21,36 @@ namespace BesterUI
 
         }
 
-        public void LoadFromFile(string directory)
+        public void LoadFromFile(string[] fileNames)
         {
-            
+            string[] correctNames = new string[4] { "GSR.json", "EEG.json", "Band.json", "Kinect.json" };
+
+            foreach (string file in fileNames)
+            {
+                string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                if (!correctNames.Contains(s))
+                {
+                    continue;
+                }
+
+                string json = File.ReadAllText(file);
+
+                switch(s)
+                {
+                    case "GSR.json":
+                        gsrData = GSRDataReading.LoadFromFile(json);
+                        break;
+                    case "EEG.json":
+                        eegData = EEGDataReading.LoadFromFile(json);
+                        break;
+                    case "Band.json":
+                        bandData = BandDataReading.LoadFromFile(json);
+                        break;
+                    case "Kinect.json":
+                        kinectData = KinectDataReading.LoadFromFile(json);
+                        break;
+                }
+            }
         }
 
         public void CreateDummyData()
