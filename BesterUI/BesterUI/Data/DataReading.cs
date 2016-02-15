@@ -16,21 +16,27 @@ namespace BesterUI.Data
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
         public long timestamp;
+        public DateTime loadedStartTime;
 
-        public DataReading()
+        public DataReading(bool startReadings)
         {
-            if (startTime == null)
+            if (startReadings)
             {
-                startTime = DateTime.Now;
-            }
+                if (startTime == null || stopWatch == null)
+                {
+                    startTime = DateTime.UtcNow;
+                    stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                }
 
-            if (stopWatch == null)
-            {
-                stopWatch = new Stopwatch();
-                stopWatch.Start();
+                timestamp = stopWatch.ElapsedMilliseconds;
             }
+        }
 
-            timestamp = stopWatch.ElapsedMilliseconds;
+        public static void ResetTimers()
+        {
+            startTime = null;
+            stopWatch = null;
         }
 
         public static void StaticWrite(string deviceName, object obj)
@@ -42,8 +48,10 @@ namespace BesterUI.Data
             }
 
             string json = "";
+            bool isFirst = false;
             if (!writers.ContainsKey(deviceName))
             {
+                isFirst = true;
                 string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss");
                 if (!Directory.Exists(readingDir))
                 {
@@ -59,7 +67,7 @@ namespace BesterUI.Data
             }
 
             json += new JavaScriptSerializer().Serialize(obj);
-            writers[deviceName].Write(json + ",\n");
+            writers[deviceName].Write(((isFirst) ? "" : ",\n") + json);
             writers[deviceName].Flush();
         }
 

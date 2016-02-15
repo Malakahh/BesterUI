@@ -28,25 +28,37 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
+            this.dummyDataBtn = new System.Windows.Forms.Button();
+            this.loadFromFileBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // button1
+            // dummyDataBtn
             // 
-            this.button1.Location = new System.Drawing.Point(84, 93);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.dummyDataBtn.Location = new System.Drawing.Point(12, 12);
+            this.dummyDataBtn.Name = "dummyDataBtn";
+            this.dummyDataBtn.Size = new System.Drawing.Size(105, 23);
+            this.dummyDataBtn.TabIndex = 0;
+            this.dummyDataBtn.Text = "CreateDummyData";
+            this.dummyDataBtn.UseVisualStyleBackColor = true;
+            this.dummyDataBtn.Click += new System.EventHandler(this.dummyDataBtn_Click);
+            // 
+            // loadFromFileBtn
+            // 
+            this.loadFromFileBtn.Location = new System.Drawing.Point(13, 42);
+            this.loadFromFileBtn.Name = "loadFromFileBtn";
+            this.loadFromFileBtn.Size = new System.Drawing.Size(104, 23);
+            this.loadFromFileBtn.TabIndex = 1;
+            this.loadFromFileBtn.Text = "Load From File";
+            this.loadFromFileBtn.UseVisualStyleBackColor = true;
+            this.loadFromFileBtn.Click += new System.EventHandler(this.loadFromFileBtn_Click);
             // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 261);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.loadFromFileBtn);
+            this.Controls.Add(this.dummyDataBtn);
             this.Name = "CollectForm";
             this.Text = "CollectForm";
             this.ResumeLayout(false);
@@ -55,6 +67,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button dummyDataBtn;
+        private System.Windows.Forms.Button loadFromFileBtn;
     }
 }
