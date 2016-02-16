@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.IO.Ports;
 using System.Management;
 
@@ -71,6 +71,44 @@ namespace BesterUI.Helpers
                 objects.Add(o);
             }
             return objects;
+        }
+
+        static public bool IsArduino(string portname)
+        {
+            try
+            {
+                SerialPort arduino = PortNamed(portname, 115200, Parity.None, StopBits.One, 8);
+                arduino.Open();
+
+                if (arduino.BytesToRead <= 0)
+                {
+                    Thread.Sleep(1000);
+                }
+
+                string msg = arduino.ReadLine();
+
+                if (msg.Length < 2)
+                {
+                    arduino.Close();
+                    return false;
+                }
+
+                char id = msg[0];
+
+                if (id == 'Y' || id == 'N')
+                {
+                    arduino.Close();
+                    return true;
+                }
+
+                arduino.Close();
+                return false;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
         }
     }
 }

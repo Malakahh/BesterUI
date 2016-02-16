@@ -12,7 +12,7 @@ namespace BesterUI
 {
     public class FusionData
     {
-        public List<BandDataReading> bandData = new List<BandDataReading>();
+        public List<HRDataReading> bandData = new List<HRDataReading>();
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<KinectDataReading> kinectData = new List<KinectDataReading>();
@@ -54,7 +54,7 @@ namespace BesterUI
                             eegData = EEGDataReading.LoadFromFile(json);
                             break;
                         case "Band.json":
-                            bandData = BandDataReading.LoadFromFile(json);
+                            bandData = HRDataReading.LoadFromFile(json);
                             break;
                         case "Kinect.json":
                             kinectData = KinectDataReading.LoadFromFile(json);
@@ -104,16 +104,16 @@ namespace BesterUI
             //Band
             for (int i = 0; i < 200; i++)
             {
-                BandDataReading band = new BandDataReading();
-                band.heartRate = 5;
-                band.quality = BandDataReading.QUALITY.ACQUIRING.GetName();
+                HRDataReading band = new HRDataReading();
+                band.signal = 5;
+                band.quality = HRDataReading.QUALITY.ACQUIRING.GetName();
                 band.Write();
                 bandData.Add(band);
             }
 
-            BandDataReading band1 = new BandDataReading();
-            band1.heartRate = 1337;
-            band1.quality = BandDataReading.QUALITY.LOCKED.GetName();
+            HRDataReading band1 = new HRDataReading();
+            band1.signal = 1337;
+            band1.quality = HRDataReading.QUALITY.LOCKED.GetName();
             band1.Write();
             bandData.Add(band1);
             band1.EndWrite();
