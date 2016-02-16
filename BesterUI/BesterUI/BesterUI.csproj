@@ -64,6 +64,7 @@
     <Compile Include="CollectForm.Designer.cs">
       <DependentUpon>CollectForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="DataCollectors\GSRCollector.cs" />
     <Compile Include="Data\BandDataReading.cs" />
     <Compile Include="Data\DataReading.cs" />
     <Compile Include="Data\EEGDataReading.cs" />
