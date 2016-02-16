@@ -11,6 +11,7 @@ namespace BesterUI.DataCollectors
     {
 
         private EmoEngine eegEngine;
+        int userID = -1;
 
         public EEGCollector()
         {
@@ -23,10 +24,24 @@ namespace BesterUI.DataCollectors
             eegEngine.Connect();
         }
 
+
+        private void Collector()
+        {
+            // Handle any waiting events
+            eegEngine.ProcessEvents();
+        }
+
         #region [Events]
         private void EegEngine_UserAdded(object sender, EmoEngineEventArgs e)
         {
+            // record the user 
+            userID = (int)e.userId;
 
+            // enable data aquisition for this user.
+            eegEngine.DataAcquisitionEnable((uint)userID, true);
+
+            // ask for up to 1 second of buffered data
+            eegEngine.EE_DataSetBufferSizeInSec(1);
         }
         #endregion
 

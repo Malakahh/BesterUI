@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace BesterUI.Data
 {
-    public class BandDataReading : DataReading
+    public class HRDataReading : DataReading
     {
         public enum QUALITY { LOCKED, ACQUIRING }
 
         public string quality;
         public int heartRate;
 
-        public BandDataReading(bool startReading) : base(startReading)
+        public HRDataReading(bool startReading) : base(startReading)
         {
 
         }
 
-        public BandDataReading() : this(true)
+        public HRDataReading() : this(true)
         { }
 
         public override void Write()
@@ -31,7 +31,7 @@ namespace BesterUI.Data
             DataReading.StaticEndWrite("Band");
         }
 
-        public static List<BandDataReading> LoadFromFile(string json)
+        public static List<HRDataReading> LoadFromFile(string json)
         {
             //Timestamp
             string[] commaSeparated = json.Split(new string[] { ",", "{" }, StringSplitOptions.RemoveEmptyEntries);
@@ -40,13 +40,13 @@ namespace BesterUI.Data
             DateTime loadedStartTime;
             DateTime.TryParse(startTimeString, out loadedStartTime);
 
-            List<BandDataReading> list = new List<BandDataReading>();
+            List<HRDataReading> list = new List<HRDataReading>();
             string[] data = json.Split(new string[] { "[", "]" }, StringSplitOptions.RemoveEmptyEntries);
             string[] readings = data[1].Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string r in readings)
             {
-                BandDataReading band = new BandDataReading(false);
+                HRDataReading band = new HRDataReading(false);
                 band.loadedStartTime = loadedStartTime;
 
                 string[] stats = r.Split(new string[] { ",", "{", "}" }, StringSplitOptions.RemoveEmptyEntries);
