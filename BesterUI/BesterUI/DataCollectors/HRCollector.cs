@@ -50,7 +50,7 @@ namespace BesterUI.DataCollectors
             {
                 if (arduino.BytesToRead > 0)
                 {
-                    fd.bandData.Add(ReadData());
+                    fd.AddHRData(ReadData());
                 }
             }
         }

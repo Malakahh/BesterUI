@@ -12,21 +12,45 @@ namespace BesterUI
 {
     public class FusionData
     {
-        public List<HRDataReading> bandData = new List<HRDataReading>();
-        public List<EEGDataReading> eegData = new List<EEGDataReading>();
-        public List<GSRDataReading> gsrData = new List<GSRDataReading>();
-        public List<KinectDataReading> kinectData = new List<KinectDataReading>();
+        private List<HRDataReading> hrData = new List<HRDataReading>();
+        private List<EEGDataReading> eegData = new List<EEGDataReading>();
+        private List<GSRDataReading> gsrData = new List<GSRDataReading>();
+        private List<KinectDataReading> kinectData = new List<KinectDataReading>();
 
         public FusionData()
         {
 
         }
 
+        public void AddHRData(HRDataReading data)
+        {
+            data.Write();
+            hrData.Add(data);
+        }
+
+        public void AddEEGData(EEGDataReading data)
+        {
+            data.Write();
+            eegData.Add(data);
+        }
+
+        public void AddGSRData(GSRDataReading data)
+        {
+            data.Write();
+            gsrData.Add(data);
+        }
+
+        public void AddKinectData(KinectDataReading data)
+        {
+            data.Write();
+            kinectData.Add(data);
+        }
+
         public void LoadFromFile(string[] fileNames)
         {
             DialogResult res = DialogResult.OK;
 
-            if (bandData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || kinectData.Count != 0)
+            if (hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || kinectData.Count != 0)
             {
                 res = MessageBox.Show("You are about to overwrite unsaved data. Continue?", "WARNING", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
             }
@@ -45,7 +69,7 @@ namespace BesterUI
 
                     string json = File.ReadAllText(file);
 
-                    switch(s)
+                    switch (s)
                     {
                         case "GSR.json":
                             gsrData = GSRDataReading.LoadFromFile(json);
@@ -54,7 +78,7 @@ namespace BesterUI
                             eegData = EEGDataReading.LoadFromFile(json);
                             break;
                         case "Band.json":
-                            bandData = HRDataReading.LoadFromFile(json);
+                            hrData = HRDataReading.LoadFromFile(json);
                             break;
                         case "Kinect.json":
                             kinectData = KinectDataReading.LoadFromFile(json);
@@ -72,13 +96,13 @@ namespace BesterUI
             test.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.1);
             test.Write();
             eegData.Add(test);
-            
+
             EEGDataReading test2 = new EEGDataReading();
             test2.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.2);
             test2.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.2);
             test2.Write();
             eegData.Add(test2);
-            
+
             EEGDataReading test3 = new EEGDataReading();
             test3.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 13337.0);
             test3.Write();
@@ -106,16 +130,16 @@ namespace BesterUI
             {
                 HRDataReading band = new HRDataReading();
                 band.signal = 5;
-                band.quality = HRDataReading.QUALITY.ACQUIRING.GetName();
+                band.isBeat = false;
                 band.Write();
-                bandData.Add(band);
+                hrData.Add(band);
             }
 
             HRDataReading band1 = new HRDataReading();
             band1.signal = 1337;
-            band1.quality = HRDataReading.QUALITY.LOCKED.GetName();
+            band1.isBeat = true;
             band1.Write();
-            bandData.Add(band1);
+            hrData.Add(band1);
             band1.EndWrite();
 
 

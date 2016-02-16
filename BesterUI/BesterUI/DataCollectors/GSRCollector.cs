@@ -45,7 +45,7 @@ namespace BesterUI.DataCollectors
             {
                 if (comPort.BytesToRead > 0)
                 {
-                    fd.gsrData.Add(ReadData());
+                    fd.AddGSRData(ReadData());
                 }
             }
         }
