@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BesterUI.Data;
 using Microsoft.Kinect.Face;
+using System.Windows.Forms;
 using System.IO;
 
 namespace BesterUI
@@ -23,32 +24,42 @@ namespace BesterUI
 
         public void LoadFromFile(string[] fileNames)
         {
-            string[] correctNames = new string[4] { "GSR.json", "EEG.json", "Band.json", "Kinect.json" };
+            DialogResult res = DialogResult.OK;
 
-            foreach (string file in fileNames)
+            if (bandData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || kinectData.Count != 0)
             {
-                string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                if (!correctNames.Contains(s))
-                {
-                    continue;
-                }
+                res = MessageBox.Show("You are about to overwrite unsaved data. Continue?", "WARNING", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+            }
 
-                string json = File.ReadAllText(file);
+            if (res == DialogResult.OK)
+            {
+                string[] correctNames = new string[4] { "GSR.json", "EEG.json", "Band.json", "Kinect.json" };
 
-                switch(s)
+                foreach (string file in fileNames)
                 {
-                    case "GSR.json":
-                        gsrData = GSRDataReading.LoadFromFile(json);
-                        break;
-                    case "EEG.json":
-                        eegData = EEGDataReading.LoadFromFile(json);
-                        break;
-                    case "Band.json":
-                        bandData = BandDataReading.LoadFromFile(json);
-                        break;
-                    case "Kinect.json":
-                        kinectData = KinectDataReading.LoadFromFile(json);
-                        break;
+                    string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                    if (!correctNames.Contains(s))
+                    {
+                        continue;
+                    }
+
+                    string json = File.ReadAllText(file);
+
+                    switch(s)
+                    {
+                        case "GSR.json":
+                            gsrData = GSRDataReading.LoadFromFile(json);
+                            break;
+                        case "EEG.json":
+                            eegData = EEGDataReading.LoadFromFile(json);
+                            break;
+                        case "Band.json":
+                            bandData = BandDataReading.LoadFromFile(json);
+                            break;
+                        case "Kinect.json":
+                            kinectData = KinectDataReading.LoadFromFile(json);
+                            break;
+                    }
                 }
             }
         }
