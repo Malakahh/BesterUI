@@ -9,11 +9,11 @@ namespace Classification_App
 {
     class MetaClassifier : Classifier
     {
-        public MetaClassifier(string Name, List<SVMParameter> Parameters) : base(Name, Parameters)
+        public MetaClassifier(string Name, List<SVMParameter> Parameters, SAMData SamData) : base(Name, Parameters, SamData)
         {
         }
 
-        public MetaClassifier(string Name, SVMParameter Parameter) : base(Name, Parameter)
+        public MetaClassifier(string Name, SVMParameter Parameter, SAMData SamData) : base(Name, Parameter, SamData)
         {
         }
 
