@@ -9,6 +9,8 @@ namespace BesterUI.Data
     public class HRDataReading : DataReading
     {
         public int signal;
+        public int IBI;
+        public int BPM;
         public bool isBeat;
 
         public HRDataReading(bool startReading) : base(startReading)
@@ -44,20 +46,20 @@ namespace BesterUI.Data
 
             foreach (string r in readings)
             {
-                HRDataReading band = new HRDataReading(false);
-                band.loadedStartTime = loadedStartTime;
+                HRDataReading hr = new HRDataReading(false);
+                hr.loadedStartTime = loadedStartTime;
 
                 string[] stats = r.Split(new string[] { ",", "{", "}" }, StringSplitOptions.RemoveEmptyEntries);
 
-                band.isBeat = stats[0].Split(new string[] { ":", "\"" }, StringSplitOptions.RemoveEmptyEntries)[1] == "true";
+                hr.isBeat = stats[0].Split(new string[] { ":", "\"" }, StringSplitOptions.RemoveEmptyEntries)[1] == "true";
 
                 string s1 = stats[1].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                band.signal = int.Parse(s1);
+                hr.signal = int.Parse(s1);
 
                 string s2 = stats[2].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                band.timestamp = long.Parse(s2);
+                hr.timestamp = long.Parse(s2);
 
-                list.Add(band);
+                list.Add(hr);
             }
 
             return list;

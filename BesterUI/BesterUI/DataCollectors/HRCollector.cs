@@ -74,19 +74,22 @@ namespace BesterUI.DataCollectors
         HRDataReading ReadData()
         {
             string msg = arduino.ReadLine();
-            char id = msg[0];
+            char id1 = msg[0];
+            char id2 = msg[1];
 
-            if (id == 'Y') //beat found!
+            if (id1 == 'B' && id2 == ':') //valid reading
             {
-                return new HRDataReading() { isBeat = true, signal = int.Parse(msg.Substring(1)) };
-            }
-            else if (id == 'N') //no beat this time. :(
-            {
-                return new HRDataReading() { isBeat = false, signal = int.Parse(msg.Substring(1)) };
+                var data = msg.Split('|');
+                bool disBeat = data[0].Split(':')[1] == "Y";
+                int dIBI = int.Parse(data[1].Split(':')[1]);
+                int dBPM = int.Parse(data[2].Split(':')[1]);
+                int dSignal = int.Parse(data[3].Split(':')[1]);
+
+                return new HRDataReading() { isBeat = disBeat, signal = dSignal, IBI = dIBI, BPM = dBPM };
             }
 
             Log.LogMessage("ERROR: Faulty HeartRate reading!!");
-            return new HRDataReading() { signal = int.MaxValue };
+            return new HRDataReading() { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
         }
     }
 }

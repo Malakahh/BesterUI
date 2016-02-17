@@ -43,25 +43,28 @@ void setup(){
 
 //  Where the Magic Happens
 void loop(){
+
+  char isBeat = 'N';
+  if (QS == true)
+  {
+    isBeat = 'Y';
+    digitalWrite(blinkPin,HIGH);     // Blink LED, we got a beat. 
+    fadeRate = 255;         // Makes the LED Fade Effect Happen
+                            // Set 'fadeRate' Variable to 255 to fade LED with pulse
+                            
+    QS = false;                      // reset the Quantified Self flag for next time    
+  }
+  
+  Serial.print("B:");
+  Serial.print(isBeat);
+  Serial.print("|BPM:");
+  Serial.print(BPM);
+  Serial.print("|IBI:");
+  Serial.print(IBI);
+  Serial.print("|SIG:");
+  Serial.println(Signal);
   
         
-    
-  if (QS == true)
-  {     // A Heartbeat Was Found
-                       // BPM and IBI have been Determined
-                       // Quantified Self "QS" true when arduino finds a heartbeat
-        digitalWrite(blinkPin,HIGH);     // Blink LED, we got a beat. 
-        fadeRate = 255;         // Makes the LED Fade Effect Happen
-                                // Set 'fadeRate' Variable to 255 to fade LED with pulse
-                                
-        QS = false;                      // reset the Quantified Self flag for next time    
-        
-        sendDataToSerial('Y', Signal);   // A Beat Happened, Output that to serial.     
-  }
-  else
-  {
-    sendDataToSerial('N', Signal);
-  }
      
   ledFadeToBeat();                      // Makes the LED Fade Effect Happen 
   delay(20);                             //  take a break
