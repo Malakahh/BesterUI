@@ -13,17 +13,17 @@ namespace Classification_App
     class StdClassifier : Classifier
     {
         public override List<SVMParameter> Parameters { get; set; }
-        public List<Feature> features;
+        public List<Feature> features = new List<Feature>();
 
         #region [Constructors]
         public StdClassifier(string Name, List<SVMParameter> Parameters, List<Feature> Features, SAMData samData) : base(Name, Parameters, samData)
         {
-            Features.ForEach(x => Features.Add(x));
+            Features.ForEach(x => features.Add(x));
         }
 
         public StdClassifier(string Name, SVMParameter Parameter, List<Feature> Features, SAMData samData) : base(Name, Parameter, samData)
         {
-            Features.ForEach(x => Features.Add(x));
+            Features.ForEach(x => features.Add(x));
         }
         #endregion
 

@@ -11,12 +11,12 @@ namespace BesterUI.DataCollectors
 {
     class EEGCollector
     {
-
         private EmoEngine eegEngine;
         private Thread dataCollectThread;
         int userID = -1;
         private FusionData fd;
 
+        
         public EEGCollector(FusionData fusionData)
         {
             eegEngine = EmoEngine.Instance;
