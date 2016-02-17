@@ -39,6 +39,9 @@
             this.hrdwareStatusLabel = new System.Windows.Forms.Label();
             this.btnVerifySensors = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.eegPort = new System.Windows.Forms.Label();
+            this.gsrPort = new System.Windows.Forms.Label();
+            this.hrPort = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -52,6 +55,9 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.hrPort);
+            this.panel1.Controls.Add(this.gsrPort);
+            this.panel1.Controls.Add(this.eegPort);
             this.panel1.Controls.Add(this.hrReady);
             this.panel1.Controls.Add(this.gsrReady);
             this.panel1.Controls.Add(this.label2);
@@ -60,13 +66,13 @@
             this.panel1.Controls.Add(this.label1);
             this.panel1.Location = new System.Drawing.Point(12, 25);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(101, 83);
+            this.panel1.Size = new System.Drawing.Size(102, 83);
             this.panel1.TabIndex = 3;
             // 
             // hrReady
             // 
             this.hrReady.BackColor = System.Drawing.Color.Red;
-            this.hrReady.Location = new System.Drawing.Point(70, 56);
+            this.hrReady.Location = new System.Drawing.Point(75, 56);
             this.hrReady.Name = "hrReady";
             this.hrReady.Size = new System.Drawing.Size(16, 16);
             this.hrReady.TabIndex = 7;
@@ -74,7 +80,7 @@
             // gsrReady
             // 
             this.gsrReady.BackColor = System.Drawing.Color.Red;
-            this.gsrReady.Location = new System.Drawing.Point(70, 33);
+            this.gsrReady.Location = new System.Drawing.Point(75, 33);
             this.gsrReady.Name = "gsrReady";
             this.gsrReady.Size = new System.Drawing.Size(16, 16);
             this.gsrReady.TabIndex = 6;
@@ -91,7 +97,7 @@
             // eegReady
             // 
             this.eegReady.BackColor = System.Drawing.Color.Red;
-            this.eegReady.Location = new System.Drawing.Point(70, 10);
+            this.eegReady.Location = new System.Drawing.Point(75, 10);
             this.eegReady.Name = "eegReady";
             this.eegReady.Size = new System.Drawing.Size(16, 16);
             this.eegReady.TabIndex = 5;
@@ -142,6 +148,33 @@
             this.button2.Text = "START COLLECT";
             this.button2.UseVisualStyleBackColor = true;
             // 
+            // eegPort
+            // 
+            this.eegPort.AutoSize = true;
+            this.eegPort.Location = new System.Drawing.Point(32, 12);
+            this.eegPort.Name = "eegPort";
+            this.eegPort.Size = new System.Drawing.Size(40, 13);
+            this.eegPort.TabIndex = 8;
+            this.eegPort.Text = "- - - - - -";
+            // 
+            // gsrPort
+            // 
+            this.gsrPort.AutoSize = true;
+            this.gsrPort.Location = new System.Drawing.Point(32, 35);
+            this.gsrPort.Name = "gsrPort";
+            this.gsrPort.Size = new System.Drawing.Size(43, 13);
+            this.gsrPort.TabIndex = 9;
+            this.gsrPort.Text = "- - - - - - ";
+            // 
+            // hrPort
+            // 
+            this.hrPort.AutoSize = true;
+            this.hrPort.Location = new System.Drawing.Point(32, 58);
+            this.hrPort.Name = "hrPort";
+            this.hrPort.Size = new System.Drawing.Size(40, 13);
+            this.hrPort.TabIndex = 10;
+            this.hrPort.Text = "- - - - - -";
+            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -173,5 +206,8 @@
         private System.Windows.Forms.Label hrdwareStatusLabel;
         private System.Windows.Forms.Button btnVerifySensors;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label hrPort;
+        private System.Windows.Forms.Label gsrPort;
+        private System.Windows.Forms.Label eegPort;
     }
 }

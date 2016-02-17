@@ -48,9 +48,14 @@ namespace BesterUI
             */
             hrCollect = new HRCollector(fusionData);
             if (hrCollect.Connect())
+            {
                 hrReady.BackColor = Color.Green;
+                hrPort.Text = "(" + hrCollect.MyPort() + ")";
+            }
             else
+            {
                 hrReady.BackColor = Color.Red;
+            }
 
             /*
                 GSR Initiation
@@ -81,6 +86,8 @@ namespace BesterUI
                     gsrCollect = new GSRCollector(port, fusionData);
                     if (gsrCollect.TestPort()) { 
                         connected = true;
+                        gsrPort.Text = "(" + port + ")";
+                        Log.LogMessageSameLine("Trying to bind GSR to port: " + port + " - SUCCES");
                     } else
                     {
                         Log.LogMessageSameLine("Trying to bind GSR to port: " + port + " - FAILED");

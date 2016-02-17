@@ -92,8 +92,10 @@ namespace BesterUI.Helpers
 
                 if (msg.Length < 2)
                 {
+
                     retVal = false;
                 }
+
 
                 char id = msg[0];
 
@@ -101,9 +103,13 @@ namespace BesterUI.Helpers
                 {
                     retVal = true;
                 }
+                else
+                {
+                    retVal = false;
+                }
 
                 arduino.Close();
-                retVal = false;
+                
             }
             catch (Exception e)
             {
