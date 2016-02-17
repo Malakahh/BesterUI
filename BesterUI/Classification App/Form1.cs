@@ -17,8 +17,13 @@ namespace Classification_App
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btn_Run_Click(object sender, EventArgs e)
         { 
+        }
+
+        private void btn_LoadData_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

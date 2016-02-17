@@ -33,6 +33,8 @@ namespace Classification_App
             this.samData = samData;
         }
 
+
+
         //public abstract void CrossValidate(List<SVMParameter> Parameters, bool RunCombinations);
 
 
