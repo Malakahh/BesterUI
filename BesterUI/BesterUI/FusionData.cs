@@ -15,6 +15,7 @@ namespace BesterUI
         private List<EEGDataReading> eegData = new List<EEGDataReading>();
         private List<GSRDataReading> gsrData = new List<GSRDataReading>();
 
+
         public FusionData()
         {
 

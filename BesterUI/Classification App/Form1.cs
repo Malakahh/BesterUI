@@ -16,6 +16,7 @@ namespace Classification_App
     public partial class Form1 : Form
     {
         FusionData _fd = new FusionData();
+        SAMData samData;
         List<SVMConfiguration> svmConfigs = new List<SVMConfiguration>();
         string currentPath;
 
@@ -56,6 +57,8 @@ namespace Classification_App
                 Log.LogMessage("Selected folder: " + fbd.SelectedPath);
                 //load fusion data
                 _fd.LoadFromFile(new string[] { fbd.SelectedPath + @"\EEG.json", fbd.SelectedPath + @"\GSR.json", fbd.SelectedPath + @"\HR.json" });
+                samData = SAMData.LoadFromPath(fbd.SelectedPath + @"\SAM.json");
+
                 Log.LogMessage("Fusion Data loaded!");
 
                 Log.LogMessage("Looking for configurations...");
