@@ -9,12 +9,12 @@ namespace Classification_App
 {
     class PredictionResult
     {
-        double[,] confusionMatrix;
-        List<double> recalls;
-        List<double> precisions;
-        List<double> fscores;
-        public SVMParameter svmParams;
-        public List<Feature> features;
+        public double[,] confusionMatrix { get; private set; }
+        public List<double> recalls { get; private set; }
+        public List<double> precisions { get; private set; }
+        public List<double> fscores { get; private set; }
+        public SVMParameter svmParams { get; private set; }
+        public List<Feature> features { get; private set; }
         public List<int> guesses = new List<int>();
         public List<int> answers = new List<int>();
 
@@ -28,6 +28,20 @@ namespace Classification_App
             features = Features;
             guesses = Guesses;
             answers = Answers;
+        }
+
+        public double AverageFScore()
+        {
+            double total = 0;
+            for(int i = 0; i < fscores.Count; i++)
+            {
+                if (!double.IsNaN(fscores[i]))
+                {
+                    total += fscores[i] * answers.Count(x => x == i);
+                }
+            }
+            total /= answers.Count;
+            return total;
         }
 
         //TODO: Make some printing functions
