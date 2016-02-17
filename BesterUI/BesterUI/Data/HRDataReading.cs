@@ -21,12 +21,12 @@ namespace BesterUI.Data
 
         public override void Write()
         {
-            DataReading.StaticWrite("Band", this);
+            DataReading.StaticWrite("HR", this);
         }
 
         public override void EndWrite()
         {
-            DataReading.StaticEndWrite("Band");
+            DataReading.StaticEndWrite("HR");
         }
 
         public static List<HRDataReading> LoadFromFile(string json)

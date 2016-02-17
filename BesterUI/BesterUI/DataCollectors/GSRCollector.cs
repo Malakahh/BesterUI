@@ -27,6 +27,7 @@ namespace BesterUI.DataCollectors
 
         public void StartCollecting()
         {
+            Log.LogMessage("Starting GSR");
             stopCollecting = false;
             collectionThread = new Thread(new ThreadStart(CollectorTask));
             collectionThread.Start();
@@ -49,6 +50,7 @@ namespace BesterUI.DataCollectors
                 }
             }
             COMHandler.ClosePort(comPort);
+            DataReading.StaticEndWrite("GSR");
             Log.LogMessage("Stopped GSR");
         }
 
