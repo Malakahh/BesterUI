@@ -20,6 +20,14 @@ namespace BesterUI
 
         }
 
+        public void Reset()
+        {
+            hrData.Clear();
+            eegData.Clear();
+            gsrData.Clear();
+
+        }
+
         public void AddHRData(HRDataReading data)
         {
             data.Write();
