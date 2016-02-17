@@ -95,15 +95,20 @@ namespace BesterUI.Helpers
                     retVal = false;
                 }
 
+
                 char id = msg[0];
 
                 if (id == 'Y' || id == 'N')
                 {
                     retVal = true;
                 }
+                else
+                {
+                    retVal = false;
+                }
 
                 arduino.Close();
-                retVal = false;
+                
             }
             catch (Exception e)
             {
