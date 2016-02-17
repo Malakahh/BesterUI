@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BesterUI.Data;
-using Microsoft.Kinect.Face;
 using System.Windows.Forms;
 using System.IO;
 
@@ -15,7 +14,6 @@ namespace BesterUI
         private List<HRDataReading> hrData = new List<HRDataReading>();
         private List<EEGDataReading> eegData = new List<EEGDataReading>();
         private List<GSRDataReading> gsrData = new List<GSRDataReading>();
-        private List<KinectDataReading> kinectData = new List<KinectDataReading>();
 
         public FusionData()
         {
@@ -40,24 +38,18 @@ namespace BesterUI
             gsrData.Add(data);
         }
 
-        public void AddKinectData(KinectDataReading data)
-        {
-            data.Write();
-            kinectData.Add(data);
-        }
-
         public void LoadFromFile(string[] fileNames)
         {
             DialogResult res = DialogResult.OK;
 
-            if (hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || kinectData.Count != 0)
+            if (hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0)
             {
                 res = MessageBox.Show("You are about to overwrite unsaved data. Continue?", "WARNING", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
             }
 
             if (res == DialogResult.OK)
             {
-                string[] correctNames = new string[4] { "GSR.json", "EEG.json", "Band.json", "Kinect.json" };
+                string[] correctNames = new string[3] { "GSR.json", "EEG.json", "Band.json", };
 
                 foreach (string file in fileNames)
                 {
@@ -79,9 +71,6 @@ namespace BesterUI
                             break;
                         case "Band.json":
                             hrData = HRDataReading.LoadFromFile(json);
-                            break;
-                        case "Kinect.json":
-                            kinectData = KinectDataReading.LoadFromFile(json);
                             break;
                     }
                 }
@@ -142,20 +131,6 @@ namespace BesterUI
             hrData.Add(band1);
             band1.EndWrite();
 
-
-            //Kinect
-            KinectDataReading k = new KinectDataReading();
-            k.data.Add(FaceShapeAnimations.JawSlideRight.GetName(), 0.5);
-            k.data.Add(FaceShapeAnimations.LeftcheekPuff.GetName(), 0.5);
-            k.Write();
-            kinectData.Add(k);
-
-            KinectDataReading k2 = new KinectDataReading();
-            k2.data.Add(FaceShapeAnimations.JawSlideRight.GetName(), 0.6);
-            k2.data.Add(FaceShapeAnimations.LeftcheekPuff.GetName(), 0.7);
-            k2.Write();
-            kinectData.Add(k2);
-            k2.EndWrite();
         }
     }
 }
