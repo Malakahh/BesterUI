@@ -16,18 +16,30 @@ namespace BesterUI.DataCollectors
         Thread collectionThread;
         FusionData fd;
 
+        public string MyPort()
+        {
+            return (arduino == null) ? "" : arduino.PortName;
+        }
+
         public HRCollector(FusionData fd)
         {
             this.fd = fd;
+        }
 
+        public bool Connect()
+        {
+            bool connected = false;
             foreach (var item in COMHandler.Ports())
             {
                 if (COMHandler.IsArduino(item))
                 {
                     arduino = COMHandler.PortNamed(item, 115200, Parity.None, StopBits.One, 8);
+                    connected = true;
                     break;
                 }
             }
+
+            return connected;
         }
 
         public void StartCollecting()
