@@ -17,6 +17,8 @@ namespace BesterUI.DataCollectors
         int userID = -1;
         private FusionData fd;
 
+        public Action DeviceReady;
+
         
         public EEGCollector(FusionData fusionData)
         {
@@ -108,8 +110,14 @@ namespace BesterUI.DataCollectors
 
             // ask for up to 1 second of buffered data
             eegEngine.EE_DataSetBufferSizeInSec(1);
+
+            //Fire event that the eeg is ready
+            if (DeviceReady == null)
+                DeviceReady();
         }
         #endregion
+
+        
 
     }
 }

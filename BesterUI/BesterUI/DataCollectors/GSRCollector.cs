@@ -19,9 +19,10 @@ namespace BesterUI.DataCollectors
         Thread collectionThread;
         FusionData fd;
 
+
         public GSRCollector(string PortName, FusionData fd)
         {
-            comPort = COMHandler.PortNamed(PortName, 19200, Parity.None, StopBits.One, 8);
+            this.comPort = COMHandler.PortNamed(PortName, 19200, Parity.None, StopBits.One, 8);
             this.fd = fd;
         }
 
@@ -47,6 +48,7 @@ namespace BesterUI.DataCollectors
                 if (comPort.BytesToRead > 0)
                 {
                     fd.AddGSRData(ReadData());
+                        
                 }
             }
             COMHandler.ClosePort(comPort);
@@ -54,22 +56,49 @@ namespace BesterUI.DataCollectors
             Log.LogMessage("Stopped GSR");
         }
 
-        public GSRDataReading ReadData()
+        private byte[] GetReading()
         {
             byte[] input = new byte[8];
             input[0] = COMHandler.ReadFromPort(comPort, 1, TIMEOUT_MS)[0];
             COMHandler.ReadFromPort(comPort, 7, TIMEOUT_MS).CopyTo(input, 1);
+            
+            return input;
+        }
 
+        public bool TestPort()
+        {
+            COMHandler.OpenPort(this.comPort);
+            bool result = VerifyByteStream(GetReading());
+            COMHandler.ClosePort(this.comPort);
+
+            return result;
+        }
+
+        private bool VerifyByteStream(byte[] input)
+        {
+            int chksum = (input[6] << 8) + input[7];
+            return (input[0] + input[1] + input[2] + input[3] + input[4] + input[5]) == chksum && chksum != 0;
+        }
+
+        public GSRDataReading ReadData()
+        {
+            byte[] input = GetReading();
+
+            /*
+                WAT DO BELOW
+            */
             bool headerError = input[0] != 0xA3 || input[1] != 0x5b || input[2] != 8;
             int adc = (input[3] << 8) + input[4];
-            int resist = (int)(MAGIC_NUMBER / adc) - SHUNT_RESISTANCE;
             byte status = input[5];
             bool probe_error = (status & 1) == 1;
             bool battery = (status & 2) == 1;
             bool new_data = (status & 4) == 1;
             bool recalc = (status & 8) == 1;
-            int chksum = (input[6] << 8) + input[7];
-            bool checksumError = input[0] + input[1] + input[2] + input[3] + input[4] + input[5] != chksum;
+            /*
+                WAT DO ABOVE
+            */
+
+            int resist = (int)(MAGIC_NUMBER / adc) - SHUNT_RESISTANCE;
 
             return new GSRDataReading() { resistance = resist };
         }

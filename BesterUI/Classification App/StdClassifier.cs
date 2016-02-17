@@ -18,12 +18,17 @@ namespace Classification_App
         #region [Constructors]
         public StdClassifier(string Name, List<SVMParameter> Parameters, List<Feature> Features, SAMData samData) : base(Name, Parameters, samData)
         {
-            Features.ForEach(x => features.Add(x));
+            features = new List<Feature>(Features);
         }
 
         public StdClassifier(string Name, SVMParameter Parameter, List<Feature> Features, SAMData samData) : base(Name, Parameter, samData)
         {
-            Features.ForEach(x => features.Add(x));
+            features = new List<Feature>(Features);
+        }
+
+        public StdClassifier(SVMConfiguration conf, SAMData samData) : base(conf.Name, conf.parameters, samData)
+        {
+            features = conf.features;
         }
         #endregion
 
@@ -71,7 +76,7 @@ namespace Classification_App
                 List<double> guesses = new List<double>();
                 //For each feature setup 
                 for (int n = 0; n < featureCombinationProblems.Count; n++)
-                {      
+                {
                     //model and predict each nfold 
                     foreach (var tupleProblem in featureCombinationProblems[n].Item1)
                     {
