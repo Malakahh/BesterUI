@@ -22,6 +22,14 @@ namespace BesterUI
         GSRCollector gsrCollect;
         HRCollector hrCollect;
 
+        bool collectingData = false;
+
+        bool[] requiredDevices = { false, false, true }; // Required devices for collecting data, EEG, GSR, HR
+
+        bool EEGDeviceReady = false;
+        bool GSRDeviceReady = false;
+        bool HRDeviceReady = false;
+
         public CollectForm()
         {
             InitializeComponent();
@@ -49,6 +57,7 @@ namespace BesterUI
             hrCollect = new HRCollector(fusionData);
             if (hrCollect.Connect())
             {
+                HRDeviceReady = true;
                 hrReady.BackColor = Color.Green;
                 hrPort.Text = "(" + hrCollect.MyPort() + ")";
             }
@@ -65,6 +74,7 @@ namespace BesterUI
 
         private void EEGReady()
         {
+            EEGDeviceReady = true;
             eegReady.BackColor = Color.Green;
         }
 
@@ -103,8 +113,47 @@ namespace BesterUI
             else
             {
                 gsrReady.BackColor = Color.Green;
+                GSRDeviceReady = true;
             }
                 
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (!collectingData)
+            {
+                /*
+                    Required devices to start collecting data.
+                */
+                if (requiredDevices[0] == EEGDeviceReady &&
+                    requiredDevices[1] == GSRDeviceReady &&
+                    requiredDevices[2] == HRDeviceReady)
+                {
+                    eegCollect.StartCollect();
+                    gsrCollect.StartCollecting();
+                    hrCollect.StartCollecting();
+                    button2.Text = "STOP COLLECTING";
+                    collectingData = true;
+                    collectingDataPanel.BackColor = Color.Green;
+                }
+                else
+                {
+                    Log.LogMessage("ERROR: Device requirements not filled - Requirements are: ");
+                    Log.LogMessage("EEG: " + requiredDevices[0].ToString());
+                    Log.LogMessage("GSR: " + requiredDevices[1].ToString());
+                    Log.LogMessage("HR: " + requiredDevices[2].ToString());
+                }
+            }
+            else
+            {
+                eegCollect.StopCollect();
+                gsrCollect.StopCollecting();
+                hrCollect.StopCollecting();
+                button2.Text = "START COLLECTING";
+                collectingData = true;
+                collectingDataPanel.BackColor = Color.Red;
+            }
+            
         }
     }
 }

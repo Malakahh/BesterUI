@@ -92,7 +92,6 @@ namespace BesterUI.Helpers
 
                 if (msg.Length < 2)
                 {
-
                     retVal = false;
                 }
 

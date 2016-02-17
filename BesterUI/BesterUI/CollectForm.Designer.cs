@@ -30,6 +30,9 @@
         {
             this.logTextBox = new System.Windows.Forms.RichTextBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.hrPort = new System.Windows.Forms.Label();
+            this.gsrPort = new System.Windows.Forms.Label();
+            this.eegPort = new System.Windows.Forms.Label();
             this.hrReady = new System.Windows.Forms.Panel();
             this.gsrReady = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
@@ -39,9 +42,7 @@
             this.hrdwareStatusLabel = new System.Windows.Forms.Label();
             this.btnVerifySensors = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.eegPort = new System.Windows.Forms.Label();
-            this.gsrPort = new System.Windows.Forms.Label();
-            this.hrPort = new System.Windows.Forms.Label();
+            this.collectingDataPanel = new System.Windows.Forms.Panel();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -68,6 +69,33 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(102, 83);
             this.panel1.TabIndex = 3;
+            // 
+            // hrPort
+            // 
+            this.hrPort.AutoSize = true;
+            this.hrPort.Location = new System.Drawing.Point(32, 58);
+            this.hrPort.Name = "hrPort";
+            this.hrPort.Size = new System.Drawing.Size(40, 13);
+            this.hrPort.TabIndex = 10;
+            this.hrPort.Text = "- - - - - -";
+            // 
+            // gsrPort
+            // 
+            this.gsrPort.AutoSize = true;
+            this.gsrPort.Location = new System.Drawing.Point(32, 35);
+            this.gsrPort.Name = "gsrPort";
+            this.gsrPort.Size = new System.Drawing.Size(43, 13);
+            this.gsrPort.TabIndex = 9;
+            this.gsrPort.Text = "- - - - - - ";
+            // 
+            // eegPort
+            // 
+            this.eegPort.AutoSize = true;
+            this.eegPort.Location = new System.Drawing.Point(32, 12);
+            this.eegPort.Name = "eegPort";
+            this.eegPort.Size = new System.Drawing.Size(40, 13);
+            this.eegPort.TabIndex = 8;
+            this.eegPort.Text = "- - - - - -";
             // 
             // hrReady
             // 
@@ -141,45 +169,28 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(664, 114);
+            this.button2.Location = new System.Drawing.Point(664, 12);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(140, 55);
+            this.button2.Size = new System.Drawing.Size(140, 157);
             this.button2.TabIndex = 6;
             this.button2.Text = "START COLLECT";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // eegPort
+            // collectingDataPanel
             // 
-            this.eegPort.AutoSize = true;
-            this.eegPort.Location = new System.Drawing.Point(32, 12);
-            this.eegPort.Name = "eegPort";
-            this.eegPort.Size = new System.Drawing.Size(40, 13);
-            this.eegPort.TabIndex = 8;
-            this.eegPort.Text = "- - - - - -";
-            // 
-            // gsrPort
-            // 
-            this.gsrPort.AutoSize = true;
-            this.gsrPort.Location = new System.Drawing.Point(32, 35);
-            this.gsrPort.Name = "gsrPort";
-            this.gsrPort.Size = new System.Drawing.Size(43, 13);
-            this.gsrPort.TabIndex = 9;
-            this.gsrPort.Text = "- - - - - - ";
-            // 
-            // hrPort
-            // 
-            this.hrPort.AutoSize = true;
-            this.hrPort.Location = new System.Drawing.Point(32, 58);
-            this.hrPort.Name = "hrPort";
-            this.hrPort.Size = new System.Drawing.Size(40, 13);
-            this.hrPort.TabIndex = 10;
-            this.hrPort.Text = "- - - - - -";
+            this.collectingDataPanel.BackColor = System.Drawing.Color.Red;
+            this.collectingDataPanel.Location = new System.Drawing.Point(498, 12);
+            this.collectingDataPanel.Name = "collectingDataPanel";
+            this.collectingDataPanel.Size = new System.Drawing.Size(160, 157);
+            this.collectingDataPanel.TabIndex = 7;
             // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(816, 311);
+            this.Controls.Add(this.collectingDataPanel);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.btnVerifySensors);
             this.Controls.Add(this.hrdwareStatusLabel);
@@ -209,5 +220,6 @@
         private System.Windows.Forms.Label hrPort;
         private System.Windows.Forms.Label gsrPort;
         private System.Windows.Forms.Label eegPort;
+        private System.Windows.Forms.Panel collectingDataPanel;
     }
 }
