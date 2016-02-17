@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace BesterUI.Helpers
 {
-    static class Log
+    public static class Log
     {
         static RichTextBox logBox;
 
