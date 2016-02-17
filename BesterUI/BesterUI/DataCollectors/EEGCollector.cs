@@ -50,13 +50,16 @@ namespace BesterUI.DataCollectors
                     return;
                 }
 
+                double max = input[EdkDll.EE_DataChannel_t.TIMESTAMP].Max();
                 for (int j = (int)EdkDll.EE_DataChannel_t.AF3; j <= (int)EdkDll.EE_DataChannel_t.AF4; j++)
                 {
                     for (int i = 0; i < input[(EdkDll.EE_DataChannel_t)j].Length; i++)
                     {
                         //TODO: Find out which way the data needs to be added (might be the otherway around)
                         EEGDataReading dataReading = new EEGDataReading();
+                        double offset = max - input[EdkDll.EE_DataChannel_t.TIMESTAMP][i];
                         dataReading.data.Add(((EdkDll.EE_DataChannel_t)j).ToString(), input[(EdkDll.EE_DataChannel_t)j][i]);
+                        dataReading.timestamp - offset;
                         fd.AddEEGData(dataReading);
 
                     }
