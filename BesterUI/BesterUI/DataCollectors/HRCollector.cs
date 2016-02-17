@@ -32,20 +32,21 @@ namespace BesterUI.DataCollectors
 
         public void StartCollecting()
         {
-            COMHandler.OpenPort(arduino);
+            Log.LogMessage("Starting HR");
+            stopCollecting = false;
             collectionThread = new Thread(new ThreadStart(CollectorTask));
             collectionThread.Start();
         }
 
         public void StopCollecting()
         {
+            Log.LogMessage("Stopping HR...");
             stopCollecting = true;
-            collectionThread.Join(5000);
-            COMHandler.ClosePort(arduino);
         }
 
         void CollectorTask()
         {
+            COMHandler.OpenPort(arduino);
             while (!stopCollecting)
             {
                 if (arduino.BytesToRead > 0)
@@ -53,6 +54,9 @@ namespace BesterUI.DataCollectors
                     fd.AddHRData(ReadData());
                 }
             }
+            COMHandler.ClosePort(arduino);
+            DataReading.StaticEndWrite("HR");
+            Log.LogMessage("Stopped HR");
         }
 
         HRDataReading ReadData()
