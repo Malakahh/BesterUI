@@ -42,6 +42,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.btn_LoadData = new System.Windows.Forms.Button();
             this.btn_RunAll = new System.Windows.Forms.Button();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -113,7 +114,7 @@
             // checkedListBox1
             // 
             this.checkedListBox1.FormattingEnabled = true;
-            this.checkedListBox1.Location = new System.Drawing.Point(136, 6);
+            this.checkedListBox1.Location = new System.Drawing.Point(169, 6);
             this.checkedListBox1.Name = "checkedListBox1";
             this.checkedListBox1.Size = new System.Drawing.Size(151, 304);
             this.checkedListBox1.TabIndex = 0;
@@ -135,7 +136,7 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(27, 136);
+            this.checkBox2.Location = new System.Drawing.Point(12, 145);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(80, 17);
             this.checkBox2.TabIndex = 3;
@@ -145,7 +146,7 @@
             // checkedListBox3
             // 
             this.checkedListBox3.FormattingEnabled = true;
-            this.checkedListBox3.Location = new System.Drawing.Point(133, 0);
+            this.checkedListBox3.Location = new System.Drawing.Point(151, 8);
             this.checkedListBox3.Name = "checkedListBox3";
             this.checkedListBox3.Size = new System.Drawing.Size(183, 304);
             this.checkedListBox3.TabIndex = 2;
@@ -153,7 +154,7 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(27, 113);
+            this.checkBox1.Location = new System.Drawing.Point(27, 95);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(80, 17);
             this.checkBox1.TabIndex = 1;
@@ -162,7 +163,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(6, 69);
+            this.button2.Location = new System.Drawing.Point(17, 51);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 0;
@@ -188,11 +189,20 @@
             this.btn_RunAll.Text = "Run All";
             this.btn_RunAll.UseVisualStyleBackColor = true;
             // 
+            // richTextBox1
+            // 
+            this.richTextBox1.Location = new System.Drawing.Point(12, 395);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.Size = new System.Drawing.Size(548, 98);
+            this.richTextBox1.TabIndex = 3;
+            this.richTextBox1.Text = "";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(572, 429);
+            this.ClientSize = new System.Drawing.Size(568, 505);
+            this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.btn_RunAll);
             this.Controls.Add(this.btn_LoadData);
             this.Controls.Add(this.tabControl1);
@@ -223,6 +233,7 @@
         private System.Windows.Forms.CheckBox chk_ParameterOptimizationNormal;
         private System.Windows.Forms.CheckBox chk_FeatureOptimizationNormal;
         private System.Windows.Forms.Button btn_RunAll;
+        private System.Windows.Forms.RichTextBox richTextBox1;
     }
 }
 

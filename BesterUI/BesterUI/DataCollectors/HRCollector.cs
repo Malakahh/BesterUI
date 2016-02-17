@@ -31,11 +31,17 @@ namespace BesterUI.DataCollectors
             bool connected = false;
             foreach (var item in COMHandler.Ports())
             {
+                Log.LogMessage("Trying to bind HR to port: " + item);
                 if (COMHandler.IsArduino(item))
                 {
                     arduino = COMHandler.PortNamed(item, 115200, Parity.None, StopBits.One, 8);
                     connected = true;
+                    Log.LogMessageSameLine("Trying to bind HR to port: " + item + " - SUCCES");
                     break;
+                }
+                else
+                {
+                    Log.LogMessageSameLine("Trying to bind HR to port: " + item + " - FAILED");
                 }
             }
 
