@@ -90,21 +90,23 @@ namespace BesterUI
             bool connected = false;
             foreach (string port in COMHandler.Ports())
             {
-                if(port != hrCollect.MyPort())
+                if (port != hrCollect.MyPort())
                 {
                     Log.LogMessage("Trying to bind GSR to port: " + port);
                     gsrCollect = new GSRCollector(port, fusionData);
-                    if (gsrCollect.TestPort()) { 
+                    if (gsrCollect.TestPort())
+                    {
                         connected = true;
                         gsrPort.Text = "(" + port + ")";
                         Log.LogMessageSameLine("Trying to bind GSR to port: " + port + " - SUCCES");
-                    } else
+                    }
+                    else
                     {
                         Log.LogMessageSameLine("Trying to bind GSR to port: " + port + " - FAILED");
                     }
                 }
             }
-            
+
             if (!connected)
             {
                 Log.LogMessage("GSR not found");
@@ -115,7 +117,7 @@ namespace BesterUI
                 gsrReady.BackColor = Color.Green;
                 GSRDeviceReady = true;
             }
-                
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -129,8 +131,8 @@ namespace BesterUI
                     requiredDevices[1] == GSRDeviceReady &&
                     requiredDevices[2] == HRDeviceReady)
                 {
-                    eegCollect.StartCollect();
-                    gsrCollect.StartCollecting();
+                    //eegCollect.StartCollect();
+                    //gsrCollect.StartCollecting();
                     hrCollect.StartCollecting();
                     button2.Text = "STOP COLLECTING";
                     collectingData = true;
@@ -146,14 +148,14 @@ namespace BesterUI
             }
             else
             {
-                eegCollect.StopCollect();
-                gsrCollect.StopCollecting();
+                //eegCollect.StopCollect();
+                //gsrCollect.StopCollecting();
                 hrCollect.StopCollecting();
                 button2.Text = "START COLLECTING";
                 collectingData = true;
                 collectingDataPanel.BackColor = Color.Red;
             }
-            
+
         }
     }
 }
