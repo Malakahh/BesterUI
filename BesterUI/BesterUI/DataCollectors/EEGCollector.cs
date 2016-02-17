@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Linq;
 using System.Text;
 using Emotiv;
 using System.Threading.Tasks;
+using BesterUI.Data;
 
 namespace BesterUI.DataCollectors
 {
@@ -11,11 +13,14 @@ namespace BesterUI.DataCollectors
     {
 
         private EmoEngine eegEngine;
+        private Thread dataCollectThread;
         int userID = -1;
+        private FusionData fd;
 
-        public EEGCollector()
+        public EEGCollector(FusionData fusionData)
         {
             eegEngine = EmoEngine.Instance;
+            fd = fusionData;
         }
 
         public void Connect()
@@ -24,11 +29,52 @@ namespace BesterUI.DataCollectors
             eegEngine.Connect();
         }
 
-
-        private void Collector()
+        volatile bool shouldCollectData = true;
+        private void Collect()
         {
-            // Handle any waiting events
-            eegEngine.ProcessEvents();
+            Dictionary<EdkDll.EE_DataChannel_t, double[]> input;
+            while (shouldCollectData)
+            {
+                // Handle any waiting events
+                eegEngine.ProcessEvents();
+
+                if (userID == -1)
+                {
+                    return;
+                }
+
+                input = eegEngine.GetData((uint)userID);
+
+                if (input == null)
+                {
+                    return;
+                }
+
+                for (int j = (int)EdkDll.EE_DataChannel_t.AF3; j <= (int)EdkDll.EE_DataChannel_t.AF4; j++)
+                {
+                    for (int i = 0; i < input[(EdkDll.EE_DataChannel_t)j].Length; i++)
+                    {
+                        //TODO: Find out which way the data needs to be added (might be the otherway around)
+                        EEGDataReading dataReading = new EEGDataReading();
+                        dataReading.data.Add(((EdkDll.EE_DataChannel_t)j).ToString(), input[(EdkDll.EE_DataChannel_t)j][i]);
+                        fd.AddEEGData(dataReading);
+
+                    }
+                }
+
+                input = null;
+
+                Thread.Sleep(100);
+            }
+
+
+        }
+
+        public void StartCollect()
+        {
+
+            dataCollectThread = new Thread(Collect);
+            dataCollectThread.Start();
         }
 
         #region [Events]
