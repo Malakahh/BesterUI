@@ -35,7 +35,7 @@ namespace Classification_App
 
         public static double HRValueAccessor(DataReading d)
         {
-            return ((HRDataReading)d).heartRate;
+            return ((HRDataReading)d).signal;
         }
 
         public static double EEGValueAccessor(DataReading d, string electrode)

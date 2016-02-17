@@ -8,10 +8,8 @@ namespace BesterUI.Data
 {
     public class HRDataReading : DataReading
     {
-        public enum QUALITY { LOCKED, ACQUIRING }
-
-        public string quality;
-        public int heartRate;
+        public int signal;
+        public bool isBeat;
 
         public HRDataReading(bool startReading) : base(startReading)
         {
@@ -51,10 +49,10 @@ namespace BesterUI.Data
 
                 string[] stats = r.Split(new string[] { ",", "{", "}" }, StringSplitOptions.RemoveEmptyEntries);
 
-                band.quality = stats[0].Split(new string[] { ":", "\"" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                
+                band.isBeat = stats[0].Split(new string[] { ":", "\"" }, StringSplitOptions.RemoveEmptyEntries)[1] == "true";
+
                 string s1 = stats[1].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                band.heartRate = int.Parse(s1);
+                band.signal = int.Parse(s1);
 
                 string s2 = stats[2].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[1];
                 band.timestamp = long.Parse(s2);

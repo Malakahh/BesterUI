@@ -69,7 +69,7 @@ namespace BesterUI
 
                     string json = File.ReadAllText(file);
 
-                    switch(s)
+                    switch (s)
                     {
                         case "GSR.json":
                             gsrData = GSRDataReading.LoadFromFile(json);
@@ -96,13 +96,13 @@ namespace BesterUI
           //  test.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.1);
             test.Write();
             eegData.Add(test);
-            
+
             EEGDataReading test2 = new EEGDataReading();
           //  test2.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.2);
           //  test2.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.2);
             test2.Write();
             eegData.Add(test2);
-            
+
             EEGDataReading test3 = new EEGDataReading();
           //  test3.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 13337.0);
             test3.Write();
@@ -129,15 +129,15 @@ namespace BesterUI
             for (int i = 0; i < 200; i++)
             {
                 HRDataReading band = new HRDataReading();
-                band.heartRate = 5;
-                band.quality = HRDataReading.QUALITY.ACQUIRING.GetName();
+                band.signal = 5;
+                band.isBeat = false;
                 band.Write();
                 hrData.Add(band);
             }
 
             HRDataReading band1 = new HRDataReading();
-            band1.heartRate = 1337;
-            band1.quality = HRDataReading.QUALITY.LOCKED.GetName();
+            band1.signal = 1337;
+            band1.isBeat = true;
             band1.Write();
             hrData.Add(band1);
             band1.EndWrite();

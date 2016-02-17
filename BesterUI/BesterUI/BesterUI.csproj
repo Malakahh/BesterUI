@@ -71,7 +71,8 @@
     </Compile>
     <Compile Include="DataCollectors\EEGCollector.cs" />
     <Compile Include="DataCollectors\GSRCollector.cs" />
-    <Compile Include="Data\BandDataReading.cs" />
+    <Compile Include="DataCollectors\HRCollector.cs" />
+    <Compile Include="Data\HRDataReading.cs" />
     <Compile Include="Data\DataReading.cs" />
     <Compile Include="Data\EEGDataReading.cs" />
     <Compile Include="Data\GSRDataReading.cs" />
