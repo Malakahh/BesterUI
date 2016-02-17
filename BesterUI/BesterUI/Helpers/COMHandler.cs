@@ -75,47 +75,46 @@ namespace BesterUI.Helpers
 
         static public bool IsArduino(string portname)
         {
+            SerialPort arduino = PortNamed(portname, 115200, Parity.None, StopBits.One, 8);
+            bool retVal = true;
+
             try
             {
-                SerialPort arduino = PortNamed(portname, 115200, Parity.None, StopBits.One, 8);
                 arduino.ReadTimeout = 500;
-                arduino.Open();
+                OpenPort(arduino);
 
                 if (arduino.BytesToRead <= 0)
                 {
                     Thread.Sleep(500);
                 }
 
-                if (arduino.BytesToRead <= 0)
-                {
-                    return false;
-                }
-
-
                 string msg = arduino.ReadLine();
 
                 if (msg.Length < 2)
                 {
-                    arduino.Close();
-                    return false;
+                    retVal = false;
                 }
 
                 char id = msg[0];
 
                 if (id == 'Y' || id == 'N')
                 {
-                    arduino.Close();
-                    return true;
+                    retVal = true;
                 }
 
                 arduino.Close();
-                return false;
+                retVal = false;
             }
             catch (Exception e)
             {
-                return false;
+                retVal = false;
+            }
+            finally
+            {
+                ClosePort(arduino);
             }
 
+            return retVal;
         }
     }
 }
