@@ -57,7 +57,7 @@ namespace BesterUI
 
             if (res == DialogResult.OK)
             {
-                string[] correctNames = new string[3] { "GSR.json", "EEG.json", "Band.json", };
+                string[] correctNames = new string[3] { "GSR.json", "EEG.json", "HR.json", };
 
                 foreach (string file in fileNames)
                 {
@@ -89,19 +89,19 @@ namespace BesterUI
         {
             //EEG
             EEGDataReading test = new EEGDataReading();
-          //  test.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.1);
-          //  test.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.1);
+            //  test.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.1);
+            //  test.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.1);
             test.Write();
             eegData.Add(test);
 
             EEGDataReading test2 = new EEGDataReading();
-          //  test2.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.2);
-          //  test2.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.2);
+            //  test2.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.2);
+            //  test2.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.2);
             test2.Write();
             eegData.Add(test2);
 
             EEGDataReading test3 = new EEGDataReading();
-          //  test3.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 13337.0);
+            //  test3.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 13337.0);
             test3.Write();
             eegData.Add(test3);
             test3.EndWrite();
