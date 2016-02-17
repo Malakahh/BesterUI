@@ -82,8 +82,14 @@ namespace BesterUI.Helpers
 
                 if (arduino.BytesToRead <= 0)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
+
+                if (arduino.BytesToRead <= 0)
+                {
+                    return false;
+                }
+
 
                 string msg = arduino.ReadLine();
 
