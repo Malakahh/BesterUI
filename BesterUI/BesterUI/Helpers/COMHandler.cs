@@ -78,6 +78,7 @@ namespace BesterUI.Helpers
             try
             {
                 SerialPort arduino = PortNamed(portname, 115200, Parity.None, StopBits.One, 8);
+                arduino.ReadTimeout = 500;
                 arduino.Open();
 
                 if (arduino.BytesToRead <= 0)
