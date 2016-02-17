@@ -38,7 +38,7 @@
   <ItemGroup>
     <Reference Include="DotNetEmotivSDK, Version=0.8.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>DotNetEmotivSDK\DotNetEmotivSDK\Debug\DotNetEmotivSDK.dll</HintPath>
+      <HintPath>.\DotNetEmotivSDK.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Kinect, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Kinect.2.0.1410.19000\lib\net45\Microsoft.Kinect.dll</HintPath>
