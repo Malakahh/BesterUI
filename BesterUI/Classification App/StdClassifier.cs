@@ -18,12 +18,17 @@ namespace Classification_App
         #region [Constructors]
         public StdClassifier(string Name, List<SVMParameter> Parameters, List<Feature> Features, SAMData samData) : base(Name, Parameters, samData)
         {
-            Features.ForEach(x => features.Add(x));
+            features = new List<Feature>(Features);
         }
 
         public StdClassifier(string Name, SVMParameter Parameter, List<Feature> Features, SAMData samData) : base(Name, Parameter, samData)
         {
-            Features.ForEach(x => features.Add(x));
+            features = new List<Feature>(Features);
+        }
+
+        public StdClassifier(SVMConfiguration conf, SAMData samData) : base(conf.Name, conf.parameters, samData)
+        {
+            features = conf.features;
         }
         #endregion
 
@@ -34,50 +39,61 @@ namespace Classification_App
         /// <param name="feelingsmodel"></param>
         /// <param name="nFold"></param>
         /// <param name="useIAPSratings"></param>
-        public void CrossValidateCombinations(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
+        public List<PredictionResult> CrossValidateCombinations(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<List<bool>> combinations = CalculateCombinations(new List<bool>() { }, features.Count);
 
             //Get different combination of problems
-            List<List<Tuple<SVMProblem, SVMProblem>>> featureCombinationProblems = new List<List<Tuple<SVMProblem, SVMProblem>>>();
+            List<Tuple<List<Tuple<SVMProblem, SVMProblem>>,List<Feature>>> featureCombinationProblems = new List<Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>>();
+            
             for (int i = 0; i < combinations.Count; i++)
             {
                 for (int j = 0; j < combinations[i].Count; j++)
                 {
+                    // For each feature combination save the different problems for crossvalidation
                     List<Feature> tempFeatures = new List<Feature>();
                     if (combinations[i][j] == true)
                     {
                         tempFeatures.Add(features[j]);
                     }
-                    featureCombinationProblems.Add(GetFeatureValues(tempFeatures).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings));
+                    featureCombinationProblems.
+                        Add
+                        (
+                            new Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>
+                            (
+                                GetFeatureValues(tempFeatures).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings), 
+                                tempFeatures
+                            )
+                        );
                 }
             }
 
             //Get correct results
-            int[] correct = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
-
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            List<PredictionResult> predictionResults = new List<PredictionResult>();
             foreach (SVMParameter SVMpara in Parameters)
             {
                 List<double> guesses = new List<double>();
                 //For each feature setup 
                 for (int n = 0; n < featureCombinationProblems.Count; n++)
-                {      
+                {
                     //model and predict each nfold 
-                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in featureCombinationProblems[n])
+                    foreach (var tupleProblem in featureCombinationProblems[n].Item1)
                     {
                         guesses.AddRange(tupleProblem.Item1.Predict(tupleProblem.Item2.Train(SVMpara)));
                     }
                     int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                     //Calculate scoring results
-                    double[,] confus = CalculateConfusion(guesses.ToArray(), correct, numberOfLabels);
+                    double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
                     List<double> pres = CalculatePrecision(confus, numberOfLabels);
                     List<double> recall = CalculateRecall(confus, numberOfLabels);
                     List<double> fscore = CalculateFScore(pres, recall);
-                    PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features);
+                    PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, featureCombinationProblems[n].Item2, answers.ToList(), guesses.Cast<int>().ToList());
                     //TODO: do something with the result
                 }
 
             }
+            return predictionResults;
         }
 
         /// <summary>
@@ -86,12 +102,13 @@ namespace Classification_App
         /// <param name="feelingsmodel"></param>
         /// <param name="nFold"></param>
         /// <param name="useIAPSratings"></param>
-        public void CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
+        public List<PredictionResult> CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
+            List<PredictionResult> predictedResults = new List<PredictionResult>();
             //Split into crossvalidation parts
             List<Tuple<SVMProblem, SVMProblem>> problems = GetFeatureValues(features).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
             //Get correct results
-            int[] correct = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
 
             foreach (SVMParameter SVMpara in Parameters)
             {
@@ -103,13 +120,14 @@ namespace Classification_App
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results
-                double[,] confus = CalculateConfusion(guesses.ToArray(), correct, numberOfLabels);
+                double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
                 List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features);
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.Cast<int>().ToList());
                 //TODO: Do something with the result
             }
+            return predictedResults;
         }
         #endregion
 
