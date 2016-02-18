@@ -21,7 +21,7 @@ namespace Classification_App
 
         public string Serialize()
         {
-            return parameters.C.ToString() + SEPARATOR + parameters.Gamma + SEPARATOR + parameters.Kernel + SEPARATOR + FeatureCreator.GetStringFromFeatures(features);
+            return Name + SEPARATOR + parameters.C + SEPARATOR + parameters.Gamma + SEPARATOR + parameters.Kernel + SEPARATOR + FeatureCreator.GetStringFromFeatures(features);
         }
 
         public static SVMConfiguration Deserialize(string input)
@@ -30,11 +30,12 @@ namespace Classification_App
 
             string[] bits = input.Split(SEPARATOR);
 
-            retVal.parameters.C = double.Parse(bits[0]);
-            retVal.parameters.Gamma = double.Parse(bits[1]);
-            retVal.parameters.Kernel = (SVMKernelType)Enum.Parse(typeof(SVMKernelType), bits[2]);
+            retVal.Name = bits[0];
+            retVal.parameters.C = double.Parse(bits[1]);
+            retVal.parameters.Gamma = double.Parse(bits[2]);
+            retVal.parameters.Kernel = (SVMKernelType)Enum.Parse(typeof(SVMKernelType), bits[3]);
+            retVal.features = FeatureCreator.GetFeaturesFromString(bits[4]);
 
-            retVal.features = FeatureCreator.GetFeaturesFromString(bits[3]);
 
             return retVal;
         }
