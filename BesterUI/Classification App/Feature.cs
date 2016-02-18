@@ -40,7 +40,7 @@ namespace Classification_App
             return cachedResults[sam];
         }
 
-        public List<double> GetAllValues()
+        public List<double> GetAllValues(SAMData samd)
         {
             if (dataReadings == null)
             {
@@ -48,12 +48,11 @@ namespace Classification_App
             }
 
             List<double> values = new List<double>();
-            foreach(SAMDataPoint sd in cachedResults.Keys)
+            foreach (SAMDataPoint sd in samd.dataPoints)
             {
-                values.Add(cachedResults[sd]);
+                values.Add(GetValue(sd));
             }
             return values;
-
         }
 
         public void SetData(List<DataReading> dataReadings)

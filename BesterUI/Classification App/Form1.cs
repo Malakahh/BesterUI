@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using BesterUI.Helpers;
 using BesterUI;
+using BesterUI.Data;
 using System.IO;
 
 namespace Classification_App
@@ -17,12 +18,20 @@ namespace Classification_App
     {
         FusionData _fd = new FusionData();
         SAMData samData;
-        List<SVMConfiguration> svmConfigs = new List<SVMConfiguration>();
         string currentPath;
+        CheckedListBox.ObjectCollection svmConfs;
+        CheckedListBox.ObjectCollection metaConfs;
+        CheckedListBox.ObjectCollection features;
 
         public Form1()
         {
             InitializeComponent();
+
+            svmConfs = chklst_SvmConfigurations.Items;
+            metaConfs = chklst_meta.Items;
+            features = chklist_Features.Items;
+
+            FeatureCreator.allFeatures.ForEach(x => features.Add(x, false));
 
             Log.LogBox = richTextBox1;
         }
@@ -43,7 +52,13 @@ namespace Classification_App
             }
             else if (chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
             {//both checked
+                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
+                SVMConfiguration cfg = new SVMConfiguration();
+                cfg.features = feats;
 
+                StdClassifier lol = new StdClassifier(cfg, samData);
+                var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                Log.LogMessage("FScore: " + res.First().AverageFScore());
             }
         }
 
@@ -58,19 +73,24 @@ namespace Classification_App
                 //load fusion data
                 _fd.LoadFromFile(new string[] { fbd.SelectedPath + @"\EEG.json", fbd.SelectedPath + @"\GSR.json", fbd.SelectedPath + @"\HR.json" });
                 samData = SAMData.LoadFromPath(fbd.SelectedPath + @"\SAM.json");
-
                 Log.LogMessage("Fusion Data loaded!");
+
+                Log.LogMessage("Applying data to features..");
+
+                FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
+                FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
+                FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
 
                 Log.LogMessage("Looking for configurations...");
 
-                svmConfigs.Clear();
+                svmConfs.Clear();
                 if (Directory.Exists(fbd.SelectedPath + @"\STD"))
                 {
                     var files = Directory.GetFiles(fbd.SelectedPath + @"\STD");
                     Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
                     foreach (var item in files)
                     {
-                        svmConfigs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                        svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
                     }
 
                 }
@@ -86,6 +106,10 @@ namespace Classification_App
                     //}
                 }
 
+                if (svmConfs.Count == 0 && metaConfs.Count == 0)
+                {
+                    Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
+                }
             }
         }
     }

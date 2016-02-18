@@ -11,9 +11,9 @@ namespace BesterUI
 {
     public class FusionData
     {
-        private List<HRDataReading> hrData = new List<HRDataReading>();
-        private List<EEGDataReading> eegData = new List<EEGDataReading>();
-        private List<GSRDataReading> gsrData = new List<GSRDataReading>();
+        public List<HRDataReading> hrData = new List<HRDataReading>();
+        public List<EEGDataReading> eegData = new List<EEGDataReading>();
+        public List<GSRDataReading> gsrData = new List<GSRDataReading>();
 
 
         public FusionData()
@@ -78,7 +78,7 @@ namespace BesterUI
                         case "EEG.json":
                             eegData = EEGDataReading.LoadFromFile(json);
                             break;
-                        case "Band.json":
+                        case "HR.json":
                             hrData = HRDataReading.LoadFromFile(json);
                             break;
                     }

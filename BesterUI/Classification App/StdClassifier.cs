@@ -44,8 +44,8 @@ namespace Classification_App
             List<List<bool>> combinations = CalculateCombinations(new List<bool>() { }, features.Count);
 
             //Get different combination of problems
-            List<Tuple<List<Tuple<SVMProblem, SVMProblem>>,List<Feature>>> featureCombinationProblems = new List<Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>>();
-            
+            List<Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>> featureCombinationProblems = new List<Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>>();
+
             for (int i = 0; i < combinations.Count; i++)
             {
                 for (int j = 0; j < combinations[i].Count; j++)
@@ -61,7 +61,7 @@ namespace Classification_App
                         (
                             new Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>
                             (
-                                GetFeatureValues(tempFeatures).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings), 
+                                GetFeatureValues(tempFeatures, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings),
                                 tempFeatures
                             )
                         );
@@ -106,7 +106,7 @@ namespace Classification_App
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
             //Split into crossvalidation parts
-            List<Tuple<SVMProblem, SVMProblem>> problems = GetFeatureValues(features).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
+            List<Tuple<SVMProblem, SVMProblem>> problems = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
 
@@ -137,12 +137,12 @@ namespace Classification_App
         /// </summary>
         /// <param name="Features"></param>
         /// <returns>A List for each datapoint which contains the feature values for that datapoint</returns>
-        private List<List<double>> GetFeatureValues(List<Feature> Features)
+        private List<List<double>> GetFeatureValues(List<Feature> Features, SAMData samd)
         {
             List<List<double>> temp = new List<List<double>>();
             foreach (Feature f in Features)
             {
-                List<double> values = f.GetAllValues();
+                List<double> values = f.GetAllValues(samd);
                 for (int i = 0; i < values.Count; i++)
                 {
                     if (i == 0)

@@ -10,6 +10,10 @@ namespace Classification_App
     public static class FeatureCreator
     {
         public static List<Feature> allFeatures = new List<Feature>();
+        public static List<Feature> GSRFeatures = new List<Feature>();
+        public static List<Feature> HRFeatures = new List<Feature>();
+        public static List<Feature> EEGFeatures = new List<Feature>();
+
 
         const int GSR_LATENCY = 3000;
         const int GSR_DURATION = 4000;
@@ -25,6 +29,10 @@ namespace Classification_App
             PopulateEEG();
             PopulateGSR();
             PopulateHR();
+
+            allFeatures.AddRange(GSRFeatures);
+            allFeatures.AddRange(HRFeatures);
+            allFeatures.AddRange(EEGFeatures);
         }
 
         #region Feature Value Accessors
@@ -123,13 +131,13 @@ namespace Classification_App
             {
                 Func<DataReading, double> va = (x => EEGValueAccessor(x, electrode));
 
-                allFeatures.Add(new Feature("EEG " + electrode + " Mean", (data, sam) => Mean(EEGDataSlice(data, sam), va)));
-                allFeatures.Add(new Feature("EEG " + electrode + " Median", (data, sam) => Median(EEGDataSlice(data, sam), va)));
-                allFeatures.Add(new Feature("EEG " + electrode + " stdev", (data, sam) => StandardDeviation(EEGDataSlice(data, sam), va)));
-                allFeatures.Add(new Feature("EEG " + electrode + " Max", (data, sam) => Max(EEGDataSlice(data, sam), va)));
-                allFeatures.Add(new Feature("EEG " + electrode + " Min", (data, sam) => Min(EEGDataSlice(data, sam), va)));
-                allFeatures.Add(new Feature("EEG " + electrode + " First", (data, sam) => First(EEGDataSlice(data, sam), va)));
-                allFeatures.Add(new Feature("EEG " + electrode + " Last", (data, sam) => Last(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " Mean", (data, sam) => Mean(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " Median", (data, sam) => Median(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " stdev", (data, sam) => StandardDeviation(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " Max", (data, sam) => Max(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " Min", (data, sam) => Min(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " First", (data, sam) => First(EEGDataSlice(data, sam), va)));
+                EEGFeatures.Add(new Feature("EEG " + electrode + " Last", (data, sam) => Last(EEGDataSlice(data, sam), va)));
             }
 
             //dasm
@@ -137,26 +145,26 @@ namespace Classification_App
 
         static void PopulateHR()
         {
-            allFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
-            allFeatures.Add(new Feature("HR Median", (data, sam) => Median(HRDataSlice(data, sam), HRValueAccessor)));
-            allFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
-            allFeatures.Add(new Feature("HR Max", (data, sam) => Max(HRDataSlice(data, sam), HRValueAccessor)));
-            allFeatures.Add(new Feature("HR Min", (data, sam) => Min(HRDataSlice(data, sam), HRValueAccessor)));
-            allFeatures.Add(new Feature("HR First", (data, sam) => First(HRDataSlice(data, sam), HRValueAccessor)));
-            allFeatures.Add(new Feature("HR Last", (data, sam) => Last(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR Median", (data, sam) => Median(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR Max", (data, sam) => Max(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR Min", (data, sam) => Min(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR First", (data, sam) => First(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR Last", (data, sam) => Last(HRDataSlice(data, sam), HRValueAccessor)));
         }
 
 
 
         static void PopulateGSR()
         {
-            allFeatures.Add(new Feature("GSR Mean", (data, sam) => Mean(GSRDataSlice(data, sam), GSRValueAccessor)));
-            allFeatures.Add(new Feature("GSR Median", (data, sam) => Median(GSRDataSlice(data, sam), GSRValueAccessor)));
-            allFeatures.Add(new Feature("GSR stdev", (data, sam) => StandardDeviation(GSRDataSlice(data, sam), GSRValueAccessor)));
-            allFeatures.Add(new Feature("GSR Max", (data, sam) => Max(GSRDataSlice(data, sam), GSRValueAccessor)));
-            allFeatures.Add(new Feature("GSR Min", (data, sam) => Min(GSRDataSlice(data, sam), GSRValueAccessor)));
-            allFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
-            allFeatures.Add(new Feature("GSR Last", (data, sam) => Last(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR Mean", (data, sam) => Mean(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR Median", (data, sam) => Median(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR stdev", (data, sam) => StandardDeviation(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR Max", (data, sam) => Max(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR Min", (data, sam) => Min(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRFeatures.Add(new Feature("GSR Last", (data, sam) => Last(GSRDataSlice(data, sam), GSRValueAccessor)));
         }
     }
 }

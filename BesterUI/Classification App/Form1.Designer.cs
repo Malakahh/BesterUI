@@ -33,11 +33,11 @@
             this.chk_ParameterOptimizationNormal = new System.Windows.Forms.CheckBox();
             this.chk_FeatureOptimizationNormal = new System.Windows.Forms.CheckBox();
             this.btn_RunNormal = new System.Windows.Forms.Button();
-            this.checkedListBox2 = new System.Windows.Forms.CheckedListBox();
-            this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
+            this.chklist_Features = new System.Windows.Forms.CheckedListBox();
+            this.chklst_SvmConfigurations = new System.Windows.Forms.CheckedListBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.checkedListBox3 = new System.Windows.Forms.CheckedListBox();
+            this.chklst_meta = new System.Windows.Forms.CheckedListBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.button2 = new System.Windows.Forms.Button();
             this.btn_LoadData = new System.Windows.Forms.Button();
@@ -63,8 +63,8 @@
             this.tabPage1.Controls.Add(this.chk_ParameterOptimizationNormal);
             this.tabPage1.Controls.Add(this.chk_FeatureOptimizationNormal);
             this.tabPage1.Controls.Add(this.btn_RunNormal);
-            this.tabPage1.Controls.Add(this.checkedListBox2);
-            this.tabPage1.Controls.Add(this.checkedListBox1);
+            this.tabPage1.Controls.Add(this.chklist_Features);
+            this.tabPage1.Controls.Add(this.chklst_SvmConfigurations);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -103,26 +103,26 @@
             this.btn_RunNormal.UseVisualStyleBackColor = true;
             this.btn_RunNormal.Click += new System.EventHandler(this.btn_Run_Click);
             // 
-            // checkedListBox2
+            // chklist_Features
             // 
-            this.checkedListBox2.FormattingEnabled = true;
-            this.checkedListBox2.Location = new System.Drawing.Point(335, 6);
-            this.checkedListBox2.Name = "checkedListBox2";
-            this.checkedListBox2.Size = new System.Drawing.Size(151, 304);
-            this.checkedListBox2.TabIndex = 1;
+            this.chklist_Features.FormattingEnabled = true;
+            this.chklist_Features.Location = new System.Drawing.Point(335, 6);
+            this.chklist_Features.Name = "chklist_Features";
+            this.chklist_Features.Size = new System.Drawing.Size(151, 304);
+            this.chklist_Features.TabIndex = 1;
             // 
-            // checkedListBox1
+            // chklst_SvmConfigurations
             // 
-            this.checkedListBox1.FormattingEnabled = true;
-            this.checkedListBox1.Location = new System.Drawing.Point(169, 6);
-            this.checkedListBox1.Name = "checkedListBox1";
-            this.checkedListBox1.Size = new System.Drawing.Size(151, 304);
-            this.checkedListBox1.TabIndex = 0;
+            this.chklst_SvmConfigurations.FormattingEnabled = true;
+            this.chklst_SvmConfigurations.Location = new System.Drawing.Point(169, 6);
+            this.chklst_SvmConfigurations.Name = "chklst_SvmConfigurations";
+            this.chklst_SvmConfigurations.Size = new System.Drawing.Size(151, 304);
+            this.chklst_SvmConfigurations.TabIndex = 0;
             // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.checkBox2);
-            this.tabPage2.Controls.Add(this.checkedListBox3);
+            this.tabPage2.Controls.Add(this.chklst_meta);
             this.tabPage2.Controls.Add(this.checkBox1);
             this.tabPage2.Controls.Add(this.button2);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
@@ -143,13 +143,13 @@
             this.checkBox2.Text = "checkBox2";
             this.checkBox2.UseVisualStyleBackColor = true;
             // 
-            // checkedListBox3
+            // chklst_meta
             // 
-            this.checkedListBox3.FormattingEnabled = true;
-            this.checkedListBox3.Location = new System.Drawing.Point(151, 8);
-            this.checkedListBox3.Name = "checkedListBox3";
-            this.checkedListBox3.Size = new System.Drawing.Size(183, 304);
-            this.checkedListBox3.TabIndex = 2;
+            this.chklst_meta.FormattingEnabled = true;
+            this.chklst_meta.Location = new System.Drawing.Point(151, 8);
+            this.chklst_meta.Name = "chklst_meta";
+            this.chklst_meta.Size = new System.Drawing.Size(183, 304);
+            this.chklst_meta.TabIndex = 2;
             // 
             // checkBox1
             // 
@@ -222,11 +222,11 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.Button btn_RunNormal;
-        private System.Windows.Forms.CheckedListBox checkedListBox2;
-        private System.Windows.Forms.CheckedListBox checkedListBox1;
+        private System.Windows.Forms.CheckedListBox chklist_Features;
+        private System.Windows.Forms.CheckedListBox chklst_SvmConfigurations;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.CheckedListBox checkedListBox3;
+        private System.Windows.Forms.CheckedListBox chklst_meta;
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btn_LoadData;
