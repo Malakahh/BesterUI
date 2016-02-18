@@ -43,6 +43,8 @@
             this.btnVerifySensors = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.collectingDataPanel = new System.Windows.Forms.Panel();
+            this.exportBtn = new System.Windows.Forms.Button();
+            this.loadBtn = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -185,11 +187,33 @@
             this.collectingDataPanel.Size = new System.Drawing.Size(160, 157);
             this.collectingDataPanel.TabIndex = 7;
             // 
+            // exportBtn
+            // 
+            this.exportBtn.Location = new System.Drawing.Point(408, 110);
+            this.exportBtn.Name = "exportBtn";
+            this.exportBtn.Size = new System.Drawing.Size(84, 62);
+            this.exportBtn.TabIndex = 8;
+            this.exportBtn.Text = "Export";
+            this.exportBtn.UseVisualStyleBackColor = true;
+            this.exportBtn.Click += new System.EventHandler(this.exportBtn_Click);
+            // 
+            // loadBtn
+            // 
+            this.loadBtn.Location = new System.Drawing.Point(408, 12);
+            this.loadBtn.Name = "loadBtn";
+            this.loadBtn.Size = new System.Drawing.Size(84, 62);
+            this.loadBtn.TabIndex = 9;
+            this.loadBtn.Text = "Load";
+            this.loadBtn.UseVisualStyleBackColor = true;
+            this.loadBtn.Click += new System.EventHandler(this.loadBtn_Click);
+            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(816, 311);
+            this.Controls.Add(this.loadBtn);
+            this.Controls.Add(this.exportBtn);
             this.Controls.Add(this.collectingDataPanel);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.btnVerifySensors);
@@ -221,5 +245,7 @@
         private System.Windows.Forms.Label gsrPort;
         private System.Windows.Forms.Label eegPort;
         private System.Windows.Forms.Panel collectingDataPanel;
+        private System.Windows.Forms.Button exportBtn;
+        private System.Windows.Forms.Button loadBtn;
     }
 }
