@@ -53,7 +53,7 @@ namespace BesterUI.Data
             if (!writers.ContainsKey(deviceName))
             {
                 isFirst = true;
-                string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh-mm-ss");
+                string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh.mm.ss");
                 if (!Directory.Exists(readingDir))
                 {
                     Directory.CreateDirectory(readingDir);

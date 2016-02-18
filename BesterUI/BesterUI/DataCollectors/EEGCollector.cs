@@ -18,12 +18,27 @@ namespace BesterUI.DataCollectors
         private FusionData fd;
 
         public Action DeviceReady;
-
+        public bool UseEmotivTimestamp = true;
         
         public EEGCollector(FusionData fusionData)
         {
             eegEngine = EmoEngine.Instance;
             fd = fusionData;
+        }
+
+        public void FindUsers()
+        {
+
+            Thread checker = new Thread(() =>
+            {
+                while (userID == -1)
+                {
+                    eegEngine.ProcessEvents();
+                    Thread.Sleep(100);
+                }
+            }
+            );
+            checker.Start();
         }
 
         public void Connect()
@@ -38,7 +53,13 @@ namespace BesterUI.DataCollectors
             int iterations = 0;
             int dataNotReceived = 0;
             Log.LogMessage("EEG data collection started");
-            Dictionary<EdkDll.EE_DataChannel_t, double[]> input;
+
+            int numReadings = 0;
+            //Clearing of buffer
+            Dictionary<EdkDll.EE_DataChannel_t, double[]> input = eegEngine.GetData((uint)userID);
+
+            double startTime = input[EdkDll.EE_DataChannel_t.TIMESTAMP].Max();
+
             while (shouldCollectData)
             {
                 // Handle any waiting events
@@ -60,23 +81,32 @@ namespace BesterUI.DataCollectors
                     Thread.Sleep(100);
                     continue;
                 }
-                
+
                 double max = input[EdkDll.EE_DataChannel_t.TIMESTAMP].Max();
-                for (int j = (int)EdkDll.EE_DataChannel_t.AF3; j <= (int)EdkDll.EE_DataChannel_t.AF4; j++)
+                int len = input[EdkDll.EE_DataChannel_t.TIMESTAMP].Length;
+                for (int i = 0; i < len; i++)
                 {
-                    for (int i = 0; i < input[(EdkDll.EE_DataChannel_t)j].Length; i++)
+                    EEGDataReading dataReading = new EEGDataReading();
+                    
+                    if (UseEmotivTimestamp)
                     {
-                        //TODO: Find out which way the data needs to be added (might be the otherway around)
-                        EEGDataReading dataReading = new EEGDataReading();
-                        double offset = max - input[EdkDll.EE_DataChannel_t.TIMESTAMP][i];
-                        dataReading.data.Add(((EdkDll.EE_DataChannel_t)j).ToString(), input[(EdkDll.EE_DataChannel_t)j][i]);
-                        dataReading.timestamp -= (long)offset;
-                        fd.AddEEGData(dataReading);
-
+                        dataReading.timestamp = (long)((input[EdkDll.EE_DataChannel_t.TIMESTAMP][i]-startTime) * 1000);
                     }
-                }
+                    else
+                    {
+                        dataReading.timestamp = (long)(1000f / 128 * numReadings);
+                        numReadings++;
+                    }
 
-                Log.LogMessage(input[0].Length);
+                    
+                    for (int j = (int)EdkDll.EE_DataChannel_t.AF3; j <= (int)EdkDll.EE_DataChannel_t.AF4; j++)
+                    {
+                        dataReading.data.Add(((EdkDll.EE_DataChannel_t)j).ToString(), input[(EdkDll.EE_DataChannel_t)j][i]);   
+                    }
+
+                    fd.AddEEGData(dataReading);
+                }
+                
                 input = null;
                 
                 Thread.Sleep(100);
@@ -112,7 +142,7 @@ namespace BesterUI.DataCollectors
             eegEngine.EE_DataSetBufferSizeInSec(1);
 
             //Fire event that the eeg is ready
-            if (DeviceReady == null)
+            if (DeviceReady != null)
                 DeviceReady();
         }
         #endregion

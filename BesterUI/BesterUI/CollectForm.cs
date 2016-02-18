@@ -10,12 +10,13 @@ using System.Windows.Forms;
 using BesterUI.Helpers;
 using BesterUI.DataCollectors;
 using System.Threading;
+using BesterUI.Data;
+
 namespace BesterUI
 {
     public partial class CollectForm : Form
     {
         FusionData fusionData = new FusionData();
-
 
         //Collectors
         EEGCollector eegCollect;
@@ -24,7 +25,7 @@ namespace BesterUI
 
         bool collectingData = false;
 
-        bool[] requiredDevices = { false, false, true }; // Required devices for collecting data, EEG, GSR, HR
+        bool[] requiredDevices = { true, true, true }; // Required devices for collecting data, EEG, GSR, HR
 
         bool EEGDeviceReady = false;
         bool GSRDeviceReady = false;
@@ -49,7 +50,7 @@ namespace BesterUI
             eegCollect = new EEGCollector(fusionData);
             eegCollect.Connect();
             eegCollect.DeviceReady += EEGReady; // Event that fires if a user is added to the EEG i.e. the headset is ready for use
-
+            eegCollect.FindUsers();
 
             /*
                 Heart rate initiation
@@ -124,6 +125,7 @@ namespace BesterUI
         {
             if (!collectingData)
             {
+                DataReading.ResetTimers();
                 /*
                     Required devices to start collecting data.
                 */
@@ -131,8 +133,8 @@ namespace BesterUI
                     requiredDevices[1] == GSRDeviceReady &&
                     requiredDevices[2] == HRDeviceReady)
                 {
-                    //eegCollect.StartCollect();
-                    //gsrCollect.StartCollecting();
+                    eegCollect.StartCollect();
+                    gsrCollect.StartCollecting();
                     hrCollect.StartCollecting();
                     button2.Text = "STOP COLLECTING";
                     collectingData = true;
@@ -148,8 +150,8 @@ namespace BesterUI
             }
             else
             {
-                //eegCollect.StopCollect();
-                //gsrCollect.StopCollecting();
+                eegCollect.StopCollect();
+                gsrCollect.StopCollecting();
                 hrCollect.StopCollecting();
                 button2.Text = "START COLLECTING";
                 collectingData = true;
