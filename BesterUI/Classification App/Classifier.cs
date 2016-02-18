@@ -13,7 +13,7 @@ namespace Classification_App
     abstract class Classifier
     {
         public string Name { get; private set; }
-        public abstract List<SVMParameter> Parameters { get; set; }
+        public List<SVMParameter> Parameters { get; set; }
         public readonly SAMData samData;
 
         public Classifier(string Name, List<SVMParameter> Parameters, SAMData samData)
@@ -32,15 +32,6 @@ namespace Classification_App
             this.Parameters = new List<SVMParameter>() { Parameter };
             this.samData = samData;
         }
-
-
-
-        //public abstract void CrossValidate(List<SVMParameter> Parameters, bool RunCombinations);
-
-
-        #region [Helper Functions]
-        abstract public void PrintResults();
-        #endregion
 
         #region [Scoring Functions]
         public static double[,] CalculateConfusion(double[] answers, int[] correct, int labelCount)

@@ -154,11 +154,6 @@ namespace Classification_App
             }
             return temp;
         }
-
-        public override void PrintResults()
-        {
-            throw new NotImplementedException();
-        }
         #endregion
 
 
