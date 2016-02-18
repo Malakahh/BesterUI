@@ -45,7 +45,7 @@ namespace Classification_App
 
                         i++;
                     }
-                    catch (Exception innerE)
+                    catch
                     {
                         if (i == 0)
                         {
@@ -57,7 +57,7 @@ namespace Classification_App
 
 
             }
-            catch (Exception e)
+            catch
             {
                 //Log.LogMessage("[ERROR] SAM data is corrupt!" + "\n" + e.Message);
             }
