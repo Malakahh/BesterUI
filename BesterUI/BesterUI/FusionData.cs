@@ -99,7 +99,7 @@ namespace BesterUI
             gsrData.Add(data);
         }
 
-        private void LoadFromFile(string[] filesToLoad)
+        public void LoadFromFile(string[] filesToLoad)
         {
             DialogResult res = DialogResult.OK;
 
