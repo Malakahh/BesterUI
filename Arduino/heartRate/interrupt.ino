@@ -30,6 +30,15 @@ ISR(TIMER2_COMPA_vect){                         // triggered when Timer2 counts 
   sampleCounter += 2;                         // keep track of the time in mS with this variable
   int N = sampleCounter - lastBeatTime;       // monitor the time since the last beat to avoid noise
 
+
+  if (FakeBeats)
+  {
+    if (N > 950)
+    {
+      Signal += 500;
+    }
+  }
+
     //  find the peak and trough of the pulse wave
   if(Signal < thresh && N > (IBI/5)*3){       // avoid dichrotic noise by waiting 3/5 of last IBI
     if (Signal < T){                        // T is the trough
