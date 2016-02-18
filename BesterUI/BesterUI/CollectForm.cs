@@ -165,17 +165,5 @@ namespace BesterUI
         {
             fusionData.ExportData();
         }
-
-        private void loadBtn_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog fb = new OpenFileDialog();
-            fb.Multiselect = true;
-            DialogResult res = fb.ShowDialog();
-            
-            if (res == DialogResult.OK)
-            {
-                fusionData.LoadFromFile(fb.FileNames);
-            }
-        }
     }
 }

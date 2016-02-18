@@ -32,6 +32,18 @@ namespace BesterUI
             Log.LogMessage("Data cleared.");
         }
 
+        public void LoadData()
+        {
+            OpenFileDialog fb = new OpenFileDialog();
+            fb.Multiselect = true;
+            DialogResult res = fb.ShowDialog();
+
+            if (res == DialogResult.OK)
+            {
+                this.LoadFromFile(fb.FileNames);
+            }
+        }
+
         public void ExportData()
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
@@ -87,7 +99,7 @@ namespace BesterUI
             gsrData.Add(data);
         }
 
-        public void LoadFromFile(string[] filesToLoad)
+        private void LoadFromFile(string[] filesToLoad)
         {
             DialogResult res = DialogResult.OK;
 
