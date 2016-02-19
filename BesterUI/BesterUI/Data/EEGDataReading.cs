@@ -48,44 +48,29 @@ namespace BesterUI.Data
             DataReading.StaticWrite("EEG", this);
         }
 
-        public override void EndWrite()
+        public override string Serialize()
         {
-            DataReading.StaticEndWrite("EEG");
-        }
-
-        public static List<EEGDataReading> LoadFromFile(string json)
-        {
-            //Timestamp
-            string[] commaSeparated = json.Split(new string[] { ",", "{" }, StringSplitOptions.RemoveEmptyEntries);
-            string startTimeString = commaSeparated.First(s => s.Contains("startTime"));
-            startTimeString = startTimeString.Split(new string[] { "\"" }, StringSplitOptions.RemoveEmptyEntries)[3];
-            DateTime loadedStartTime;
-            DateTime.TryParse(startTimeString, out loadedStartTime);
-
-            List<EEGDataReading> list = new List<EEGDataReading>();
-            string[] data = json.Split(new string[] { "[", "]" }, StringSplitOptions.RemoveEmptyEntries);
-            string[] readings = data[1].Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string r in readings)
+            string retVal = "";
+            foreach (var item in data)
             {
-                EEGDataReading eeg = new EEGDataReading(false);
-                eeg.loadedStartTime = loadedStartTime;
-
-                string[] stats = r.Split(new string[] { ",", "{", "}" }, StringSplitOptions.RemoveEmptyEntries);
-
-                for (int i = 1; i < stats.Length - 1; i++)
-                {
-                    string[] si = stats[i].Split(new string[] { ":", "\"" }, StringSplitOptions.RemoveEmptyEntries);
-                    eeg.data.Add(si[0], double.Parse(si[1]));
-                }
-                
-                string s = stats[stats.Length - 1].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[1];
-                eeg.timestamp = long.Parse(s);
-
-                list.Add(eeg);
+                retVal += item.Key + ":" + item.Value + "|";
             }
 
-            return list;
+            return retVal;
+        }
+
+        protected override DataReading Deserialize(string line)
+        {
+            data.Clear();
+
+            var bits = line.Split('|');
+            foreach (var item in bits)
+            {
+                var dat = item.Split(':');
+                data.Add(dat[0], double.Parse(dat[1]));
+            }
+
+            return this;
         }
     }
 }

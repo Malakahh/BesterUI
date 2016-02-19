@@ -40,7 +40,7 @@ namespace BesterUI.Data
             stopWatch = null;
         }
 
-        public static void StaticWrite(string deviceName, object obj)
+        public static void StaticWrite(string deviceName, DataReading obj)
         {
             string dir = "PhysData";
             if (!Directory.Exists(dir))
@@ -48,7 +48,7 @@ namespace BesterUI.Data
                 Directory.CreateDirectory(dir);
             }
 
-            string json = "";
+            string dat = "";
             bool isFirst = false;
             if (!writers.ContainsKey(deviceName))
             {
@@ -59,28 +59,44 @@ namespace BesterUI.Data
                     Directory.CreateDirectory(readingDir);
                 }
 
-                string fileName = readingDir + "/" + deviceName + ".json";
+                string fileName = readingDir + "/" + deviceName + ".dat";
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                json += "{\n\"" + deviceName + "\": {\n" +
-                    "\"startTime\":\"" + startTime + "\",\n" +
-                    "\"Data\":[\n";
+                dat += deviceName + "|" + startTime;
             }
 
-            json += new JavaScriptSerializer().Serialize(obj);
-            writers[deviceName].Write(((isFirst) ? "" : ",\n") + json);
+            dat += obj.timestamp + "#" + obj.Serialize();
+            writers[deviceName].Write(((isFirst) ? "" : "\n") + dat);
             writers[deviceName].Flush();
         }
 
-        public static void StaticEndWrite(string deviceName)
+        public abstract string Serialize();
+
+        public static List<T> LoadFromFile<T>(string path) where T : DataReading, new()
         {
-            writers[deviceName].Write("]}}");
-            writers[deviceName].Flush();
-            writers[deviceName].Dispose();
-            writers.Remove(deviceName);
+            List<T> retVal = new List<T>();
+            using (var dat = File.OpenText(path))
+            {
+                string curLine = dat.ReadLine();
+                var bits = curLine.Split('|');
+                startTime = DateTime.ParseExact(bits[1], "yyyy-MM-dd_hh.mm.ss", System.Globalization.CultureInfo.InvariantCulture);
+
+                curLine = dat.ReadLine();
+                while (!string.IsNullOrEmpty(curLine))
+                {
+                    var datBits = curLine.Split('#');
+                    DataReading t = new T();
+                    t.timestamp = long.Parse(datBits[0]);
+                    retVal.Add((T)t.Deserialize(datBits[1]));
+                }
+            }
+
+            return retVal;
         }
+
+        protected abstract DataReading Deserialize(string line);
 
         public abstract void Write();
-        public abstract void EndWrite();
     }
+
 }

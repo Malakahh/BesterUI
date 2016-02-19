@@ -25,11 +25,6 @@ namespace BesterUI.Data
             DataReading.StaticWrite("GSR", this);
         }
 
-        public override void EndWrite()
-        {
-            DataReading.StaticEndWrite("GSR");
-        }
-
         public static List<GSRDataReading> LoadFromFile(string json)
         {
             //Timestamp
@@ -60,6 +55,17 @@ namespace BesterUI.Data
             }
 
             return list;
+        }
+
+        public override string Serialize()
+        {
+            return resistance.ToString();
+        }
+
+        protected override DataReading Deserialize(string line)
+        {
+            resistance = int.Parse(line);
+            return this;
         }
     }
 }
