@@ -19,7 +19,7 @@ namespace BesterUI.DataCollectors
 
         public Action DeviceReady;
         public bool UseEmotivTimestamp = true;
-        
+
         public EEGCollector(FusionData fusionData)
         {
             eegEngine = EmoEngine.Instance;
@@ -64,7 +64,7 @@ namespace BesterUI.DataCollectors
             {
                 // Handle any waiting events
                 eegEngine.ProcessEvents();
-                
+
                 if (userID == -1)
                 {
                     iterations++;
@@ -72,9 +72,9 @@ namespace BesterUI.DataCollectors
                     Thread.Sleep(100);
                     continue;
                 }
-                
+
                 input = eegEngine.GetData((uint)userID);
-                
+
                 if (input == null)
                 {
                     Log.LogMessageSameLine("No data receied number of times: " + ++dataNotReceived);
@@ -87,10 +87,10 @@ namespace BesterUI.DataCollectors
                 for (int i = 0; i < len; i++)
                 {
                     EEGDataReading dataReading = new EEGDataReading();
-                    
+
                     if (UseEmotivTimestamp)
                     {
-                        dataReading.timestamp = (long)((input[EdkDll.EE_DataChannel_t.TIMESTAMP][i]-startTime) * 1000);
+                        dataReading.timestamp = (long)((input[EdkDll.EE_DataChannel_t.TIMESTAMP][i] - startTime) * 1000);
                     }
                     else
                     {
@@ -98,17 +98,17 @@ namespace BesterUI.DataCollectors
                         numReadings++;
                     }
 
-                    
+
                     for (int j = (int)EdkDll.EE_DataChannel_t.AF3; j <= (int)EdkDll.EE_DataChannel_t.AF4; j++)
                     {
-                        dataReading.data.Add(((EdkDll.EE_DataChannel_t)j).ToString(), input[(EdkDll.EE_DataChannel_t)j][i]);   
+                        dataReading.data.Add(((EdkDll.EE_DataChannel_t)j).ToString(), input[(EdkDll.EE_DataChannel_t)j][i]);
                     }
 
                     fd.AddEEGData(dataReading);
                 }
-                
+
                 input = null;
-                
+
                 Thread.Sleep(100);
             }
 
@@ -124,7 +124,6 @@ namespace BesterUI.DataCollectors
 
         public void StopCollect()
         {
-            GSRDataReading.StaticEndWrite("EEG");
             Log.LogMessage("EEG data Collection stopped");
             shouldCollectData = false;
         }
@@ -147,7 +146,7 @@ namespace BesterUI.DataCollectors
         }
         #endregion
 
-        
+
 
     }
 }

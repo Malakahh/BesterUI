@@ -62,7 +62,7 @@ namespace BesterUI.Data
                 string fileName = readingDir + "/" + deviceName + ".dat";
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                dat += deviceName + "|" + startTime;
+                dat += deviceName + "|" + startTime + "\n";
             }
 
             dat += obj.timestamp + "#" + obj.Serialize();

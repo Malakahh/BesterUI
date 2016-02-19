@@ -73,13 +73,13 @@ namespace BesterUI
                     switch (s)
                     {
                         case "GSR.json":
-                            gsrData = GSRDataReading.LoadFromFile(json);
+                            gsrData = DataReading.LoadFromFile<GSRDataReading>(file);
                             break;
                         case "EEG.json":
-                            eegData = EEGDataReading.LoadFromFile(json);
+                            eegData = DataReading.LoadFromFile<EEGDataReading>(file);
                             break;
                         case "HR.json":
-                            hrData = HRDataReading.LoadFromFile(json);
+                            hrData = DataReading.LoadFromFile<HRDataReading>(file);
                             break;
                     }
                 }
@@ -90,6 +90,8 @@ namespace BesterUI
         {
             //EEG
             EEGDataReading test = new EEGDataReading();
+            test.data.Add("stuff", 2.1243);
+            test.data.Add("stuff2", 3.1243);
             //  test.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.1);
             //  test.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.1);
             test.Write();
@@ -105,7 +107,7 @@ namespace BesterUI
             //  test3.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 13337.0);
             test3.Write();
             eegData.Add(test3);
-            test3.EndWrite();
+
 
             //GSR
             for (int i = 0; i < 200; i++)
@@ -120,7 +122,7 @@ namespace BesterUI
             gsr6.resistance = 66666;
             gsr6.Write();
             gsrData.Add(gsr6);
-            gsr6.EndWrite();
+
 
 
             //Band
@@ -138,7 +140,7 @@ namespace BesterUI
             band1.isBeat = true;
             band1.Write();
             hrData.Add(band1);
-            band1.EndWrite();
+
 
         }
     }

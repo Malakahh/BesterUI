@@ -73,7 +73,6 @@ namespace BesterUI.DataCollectors
                 }
             }
             COMHandler.ClosePort(arduino);
-            DataReading.StaticEndWrite("HR");
             Log.LogMessage("Stopped HR");
         }
 
@@ -99,13 +98,13 @@ namespace BesterUI.DataCollectors
                 Log.LogMessage("ERROR: Faulty HeartRate reading! ");
                 return new HRDataReading() { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Log.LogMessage("ERROR: Faulty HeartRate reading! " );
+                Log.LogMessage("ERROR: Faulty HeartRate reading! ");
                 Log.LogMessage("Error Code: " + e.Message);
                 return new HRDataReading() { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
             }
-           
+
         }
     }
 }

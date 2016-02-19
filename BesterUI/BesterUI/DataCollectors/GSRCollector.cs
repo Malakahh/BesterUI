@@ -48,11 +48,10 @@ namespace BesterUI.DataCollectors
                 if (comPort.BytesToRead > 0)
                 {
                     fd.AddGSRData(ReadData());
-                        
+
                 }
             }
             COMHandler.ClosePort(comPort);
-            DataReading.StaticEndWrite("GSR");
             Log.LogMessage("Stopped GSR");
         }
 
@@ -61,7 +60,7 @@ namespace BesterUI.DataCollectors
             byte[] input = new byte[8];
             input[0] = COMHandler.ReadFromPort(comPort, 1, TIMEOUT_MS)[0];
             COMHandler.ReadFromPort(comPort, 7, TIMEOUT_MS).CopyTo(input, 1);
-            
+
             return input;
         }
 
