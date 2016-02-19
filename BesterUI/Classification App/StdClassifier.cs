@@ -12,7 +12,6 @@ namespace Classification_App
 {
     class StdClassifier : Classifier
     {
-        public override List<SVMParameter> Parameters { get; set; }
         public List<Feature> features = new List<Feature>();
 
         #region [Constructors]
@@ -129,6 +128,45 @@ namespace Classification_App
             }
             return predictedResults;
         }
+
+        
+        public List<PredictionResult> CrossValidateWithBoosting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, double[] answersFromPrevious, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
+        {
+            List<PredictionResult> predictedResults = new List<PredictionResult>();
+            //Split into crossvalidation parts
+            List<List<double>> tempFeatuers = GetFeatureValues(features);
+            tempFeatuers.Add(answersFromPrevious.ToList());
+
+            if (answersFromPrevious.Length != tempFeatuers[0].Count)
+            {
+                //answers from previous is not the same size as current feature list, e.g. something is wrong
+                return null;
+            }
+
+            List<Tuple<SVMProblem, SVMProblem>> problems = tempFeatuers.NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
+            //Get correct results
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+
+            foreach (SVMParameter SVMpara in Parameters)
+            {
+                List<double> guesses = new List<double>();
+                //model and predict each nfold
+                foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                {
+                    guesses.AddRange(tupleProblem.Item1.Predict(tupleProblem.Item2.Train(SVMpara)));
+                }
+                int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+                //Calculate scoring results
+                double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
+                List<double> pres = CalculatePrecision(confus, numberOfLabels);
+                List<double> recall = CalculateRecall(confus, numberOfLabels);
+                List<double> fscore = CalculateFScore(pres, recall);
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.Cast<int>().ToList());
+                //TODO: Do something with the result
+            }
+            return predictedResults;
+        }
+
         #endregion
 
         #region [Helper Functions]

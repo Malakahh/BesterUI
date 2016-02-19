@@ -13,14 +13,16 @@ namespace Classification_App
     class MetaClassifier : Classifier
     {
         private List<StdClassifier> standardClassifiers = new List<StdClassifier>();
+        public List<int> boostingOrder = new List<int>();
 
-
-        public MetaClassifier(string Name, List<SVMParameter> Parameters, SAMData SamData) : base(Name, Parameters, SamData)
+        public MetaClassifier(string Name, List<SVMParameter> Parameters, SAMData SamData, List<StdClassifier> Classifiers) : base(Name, Parameters, SamData)
         {
+            standardClassifiers = Classifiers;
         }
 
-        public MetaClassifier(string Name, SVMParameter Parameter, SAMData SamData) : base(Name, Parameter, SamData)
+        public MetaClassifier(string Name, SVMParameter Parameter, SAMData SamData, List<StdClassifier> Classifiers) : base(Name, Parameter, SamData)
         {
+            standardClassifiers = Classifiers;
         }
 
 
@@ -171,10 +173,46 @@ namespace Classification_App
         }
 
 
-        public void DoBoosting()
+        public PredictionResult DoBoosting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings, Normalize normalizeFormat)
         {
+            if (boostingOrder.Count != standardClassifiers.Count)
+            {
+                //if boosting order and standardClassifier is not the same size an out of bounds is invetatible 
+                return null;
+            }
 
+            PredictionResult prevResult = null;
+            for (int i = 0; i < boostingOrder.Count; i++)
+            {
+                if (i == 0)
+                {
+                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat));
+                }
+                else
+                {
+                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidateWithBoosting(feelingsmodel, nFold, prevResult.answers.Cast<double>().ToArray(), useIAPSratings, normalizeFormat));
+                }
+            }
+            return prevResult;
         }
-        
+
+        #region [Helper Functions]
+
+        public PredictionResult FindBestFScorePrediction(List<PredictionResult> results)
+        {
+            double maxScore = -1;
+            PredictionResult bestResult = null;
+            foreach (PredictionResult result in results)
+            {
+                if (result.AverageFScore() > maxScore)
+                {
+                    bestResult = result;
+                    maxScore = result.AverageFScore();
+                }
+            }
+            return bestResult;
+        }
+        #endregion
+
     }
 }
