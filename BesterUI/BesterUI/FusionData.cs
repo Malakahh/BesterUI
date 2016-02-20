@@ -58,7 +58,7 @@ namespace BesterUI
 
             if (res == DialogResult.OK)
             {
-                string[] correctNames = new string[3] { "GSR.json", "EEG.json", "HR.json", };
+                string[] correctNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", };
 
                 foreach (string file in fileNames)
                 {
@@ -68,17 +68,15 @@ namespace BesterUI
                         continue;
                     }
 
-                    string json = File.ReadAllText(file);
-
                     switch (s)
                     {
-                        case "GSR.json":
+                        case "GSR.dat":
                             gsrData = DataReading.LoadFromFile<GSRDataReading>(file);
                             break;
-                        case "EEG.json":
+                        case "EEG.dat":
                             eegData = DataReading.LoadFromFile<EEGDataReading>(file);
                             break;
-                        case "HR.json":
+                        case "HR.dat":
                             hrData = DataReading.LoadFromFile<HRDataReading>(file);
                             break;
                     }
