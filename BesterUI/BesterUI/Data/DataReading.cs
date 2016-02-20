@@ -49,17 +49,18 @@ namespace BesterUI.Data
             }
 
             string dat = "";
+
             bool isFirst = false;
             if (!writers.ContainsKey(deviceName))
             {
                 isFirst = true;
-                string readingDir = dir + "/" + ((DateTime)startTime).ToString("yyyy-MM-dd_hh.mm.ss");
-                if (!Directory.Exists(readingDir))
+                if (!Directory.Exists(dir))
                 {
-                    Directory.CreateDirectory(readingDir);
+                    Directory.CreateDirectory(dir);
                 }
 
-                string fileName = readingDir + "/" + deviceName + ".dat";
+                string fileName = dir + "/" + deviceName + ".dat";
+
                 writers.Add(deviceName, new StreamWriter(fileName));
 
                 dat += deviceName + "|" + startTime + "\n";

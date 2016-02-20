@@ -54,7 +54,7 @@ namespace BesterUI.Helpers
             {
                 port.Read(buf, 0, size);
             }
-            catch (TimeoutException e)
+            catch
             {
                 Array.Clear(buf, 0, size);
             }
@@ -98,7 +98,7 @@ namespace BesterUI.Helpers
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 ClosePort(arduino);
             }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BesterUI.Data;
 using System.Windows.Forms;
 using System.IO;
+using BesterUI.Helpers;
 
 namespace BesterUI
 {
@@ -14,6 +15,8 @@ namespace BesterUI
         public List<HRDataReading> hrData = new List<HRDataReading>();
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
+
+        string[] fileNames = new string[3] { "GSR.json", "EEG.json", "HR.json", }; //If you change this, remember to change LoadFromFile as well
 
 
         public FusionData()
@@ -26,7 +29,53 @@ namespace BesterUI
             hrData.Clear();
             eegData.Clear();
             gsrData.Clear();
+            Log.LogMessage("Data cleared.");
+        }
 
+        public void LoadData()
+        {
+            OpenFileDialog fb = new OpenFileDialog();
+            fb.Multiselect = true;
+            DialogResult res = fb.ShowDialog();
+
+            if (res == DialogResult.OK)
+            {
+                this.LoadFromFile(fb.FileNames);
+            }
+        }
+
+        public void ExportData()
+        {
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            DialogResult res = dialog.ShowDialog();
+
+            if (res != DialogResult.OK)
+            {
+                return;
+            }
+
+            if (hrData.Count <= 0 || eegData.Count <= 0 || gsrData.Count <= 0)
+            {
+                Log.LogMessage("No data to save..!");
+                return;
+            }
+
+            foreach (HRDataReading r in hrData)
+            {
+                DataReading.StaticWrite("HR", r, dialog.SelectedPath);
+            }
+
+            foreach (EEGDataReading r in eegData)
+            {
+                DataReading.StaticWrite("EEG", r, dialog.SelectedPath);
+            }
+
+            foreach (GSRDataReading r in gsrData)
+            {
+                DataReading.StaticWrite("GSR", r, dialog.SelectedPath);
+            }
+
+            Reset();
         }
 
         public void AddHRData(HRDataReading data)
@@ -47,7 +96,7 @@ namespace BesterUI
             gsrData.Add(data);
         }
 
-        public void LoadFromFile(string[] fileNames)
+        public void LoadFromFile(string[] filesToLoad)
         {
             DialogResult res = DialogResult.OK;
 
@@ -60,10 +109,11 @@ namespace BesterUI
             {
                 string[] correctNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", };
 
-                foreach (string file in fileNames)
+
+                foreach (string file in filesToLoad)
                 {
                     string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                    if (!correctNames.Contains(s))
+                    if (!fileNames.Contains(s))
                     {
                         continue;
                     }

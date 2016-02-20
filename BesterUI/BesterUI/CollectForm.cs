@@ -125,6 +125,7 @@ namespace BesterUI
         {
             if (!collectingData)
             {
+                fusionData.Reset();
                 DataReading.ResetTimers();
                 /*
                     Required devices to start collecting data.
@@ -158,6 +159,11 @@ namespace BesterUI
                 collectingDataPanel.BackColor = Color.Red;
             }
 
+        }
+
+        private void exportBtn_Click(object sender, EventArgs e)
+        {
+            fusionData.ExportData();
         }
     }
 }
