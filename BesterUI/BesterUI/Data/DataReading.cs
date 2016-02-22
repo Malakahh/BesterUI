@@ -40,9 +40,9 @@ namespace BesterUI.Data
             stopWatch = null;
         }
 
-        public static void StaticWrite(string deviceName, DataReading obj)
+
+        public static void StaticWrite(string deviceName, DataReading obj, string dir = "PhysData")
         {
-            string dir = "PhysData";
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);

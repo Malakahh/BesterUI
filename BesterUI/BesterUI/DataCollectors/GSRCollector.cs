@@ -82,12 +82,11 @@ namespace BesterUI.DataCollectors
         public GSRDataReading ReadData()
         {
             byte[] input = GetReading();
-
+            int adc = (input[3] << 8) + input[4];
             /*
                 WAT DO BELOW
             */
             bool headerError = input[0] != 0xA3 || input[1] != 0x5b || input[2] != 8;
-            int adc = (input[3] << 8) + input[4];
             byte status = input[5];
             bool probe_error = (status & 1) == 1;
             bool battery = (status & 2) == 1;

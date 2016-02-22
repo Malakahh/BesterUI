@@ -134,7 +134,7 @@ namespace Classification_App
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
             //Split into crossvalidation parts
-            List<List<double>> tempFeatuers = GetFeatureValues(features);
+            List<List<double>> tempFeatuers = GetFeatureValues(features, samData);
             tempFeatuers.Add(answersFromPrevious.ToList());
 
             if (answersFromPrevious.Length != tempFeatuers[0].Count)

@@ -59,7 +59,7 @@ namespace BesterUI
                 Log.LogMessage("No data to save..!");
                 return;
             }
-
+            
             foreach (HRDataReading r in hrData)
             {
                 DataReading.StaticWrite("HR", r, dialog.SelectedPath);

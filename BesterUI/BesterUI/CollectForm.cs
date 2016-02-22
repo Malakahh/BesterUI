@@ -11,6 +11,7 @@ using BesterUI.Helpers;
 using BesterUI.DataCollectors;
 using System.Threading;
 using BesterUI.Data;
+using System.IO;
 
 namespace BesterUI
 {
@@ -25,7 +26,7 @@ namespace BesterUI
 
         bool collectingData = false;
 
-        bool[] requiredDevices = { true, true, true }; // Required devices for collecting data, EEG, GSR, HR
+        bool[] requiredDevices = { true, true, true}; // Required devices for collecting data, EEG, GSR, HR
 
         bool EEGDeviceReady = false;
         bool GSRDeviceReady = false;
@@ -134,6 +135,7 @@ namespace BesterUI
                     requiredDevices[1] == GSRDeviceReady &&
                     requiredDevices[2] == HRDeviceReady)
                 {
+                    StartTestFromCollector();
                     eegCollect.StartCollect();
                     gsrCollect.StartCollecting();
                     hrCollect.StartCollecting();
@@ -157,6 +159,7 @@ namespace BesterUI
                 button2.Text = "START COLLECTING";
                 collectingData = true;
                 collectingDataPanel.BackColor = Color.Red;
+                DeleteStartFile();
             }
 
         }
@@ -165,5 +168,17 @@ namespace BesterUI
         {
             fusionData.ExportData();
         }
+
+        private void StartTestFromCollector()
+        {
+            var f = File.Create(@"C:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
+            f.Close();
+        }
+
+        private void DeleteStartFile()
+        {
+            File.Delete(@"C:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
+        }
+
     }
 }
