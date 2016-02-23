@@ -116,7 +116,7 @@ namespace Classification_App
                 Directory.CreateDirectory(currentPath + @"\STD");
             }
 
-            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize());
+            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize() + ".svm");
         }
 
         void SaveConfiguration(MetaSVMConfiguration conf)
@@ -126,7 +126,7 @@ namespace Classification_App
                 Directory.CreateDirectory(currentPath + @"\META");
             }
 
-            File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize());
+            File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize() + ".svm");
         }
         private void btn_LoadData_Click(object sender, EventArgs e)
         {
