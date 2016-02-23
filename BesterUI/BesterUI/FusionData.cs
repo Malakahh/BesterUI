@@ -59,7 +59,7 @@ namespace BesterUI
                 Log.LogMessage("No data to save..!");
                 return;
             }
-            
+
             foreach (HRDataReading r in hrData)
             {
                 DataReading.StaticWrite("HR", r, dialog.SelectedPath);
@@ -98,43 +98,34 @@ namespace BesterUI
 
         public void LoadFromFile(string[] filesToLoad)
         {
-            DialogResult res = DialogResult.OK;
+            string[] correctNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", };
 
-            if (hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0)
+
+            foreach (string file in filesToLoad)
             {
-                res = MessageBox.Show("You are about to overwrite unsaved data. Continue?", "WARNING", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
-            }
-
-            if (res == DialogResult.OK)
-            {
-                string[] correctNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", };
-
-
-                foreach (string file in filesToLoad)
+                string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                if (!fileNames.Contains(s))
                 {
-                    string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                    if (!fileNames.Contains(s))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    switch (s)
-                    {
-                        case "GSR.dat":
-                            Log.LogMessage("Loading GSR data");
-                            gsrData = DataReading.LoadFromFile<GSRDataReading>(file);
-                            break;
-                        case "EEG.dat":
-                            Log.LogMessage("Loading EEG data");
-                            eegData = DataReading.LoadFromFile<EEGDataReading>(file);
-                            break;
-                        case "HR.dat":
-                            Log.LogMessage("Loading HR data");
-                            hrData = DataReading.LoadFromFile<HRDataReading>(file);
-                            break;
-                    }
+                switch (s)
+                {
+                    case "GSR.dat":
+                        Log.LogMessage("Loading GSR data");
+                        gsrData = DataReading.LoadFromFile<GSRDataReading>(file);
+                        break;
+                    case "EEG.dat":
+                        Log.LogMessage("Loading EEG data");
+                        eegData = DataReading.LoadFromFile<EEGDataReading>(file);
+                        break;
+                    case "HR.dat":
+                        Log.LogMessage("Loading HR data");
+                        hrData = DataReading.LoadFromFile<HRDataReading>(file);
+                        break;
                 }
             }
+
         }
 
         public void CreateDummyData()

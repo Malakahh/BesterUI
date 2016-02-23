@@ -139,50 +139,55 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                currentPath = fbd.SelectedPath;
-                Log.LogMessage("Selected folder: " + fbd.SelectedPath);
-                //load fusion data
-                _fd.LoadFromFile(new string[] { fbd.SelectedPath + @"\EEG.dat", fbd.SelectedPath + @"\GSR.dat", fbd.SelectedPath + @"\HR.dat" });
-                samData = SAMData.LoadFromPath(fbd.SelectedPath + @"\SAM.json");
-                Log.LogMessage("Fusion Data loaded!");
-
-                Log.LogMessage("Applying data to features..");
-
-                FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
-                FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-                FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-
-                Log.LogMessage("Looking for configurations...");
-
-                svmConfs.Clear();
-                if (Directory.Exists(fbd.SelectedPath + @"\STD"))
-                {
-                    var files = Directory.GetFiles(fbd.SelectedPath + @"\STD");
-                    Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
-                    foreach (var item in files)
-                    {
-                        svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                    }
-
-                }
-
-                if (Directory.Exists(fbd.SelectedPath + @"\META"))
-                {
-                    var files = Directory.GetFiles(fbd.SelectedPath + @"\META");
-                    Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
-                    /* same procedure?? */
-                    //foreach (var item in files)
-                    //{
-                    //    svmConfigs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                    //}
-                }
-
-                if (svmConfs.Count == 0 && metaConfs.Count == 0)
-                {
-                    Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
-                }
+                LoadData(fbd.SelectedPath);
+                DataLoaded();
             }
-            DataLoaded();
+        }
+
+        void LoadData(string path)
+        {
+            currentPath = path;
+            Log.LogMessage("Selected folder: " + path);
+            //load fusion data
+            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat" });
+            samData = SAMData.LoadFromPath(path + @"\SAM.json");
+            Log.LogMessage("Fusion Data loaded!");
+
+            Log.LogMessage("Applying data to features..");
+
+            FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
+            FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
+            FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
+
+            Log.LogMessage("Looking for configurations...");
+
+            svmConfs.Clear();
+            if (Directory.Exists(path + @"\STD"))
+            {
+                var files = Directory.GetFiles(path + @"\STD");
+                Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
+                foreach (var item in files)
+                {
+                    svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                }
+
+            }
+
+            if (Directory.Exists(path + @"\META"))
+            {
+                var files = Directory.GetFiles(path + @"\META");
+                Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
+                /* same procedure?? */
+                //foreach (var item in files)
+                //{
+                //    svmConfigs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                //}
+            }
+
+            if (svmConfs.Count == 0 && metaConfs.Count == 0)
+            {
+                Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
+            }
         }
 
         #region [Enable UI Steps]
@@ -236,5 +241,20 @@ namespace Classification_App
             chklst_meta.Items.Add(standardClassifier);
         }
         #endregion
+
+        private void btn_RunAll_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
+
+                foreach (var item in dataFolders)
+                {
+                    LoadData(item);
+                }
+            }
+        }
     }
 }
