@@ -109,45 +109,6 @@ namespace Classification_App
             }
         }
 
-        private List<SVMParameter> GenerateSVMParameters()
-        {
-            List<double> cTypes = new List<double>() { };
-            List<double> gammaTypes = new List<double>() { };
-            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -5; t <= 15; t++)
-            {
-                cTypes.Add(Math.Pow(2, t));
-            }
-            for (int t = -15; t <= 3; t++)
-            {
-                gammaTypes.Add(Math.Pow(2, t));
-            }
-            //Generate SVMParams
-            List<SVMParameter> svmParams = new List<SVMParameter>();
-
-            foreach (SVMKernelType kernel in kernels)
-            {
-                foreach (double c in cTypes)
-                {
-                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
-                    {
-                        SVMParameter t = new SVMParameter();
-                        t.Kernel = kernel;
-                        t.C = c;
-                        t.Gamma = gammaTypes[i];
-                        svmParams.Add(t);
-                    }
-                }
-            }
-            return svmParams;
-        }
-
-        private void AddStdClassifierToLists(StdClassifier standardClassifier)
-        {
-            chklst_SvmConfigurations.Items.Add(standardClassifier);
-            chklst_meta.Items.Add(standardClassifier);
-        }
-
         void SaveConfiguration(SVMConfiguration conf)
         {
             if (!Directory.Exists(currentPath + @"\STD"))
@@ -167,7 +128,6 @@ namespace Classification_App
 
             File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize());
         }
-
         private void btn_LoadData_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -217,6 +177,59 @@ namespace Classification_App
                     Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
                 }
             }
+            DataLoaded();
         }
+
+        #region [Enable UI Steps]
+        private void DataLoaded()
+        {
+            tabControl1.Enabled = true;
+            btn_RunAll.Enabled = true;
+            statusLabel.Text = "Data is ready";
+        }
+
+        #endregion
+
+        #region [Helper Functions]
+
+        private List<SVMParameter> GenerateSVMParameters()
+        {
+            List<double> cTypes = new List<double>() { };
+            List<double> gammaTypes = new List<double>() { };
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
+            for (int t = -5; t <= 15; t++)
+            {
+                cTypes.Add(Math.Pow(2, t));
+            }
+            for (int t = -15; t <= 3; t++)
+            {
+                gammaTypes.Add(Math.Pow(2, t));
+            }
+            //Generate SVMParams
+            List<SVMParameter> svmParams = new List<SVMParameter>();
+
+            foreach (SVMKernelType kernel in kernels)
+            {
+                foreach (double c in cTypes)
+                {
+                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                    {
+                        SVMParameter t = new SVMParameter();
+                        t.Kernel = kernel;
+                        t.C = c;
+                        t.Gamma = gammaTypes[i];
+                        svmParams.Add(t);
+                    }
+                }
+            }
+            return svmParams;
+        }
+
+        private void AddStdClassifierToLists(StdClassifier standardClassifier)
+        {
+            chklst_SvmConfigurations.Items.Add(standardClassifier);
+            chklst_meta.Items.Add(standardClassifier);
+        }
+        #endregion
     }
 }
