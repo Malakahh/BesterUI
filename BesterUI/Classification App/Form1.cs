@@ -272,27 +272,77 @@ namespace Classification_App
                     LoadData(item);
 
                     gsrProg = 0;
+                    gsrTot = 1;
                     hrProg = 0;
+                    hrTot = 1;
                     eegProg = 0;
+                    eegTot = 1;
 
-                    Thread gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures);
-                    Thread hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures);
-                    Thread eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures);
+                    bool gsrWrite = false;
+                    bool hrWrite = false;
+                    bool eegWrite = false;
 
-                    gsrThread.Priority = ThreadPriority.Highest;
-                    hrThread.Priority = ThreadPriority.Highest;
-                    eegThread.Priority = ThreadPriority.Highest;
+                    Thread gsrThread = null;
+                    if (!File.Exists(currentPath + @"\gsr.donnodk"))
+                    {
+                        gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures);
+                        gsrThread.Priority = ThreadPriority.Highest;
+                        gsrThread.Start();
+                    }
+                    else
+                    {
+                        Log.LogMessage("GSR done already, skipping");
+                    }
 
-                    gsrThread.Start();
-                    hrThread.Start();
-                    eegThread.Start();
+                    Thread hrThread = null;
+                    if (!File.Exists(currentPath + @"\hr.donnodk"))
+                    {
+                        hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures);
+                        hrThread.Priority = ThreadPriority.Highest;
+                        hrThread.Start();
+                    }
+                    else
+                    {
+                        Log.LogMessage("HR done already, skipping");
+                    }
 
-                    while (gsrThread.IsAlive || hrThread.IsAlive || eegThread.IsAlive)
+                    Thread eegThread = null;
+                    if (!File.Exists(currentPath + @"\eeg.donnodk"))
+                    {
+                        eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures);
+                        eegThread.Priority = ThreadPriority.Highest;
+                        eegThread.Start();
+                    }
+                    else
+                    {
+                        Log.LogMessage("EEG done already, skipping");
+                    }
+
+
+                    while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive))
                     {
                         Thread.Sleep(500);
                         double pct = (double)(gsrProg + hrProg + eegProg) * (double)100 / (double)(gsrTot + hrTot + eegTot);
                         Log.LogMessageSameLine(curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")]");
                         Application.DoEvents();
+
+                        if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
+                        {
+                            gsrWrite = true;
+                            using (var temp = File.Create(currentPath + @"\gsr.donnodk")) { }
+                        }
+
+                        if (hrThread != null && !hrThread.IsAlive && !hrWrite)
+                        {
+                            hrWrite = true;
+                            using (var temp = File.Create(currentPath + @"\hr.donnodk")) { }
+                        }
+
+                        if (eegThread != null && !eegThread.IsAlive && !eegWrite)
+                        {
+                            eegWrite = true;
+                            using (var temp = File.Create(currentPath + @"\eeg.donnodk")) { }
+                        }
                     }
 
                     using (var temp = File.Create(currentPath + @"\donno.dk")) { }
