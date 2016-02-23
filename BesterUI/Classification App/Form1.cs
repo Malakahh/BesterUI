@@ -111,6 +111,11 @@ namespace Classification_App
 
         void SaveConfiguration(SVMConfiguration conf)
         {
+            if (svmConfs.Contains(conf))
+            {
+                svmConfs.Add(conf);
+            }
+
             if (!Directory.Exists(currentPath + @"\STD"))
             {
                 Directory.CreateDirectory(currentPath + @"\STD");
