@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Diagnostics;
 using System.IO;
 using System.Web.Script.Serialization;
+using BesterUI.Helpers;
 
 namespace BesterUI.Data
 {
@@ -74,27 +75,74 @@ namespace BesterUI.Data
 
         public abstract string Serialize();
 
+        static volatile bool doneReading = true;
+        static volatile string fPath;
+        static volatile System.Collections.Queue q;
         public static List<T> LoadFromFile<T>(string path) where T : DataReading, new()
         {
             List<T> retVal = new List<T>();
-            using (var dat = File.OpenText(path))
-            {
-                string curLine = dat.ReadLine();
-                var bits = curLine.Split('|');
-                startTime = DateTime.ParseExact(bits[1], dateFormat, System.Globalization.CultureInfo.InvariantCulture);
 
-                curLine = dat.ReadLine();
-                while (!string.IsNullOrEmpty(curLine))
+            fPath = path;
+            doneReading = false;
+            q = System.Collections.Queue.Synchronized(new System.Collections.Queue());
+            Thread readThread = new Thread(new ThreadStart(ReadToQueue));
+            readThread.Start();
+            bool first = true;
+
+            long size = new FileInfo(path).Length / 1024;
+            long progress = 0;
+            long next = size / 100;
+
+            Log.LogMessage("Loading " + typeof(T).Name + ": 0/" + size + " bytes.");
+
+            while (!doneReading || q.Count > 0)
+            {
+                if (q.Count > 0)
                 {
-                    var datBits = curLine.Split('#');
-                    DataReading t = new T();
-                    t.timestamp = long.Parse(datBits[0]);
-                    retVal.Add((T)t.Deserialize(datBits[1]));
-                    curLine = dat.ReadLine();
+                    string curLine = (string)q.Dequeue();
+
+                    if (first)
+                    {
+                        progress += curLine.Length;
+                        var bits = curLine.Split('|');
+                        startTime = DateTime.ParseExact(bits[1], dateFormat, System.Globalization.CultureInfo.InvariantCulture);
+                        first = false;
+                    }
+                    else
+                    {
+                        progress += curLine.Length;
+                        var datBits = curLine.Split('#');
+                        DataReading t = new T();
+                        t.timestamp = long.Parse(datBits[0]);
+                        retVal.Add((T)t.Deserialize(datBits[1]));
+
+                        if ((progress / 1024) > next)
+                        {
+                            next += size / 100;
+                            Log.LogMessageSameLine("Loading " + typeof(T).Name + ": " + (progress / 1024) + "/" + size + " kbytes.");
+                        }
+
+                        System.Windows.Forms.Application.DoEvents();
+                    }
                 }
             }
 
             return retVal;
+        }
+
+        public static void ReadToQueue()
+        {
+            using (var dat = File.OpenText(fPath))
+            {
+                string curLine = dat.ReadLine();
+                while (!string.IsNullOrEmpty(curLine))
+                {
+                    q.Enqueue(curLine);
+                    curLine = dat.ReadLine();
+                }
+            }
+
+            doneReading = true;
         }
 
         protected abstract DataReading Deserialize(string line);
