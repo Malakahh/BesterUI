@@ -20,6 +20,11 @@ namespace Classification_App
             features = Features;
         }
 
+        public SVMConfiguration(string Name, SVMParameter Parameters, List<Feature> Features) : this(Parameters, Features)
+        {
+            this.Name = Name;
+        }
+
         private SVMConfiguration()
         {
         }

@@ -36,15 +36,17 @@
             this.chklist_Features = new System.Windows.Forms.CheckedListBox();
             this.chklst_SvmConfigurations = new System.Windows.Forms.CheckedListBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
+            this.votingCB = new System.Windows.Forms.CheckBox();
             this.chklst_meta = new System.Windows.Forms.CheckedListBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.button2 = new System.Windows.Forms.Button();
+            this.stackingCB = new System.Windows.Forms.CheckBox();
+            this.metaRunBtn = new System.Windows.Forms.Button();
             this.btn_LoadData = new System.Windows.Forms.Button();
             this.btn_RunAll = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
+            this.boostingCB = new System.Windows.Forms.CheckBox();
+            this.addMachineBtn = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -63,6 +65,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.addMachineBtn);
             this.tabPage1.Controls.Add(this.chk_ParameterOptimizationNormal);
             this.tabPage1.Controls.Add(this.chk_FeatureOptimizationNormal);
             this.tabPage1.Controls.Add(this.btn_RunNormal);
@@ -111,7 +114,7 @@
             this.chklist_Features.FormattingEnabled = true;
             this.chklist_Features.Location = new System.Drawing.Point(336, 6);
             this.chklist_Features.Name = "chklist_Features";
-            this.chklist_Features.Size = new System.Drawing.Size(151, 274);
+            this.chklist_Features.Size = new System.Drawing.Size(151, 244);
             this.chklist_Features.TabIndex = 1;
             // 
             // chklst_SvmConfigurations
@@ -124,54 +127,56 @@
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.checkBox2);
+            this.tabPage2.Controls.Add(this.boostingCB);
+            this.tabPage2.Controls.Add(this.votingCB);
             this.tabPage2.Controls.Add(this.chklst_meta);
-            this.tabPage2.Controls.Add(this.checkBox1);
-            this.tabPage2.Controls.Add(this.button2);
+            this.tabPage2.Controls.Add(this.stackingCB);
+            this.tabPage2.Controls.Add(this.metaRunBtn);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(540, 318);
+            this.tabPage2.Size = new System.Drawing.Size(540, 292);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Meta";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // checkBox2
+            // votingCB
             // 
-            this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(12, 145);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(80, 17);
-            this.checkBox2.TabIndex = 3;
-            this.checkBox2.Text = "checkBox2";
-            this.checkBox2.UseVisualStyleBackColor = true;
+            this.votingCB.AutoSize = true;
+            this.votingCB.Location = new System.Drawing.Point(27, 118);
+            this.votingCB.Name = "votingCB";
+            this.votingCB.Size = new System.Drawing.Size(56, 17);
+            this.votingCB.TabIndex = 3;
+            this.votingCB.Text = "Voting";
+            this.votingCB.UseVisualStyleBackColor = true;
             // 
             // chklst_meta
             // 
             this.chklst_meta.FormattingEnabled = true;
             this.chklst_meta.Location = new System.Drawing.Point(151, 8);
             this.chklst_meta.Name = "chklst_meta";
-            this.chklst_meta.Size = new System.Drawing.Size(183, 304);
+            this.chklst_meta.Size = new System.Drawing.Size(183, 274);
             this.chklst_meta.TabIndex = 2;
             // 
-            // checkBox1
+            // stackingCB
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(27, 95);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(80, 17);
-            this.checkBox1.TabIndex = 1;
-            this.checkBox1.Text = "checkBox1";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.stackingCB.AutoSize = true;
+            this.stackingCB.Location = new System.Drawing.Point(27, 95);
+            this.stackingCB.Name = "stackingCB";
+            this.stackingCB.Size = new System.Drawing.Size(68, 17);
+            this.stackingCB.TabIndex = 1;
+            this.stackingCB.Text = "Stacking";
+            this.stackingCB.UseVisualStyleBackColor = true;
             // 
-            // button2
+            // metaRunBtn
             // 
-            this.button2.Location = new System.Drawing.Point(17, 51);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 0;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
+            this.metaRunBtn.Location = new System.Drawing.Point(27, 66);
+            this.metaRunBtn.Name = "metaRunBtn";
+            this.metaRunBtn.Size = new System.Drawing.Size(75, 23);
+            this.metaRunBtn.TabIndex = 0;
+            this.metaRunBtn.Text = "Run";
+            this.metaRunBtn.UseVisualStyleBackColor = true;
+            this.metaRunBtn.Click += new System.EventHandler(this.metaRunBtn_Click);
             // 
             // btn_LoadData
             // 
@@ -219,6 +224,26 @@
             this.statusLabel.TabIndex = 6;
             this.statusLabel.Text = "Please load data";
             // 
+            // boostingCB
+            // 
+            this.boostingCB.AutoSize = true;
+            this.boostingCB.Location = new System.Drawing.Point(27, 141);
+            this.boostingCB.Name = "boostingCB";
+            this.boostingCB.Size = new System.Drawing.Size(67, 17);
+            this.boostingCB.TabIndex = 4;
+            this.boostingCB.Text = "Boosting";
+            this.boostingCB.UseVisualStyleBackColor = true;
+            // 
+            // addMachineBtn
+            // 
+            this.addMachineBtn.Location = new System.Drawing.Point(336, 257);
+            this.addMachineBtn.Name = "addMachineBtn";
+            this.addMachineBtn.Size = new System.Drawing.Size(151, 23);
+            this.addMachineBtn.TabIndex = 5;
+            this.addMachineBtn.Text = "Add Machine";
+            this.addMachineBtn.UseVisualStyleBackColor = true;
+            this.addMachineBtn.Click += new System.EventHandler(this.addMachineBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -250,10 +275,10 @@
         private System.Windows.Forms.CheckedListBox chklist_Features;
         private System.Windows.Forms.CheckedListBox chklst_SvmConfigurations;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.CheckBox votingCB;
         private System.Windows.Forms.CheckedListBox chklst_meta;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.CheckBox stackingCB;
+        private System.Windows.Forms.Button metaRunBtn;
         private System.Windows.Forms.Button btn_LoadData;
         private System.Windows.Forms.CheckBox chk_ParameterOptimizationNormal;
         private System.Windows.Forms.CheckBox chk_FeatureOptimizationNormal;
@@ -261,6 +286,8 @@
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.CheckBox boostingCB;
+        private System.Windows.Forms.Button addMachineBtn;
     }
 }
 

@@ -38,6 +38,94 @@ namespace Classification_App
             Log.LogBox = richTextBox1;
         }
 
+
+        #region [Enable UI Steps]
+        private void DataLoaded()
+        {
+            tabControl1.Enabled = true;
+            btn_RunAll.Enabled = true;
+            statusLabel.Text = "Data is ready";
+        }
+
+        #endregion
+
+        #region [Helper Functions]
+
+        void SaveConfiguration(SVMConfiguration conf)
+        {
+            if (!Directory.Exists(currentPath + @"\STD"))
+            {
+                Directory.CreateDirectory(currentPath + @"\STD");
+            }
+
+            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize());
+        }
+
+        void SaveConfiguration(MetaSVMConfiguration conf)
+        {
+            if (!Directory.Exists(currentPath + @"\META"))
+            {
+                Directory.CreateDirectory(currentPath + @"\META");
+            }
+
+            File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize());
+        }
+
+        private List<SVMParameter> GenerateSVMParameters()
+        {
+            List<double> cTypes = new List<double>() { };
+            List<double> gammaTypes = new List<double>() { };
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
+            for (int t = -5; t <= 15; t++)
+            {
+                cTypes.Add(Math.Pow(2, t));
+            }
+            for (int t = -15; t <= 3; t++)
+            {
+                gammaTypes.Add(Math.Pow(2, t));
+            }
+            //Generate SVMParams
+            List<SVMParameter> svmParams = new List<SVMParameter>();
+
+            foreach (SVMKernelType kernel in kernels)
+            {
+                foreach (double c in cTypes)
+                {
+                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                    {
+                        SVMParameter t = new SVMParameter();
+                        t.Kernel = kernel;
+                        t.C = c;
+                        t.Gamma = gammaTypes[i];
+                        svmParams.Add(t);
+                    }
+                }
+            }
+            return svmParams;
+        }
+
+        private void AddStdClassifierToLists(StdClassifier standardClassifier)
+        {
+            chklst_SvmConfigurations.Items.Add(standardClassifier);
+            chklst_meta.Items.Add(standardClassifier);
+        }
+        #endregion
+
+        #region [Forms Events]
+        private void addMachineBtn_Click(object sender, EventArgs e)
+        {
+            List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
+
+            //TODO: Find a way to load the ccorrect parameters in
+            SVMParameter temp = new SVMParameter();
+
+            SVMConfiguration cfg = new SVMConfiguration(temp, feats);
+            StdClassifier theSVM = new StdClassifier(cfg, samData);
+            AddStdClassifierToLists(theSVM);
+
+        }
+
+        //Run normal classifier
         private void btn_Run_Click(object sender, EventArgs e)
         {
             if (!chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
@@ -109,25 +197,6 @@ namespace Classification_App
             }
         }
 
-        void SaveConfiguration(SVMConfiguration conf)
-        {
-            if (!Directory.Exists(currentPath + @"\STD"))
-            {
-                Directory.CreateDirectory(currentPath + @"\STD");
-            }
-
-            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize());
-        }
-
-        void SaveConfiguration(MetaSVMConfiguration conf)
-        {
-            if (!Directory.Exists(currentPath + @"\META"))
-            {
-                Directory.CreateDirectory(currentPath + @"\META");
-            }
-
-            File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize());
-        }
         private void btn_LoadData_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -179,57 +248,51 @@ namespace Classification_App
             }
             DataLoaded();
         }
-
-        #region [Enable UI Steps]
-        private void DataLoaded()
-        {
-            tabControl1.Enabled = true;
-            btn_RunAll.Enabled = true;
-            statusLabel.Text = "Data is ready";
-        }
-
         #endregion
 
-        #region [Helper Functions]
-
-        private List<SVMParameter> GenerateSVMParameters()
+        private void metaRunBtn_Click(object sender, EventArgs e)
         {
-            List<double> cTypes = new List<double>() { };
-            List<double> gammaTypes = new List<double>() { };
-            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -5; t <= 15; t++)
+            if (votingCB.Checked)
             {
-                cTypes.Add(Math.Pow(2, t));
-            }
-            for (int t = -15; t <= 3; t++)
-            {
-                gammaTypes.Add(Math.Pow(2, t));
-            }
-            //Generate SVMParams
-            List<SVMParameter> svmParams = new List<SVMParameter>();
-
-            foreach (SVMKernelType kernel in kernels)
-            {
-                foreach (double c in cTypes)
+                List<StdClassifier> classifiers = new List<StdClassifier>();
+                foreach (StdClassifier classifier in chklst_meta.CheckedItems)
                 {
-                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
-                    {
-                        SVMParameter t = new SVMParameter();
-                        t.Kernel = kernel;
-                        t.C = c;
-                        t.Gamma = gammaTypes[i];
-                        svmParams.Add(t);
-                    }
+                    classifiers.Add(classifier);
                 }
+                MetaClassifier votingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
+                PredictionResult result  = votingMeta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                Log.LogMessage(result.AverageFScore());
+               
             }
-            return svmParams;
-        }
+            if (stackingCB.Checked)
+            {
+                List<StdClassifier> classifiers = new List<StdClassifier>();
+                foreach (StdClassifier classifier in chklst_meta.CheckedItems)
+                {
+                    classifiers.Add(classifier);
+                }
+                MetaClassifier stackingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
+                List<PredictionResult> result = stackingMeta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                Log.LogMessage(result[0].AverageFScore());
+            }
+            if(boostingCB.Checked)
+            {
 
-        private void AddStdClassifierToLists(StdClassifier standardClassifier)
-        {
-            chklst_SvmConfigurations.Items.Add(standardClassifier);
-            chklst_meta.Items.Add(standardClassifier);
+                List<StdClassifier> classifiers = new List<StdClassifier>();
+                foreach (StdClassifier classifier in chklst_meta.CheckedItems)
+                {
+                    classifiers.Add(classifier);
+                }
+                MetaClassifier boostingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
+
+                for (int i = 0; i < chklst_meta.CheckedItems.Count; i++)
+                {
+                    boostingMeta.boostingOrder.Add(i);
+                }
+
+                PredictionResult result = boostingMeta.DoBoosting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                Log.LogMessage(result.AverageFScore());
+            }
         }
-        #endregion
     }
 }
