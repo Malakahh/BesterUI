@@ -190,13 +190,13 @@
             // 
             // btn_RunAll
             // 
-            this.btn_RunAll.Enabled = false;
             this.btn_RunAll.Location = new System.Drawing.Point(104, 12);
             this.btn_RunAll.Name = "btn_RunAll";
             this.btn_RunAll.Size = new System.Drawing.Size(88, 24);
             this.btn_RunAll.TabIndex = 2;
             this.btn_RunAll.Text = "Run All";
             this.btn_RunAll.UseVisualStyleBackColor = true;
+            this.btn_RunAll.Click += new System.EventHandler(this.btn_RunAll_Click);
             // 
             // richTextBox1
             // 

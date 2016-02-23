@@ -14,6 +14,7 @@ namespace Classification_App
 {
     class StdClassifier : Classifier
     {
+        public Action<int, int> UpdateCallback;
         public List<Feature> features = new List<Feature>();
 
         #region [Constructors]
@@ -60,7 +61,7 @@ namespace Classification_App
                     }
 
                 }
-                featureCombinationProblems. Add
+                featureCombinationProblems.Add
                                         (
                                             new Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>
                                             (
@@ -79,7 +80,11 @@ namespace Classification_App
                 //For each feature setup 
                 for (int n = 0; n < featureCombinationProblems.Count; n++)
                 {
-                    PrintProgress(progressCounter, featureCombinationProblems.Count);
+                    if (UpdateCallback != null)
+                    {
+                        UpdateCallback(progressCounter, Parameters.Count * featureCombinationProblems.Count);
+                    }
+                    //PrintProgress(progressCounter, featureCombinationProblems.Count);
                     List<double> guesses = new List<double>();
                     //model and predict each nfold 
                     foreach (var tupleProblem in featureCombinationProblems[n].Item1)
@@ -98,8 +103,11 @@ namespace Classification_App
                 }
 
             }
+            if (UpdateCallback != null)
+            {
+                UpdateCallback(progressCounter, Parameters.Count * featureCombinationProblems.Count);
+            }
 
-            PrintProgress(progressCounter, featureCombinationProblems.Count);
             return predictionResults;
         }
 

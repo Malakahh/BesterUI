@@ -109,8 +109,84 @@ namespace Classification_App
             chklst_SvmConfigurations.Items.Add(standardClassifier);
             chklst_meta.Items.Add(standardClassifier);
         }
-        #endregion
 
+        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats)
+        {
+            return new Thread(() =>
+            {
+                StdClassifier mac = new StdClassifier(name, pars, feats, samData);
+                mac.UpdateCallback = (cur, max) => { eegProg = cur; eegTot = max; };
+                var res = mac.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                SaveBestResult(res, mac.Name);
+            });
+        }
+
+        void SaveBestResult(List<PredictionResult> res, string prefix)
+        {
+            double bestF = 0;
+            foreach (var resTemp in res)
+            {
+                bestF = Math.Max(bestF, resTemp.AverageFScore());
+            }
+
+            var confs = res.Where(x => x.AverageFScore() == bestF);
+            foreach (var conf in confs)
+            {
+                var c = conf.GenerateConfiguration();
+                c.Name = prefix + "_" + c.Name;
+                SaveConfiguration(c);
+            }
+        }
+
+        void LoadData(string path)
+        {
+            currentPath = path;
+            Log.LogMessage("Selected folder: " + path);
+            //load fusion data
+            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat" });
+            samData = SAMData.LoadFromPath(path + @"\SAM.json");
+            Log.LogMessage("Fusion Data loaded!");
+
+            Log.LogMessage("Applying data to features..");
+
+            FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
+            FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
+            FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
+
+            Log.LogMessage("Looking for configurations...");
+
+            svmConfs.Clear();
+            if (Directory.Exists(path + @"\STD"))
+            {
+                var files = Directory.GetFiles(path + @"\STD");
+                Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
+                foreach (var item in files)
+                {
+                    svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                }
+
+            }
+
+            if (Directory.Exists(path + @"\META"))
+            {
+                var files = Directory.GetFiles(path + @"\META");
+                Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
+                /* same procedure?? */
+                //foreach (var item in files)
+                //{
+                //    svmConfigs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                //}
+            }
+
+            if (svmConfs.Count == 0 && metaConfs.Count == 0)
+            {
+                Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
+            }
+        }
+
+
+        #endregion
+        
         #region [Forms Events]
         private void addMachineBtn_Click(object sender, EventArgs e)
         {
@@ -203,52 +279,10 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                currentPath = fbd.SelectedPath;
-                Log.LogMessage("Selected folder: " + fbd.SelectedPath);
-                //load fusion data
-                _fd.LoadFromFile(new string[] { fbd.SelectedPath + @"\EEG.dat", fbd.SelectedPath + @"\GSR.dat", fbd.SelectedPath + @"\HR.dat" });
-                samData = SAMData.LoadFromPath(fbd.SelectedPath + @"\SAM.json");
-                Log.LogMessage("Fusion Data loaded!");
-
-                Log.LogMessage("Applying data to features..");
-
-                FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
-                FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-                FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-
-                Log.LogMessage("Looking for configurations...");
-
-                svmConfs.Clear();
-                if (Directory.Exists(fbd.SelectedPath + @"\STD"))
-                {
-                    var files = Directory.GetFiles(fbd.SelectedPath + @"\STD");
-                    Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
-                    foreach (var item in files)
-                    {
-                        svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                    }
-
-                }
-
-                if (Directory.Exists(fbd.SelectedPath + @"\META"))
-                {
-                    var files = Directory.GetFiles(fbd.SelectedPath + @"\META");
-                    Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
-                    /* same procedure?? */
-                    //foreach (var item in files)
-                    //{
-                    //    svmConfigs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                    //}
-                }
-
-                if (svmConfs.Count == 0 && metaConfs.Count == 0)
-                {
-                    Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
-                }
+                LoadData(fbd.SelectedPath);
+                DataLoaded();
             }
-            DataLoaded();
         }
-        #endregion
 
         private void metaRunBtn_Click(object sender, EventArgs e)
         {
@@ -294,5 +328,69 @@ namespace Classification_App
                 Log.LogMessage(result.AverageFScore());
             }
         }
+
+        volatile int gsrProg = 0;
+        volatile int gsrTot = 1;
+        volatile int hrProg = 0;
+        volatile int hrTot = 1;
+        volatile int eegProg = 0;
+        volatile int eegTot = 1;
+        private void btn_RunAll_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                btn_LoadData.Enabled = false;
+                var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
+                List<SVMParameter> parameters = GenerateSVMParameters();
+
+                int curDat = 1;
+                int maxDat = dataFolders.Length;
+
+                foreach (var item in dataFolders)
+                {
+                    if (File.Exists(item + @"\donno.dk"))
+                    {
+                        Log.LogMessage("Already did " + item + ", skipping..");
+                        continue;
+                    }
+
+                    LoadData(item);
+
+                    gsrProg = 0;
+                    hrProg = 0;
+                    eegProg = 0;
+
+                    Thread gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures);
+                    Thread hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures);
+                    Thread eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures);
+
+                    gsrThread.Priority = ThreadPriority.Highest;
+                    hrThread.Priority = ThreadPriority.Highest;
+                    eegThread.Priority = ThreadPriority.Highest;
+
+                    gsrThread.Start();
+                    hrThread.Start();
+                    eegThread.Start();
+
+                    while (gsrThread.IsAlive || hrThread.IsAlive || eegThread.IsAlive)
+                    {
+                        Thread.Sleep(500);
+                        double pct = (double)(gsrProg + hrProg + eegProg) * (double)100 / (double)(gsrTot + hrTot + eegTot);
+                        Log.LogMessageSameLine(curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")]");
+                        Application.DoEvents();
+                    }
+
+                    using (var temp = File.Create(currentPath + @"\donno.dk")) { }
+                    Log.LogMessage("DonnoDK");
+                    curDat++;
+                }
+            }
+
+            btn_LoadData.Enabled = true;
+        }
+
+        #endregion
     }
 }
