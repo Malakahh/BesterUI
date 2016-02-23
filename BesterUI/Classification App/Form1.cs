@@ -257,11 +257,17 @@ namespace Classification_App
                 btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
+
                 int curDat = 1;
                 int maxDat = dataFolders.Length;
+
                 foreach (var item in dataFolders)
                 {
-                    if (File.Exists(item + @"\donno.dk")) continue;
+                    if (File.Exists(item + @"\donno.dk"))
+                    {
+                        Log.LogMessage("Already did " + item + ", skipping..");
+                        continue;
+                    }
 
                     LoadData(item);
 
@@ -269,36 +275,9 @@ namespace Classification_App
                     hrProg = 0;
                     eegProg = 0;
 
-
-                    Thread gsrThread = new Thread(() =>
-                    {
-                        List<Feature> gsrFeats = FeatureCreator.GSROptimizationFeatures;
-
-                        StdClassifier gsrMachine = new StdClassifier("GSR", parameters, gsrFeats, samData);
-                        gsrMachine.UpdateCallback = (cur, max) => { gsrProg = cur; gsrTot = max; };
-                        var res = gsrMachine.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                        SaveBestResult(res, gsrMachine.Name);
-                    });
-
-                    Thread hrThread = new Thread(() =>
-                    {
-                        List<Feature> hrFeats = FeatureCreator.HROptimizationFeatures;
-
-                        StdClassifier hrMachine = new StdClassifier("HR", parameters, hrFeats, samData);
-                        hrMachine.UpdateCallback = (cur, max) => { hrProg = cur; hrTot = max; };
-                        var res = hrMachine.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                        SaveBestResult(res, hrMachine.Name);
-                    });
-
-                    Thread eegThread = new Thread(() =>
-                    {
-                        List<Feature> eegFeats = FeatureCreator.EEGOptimizationFeatures;
-
-                        StdClassifier eegMachine = new StdClassifier("EEG", parameters, eegFeats, samData);
-                        eegMachine.UpdateCallback = (cur, max) => { eegProg = cur; eegTot = max; };
-                        var res = eegMachine.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                        SaveBestResult(res, eegMachine.Name);
-                    });
+                    Thread gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures);
+                    Thread hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures);
+                    Thread eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures);
 
                     gsrThread.Priority = ThreadPriority.Highest;
                     hrThread.Priority = ThreadPriority.Highest;
@@ -321,6 +300,19 @@ namespace Classification_App
                     curDat++;
                 }
             }
+
+            btn_LoadData.Enabled = true;
+        }
+
+        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats)
+        {
+            return new Thread(() =>
+            {
+                StdClassifier mac = new StdClassifier(name, pars, feats, samData);
+                mac.UpdateCallback = (cur, max) => { eegProg = cur; eegTot = max; };
+                var res = mac.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                SaveBestResult(res, mac.Name);
+            });
         }
 
         void SaveBestResult(List<PredictionResult> res, string prefix)
