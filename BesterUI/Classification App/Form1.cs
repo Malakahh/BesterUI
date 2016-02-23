@@ -53,12 +53,17 @@ namespace Classification_App
 
         void SaveConfiguration(SVMConfiguration conf)
         {
+            if (!svmConfs.Contains(conf))
+            {
+                svmConfs.Add(conf);
+            }
+
             if (!Directory.Exists(currentPath + @"\STD"))
             {
                 Directory.CreateDirectory(currentPath + @"\STD");
             }
 
-            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize());
+            File.WriteAllText(currentPath + @"\STD\" + conf.Name + ".svm", conf.Serialize());
         }
 
         void SaveConfiguration(MetaSVMConfiguration conf)
@@ -68,7 +73,7 @@ namespace Classification_App
                 Directory.CreateDirectory(currentPath + @"\META");
             }
 
-            File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize());
+            File.WriteAllText(currentPath + @"\META\" + conf.Name + ".svm", conf.Serialize());
         }
 
         private List<SVMParameter> GenerateSVMParameters()
@@ -110,12 +115,12 @@ namespace Classification_App
             chklst_meta.Items.Add(standardClassifier);
         }
 
-        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats)
+        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, Action<int, int> UpdateCallback)
         {
             return new Thread(() =>
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
-                mac.UpdateCallback = (cur, max) => { eegProg = cur; eegTot = max; };
+                mac.UpdateCallback = UpdateCallback;
                 var res = mac.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
                 SaveBestResult(res, mac.Name);
             });
@@ -186,7 +191,7 @@ namespace Classification_App
 
 
         #endregion
-        
+
         #region [Forms Events]
         private void addMachineBtn_Click(object sender, EventArgs e)
         {
@@ -294,9 +299,9 @@ namespace Classification_App
                     classifiers.Add(classifier);
                 }
                 MetaClassifier votingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
-                PredictionResult result  = votingMeta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                PredictionResult result = votingMeta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
                 Log.LogMessage(result.AverageFScore());
-               
+
             }
             if (stackingCB.Checked)
             {
@@ -309,7 +314,7 @@ namespace Classification_App
                 List<PredictionResult> result = stackingMeta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
                 Log.LogMessage(result[0].AverageFScore());
             }
-            if(boostingCB.Checked)
+            if (boostingCB.Checked)
             {
 
                 List<StdClassifier> classifiers = new List<StdClassifier>();
@@ -335,6 +340,8 @@ namespace Classification_App
         volatile int hrTot = 1;
         volatile int eegProg = 0;
         volatile int eegTot = 1;
+        volatile int stackProg = 0;
+        volatile int stackTot = 1;
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -372,7 +379,7 @@ namespace Classification_App
                     Thread gsrThread = null;
                     if (!File.Exists(currentPath + @"\gsr.donnodk"))
                     {
-                        gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures);
+                        gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures, (cur, max) => { gsrProg = cur; gsrTot = max; });
                         gsrThread.Priority = ThreadPriority.Highest;
                         gsrThread.Start();
                     }
@@ -384,7 +391,7 @@ namespace Classification_App
                     Thread hrThread = null;
                     if (!File.Exists(currentPath + @"\hr.donnodk"))
                     {
-                        hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures);
+                        hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures, (cur, max) => { hrProg = cur; hrTot = max; });
                         hrThread.Priority = ThreadPriority.Highest;
                         hrThread.Start();
                     }
@@ -396,7 +403,7 @@ namespace Classification_App
                     Thread eegThread = null;
                     if (!File.Exists(currentPath + @"\eeg.donnodk"))
                     {
-                        eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures);
+                        eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures, (cur, max) => { eegProg = cur; eegTot = max; });
                         eegThread.Priority = ThreadPriority.Highest;
                         eegThread.Start();
                     }
@@ -432,6 +439,38 @@ namespace Classification_App
                         }
                     }
 
+                    Log.LogMessage("Done with single machine searching.");
+
+                    List<SVMConfiguration> confs = new List<SVMConfiguration>();
+                    confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR")));
+                    confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR")));
+                    confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG")));
+
+                    Log.LogMessage("Creating meta machine..");
+                    foreach (var cnf in confs)
+                    {
+                        Log.LogMessage("Using " + cnf.Name + "...");
+                    }
+
+
+
+                    //TODO: Gem results as well
+                    Log.LogMessage("Doing Stacking");
+                    stackProg = 0;
+                    stackTot = 1;
+                    MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
+                    //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
+                    var res = meta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    var bestRes = meta.FindBestFScorePrediction(res);
+                    meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+
+                    SaveConfiguration(meta.GetConfiguration());
+
+                    Log.LogMessage("Doing voting");
+                    meta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    Log.LogMessage("Doing boosting");
+                    meta.DoBoosting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+
                     using (var temp = File.Create(currentPath + @"\donno.dk")) { }
                     Log.LogMessage("DonnoDK");
                     curDat++;
@@ -439,6 +478,15 @@ namespace Classification_App
             }
 
             btn_LoadData.Enabled = true;
+        }
+
+        List<StdClassifier> ConfigurationsToStds(List<SVMConfiguration> confs)
+        {
+            return confs.Select((x) =>
+            {
+                StdClassifier cls = new StdClassifier(x, samData);
+                return cls;
+            }).ToList();
         }
 
         #endregion

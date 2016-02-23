@@ -170,7 +170,7 @@ namespace Classification_App
                 tempFeatuers[i].Add(answersFromPrevious[i]);
             }
             List<Tuple<SVMProblem, SVMProblem>> problems = tempFeatuers.GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
-           
+
 
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
@@ -189,7 +189,7 @@ namespace Classification_App
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
                 List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x=>(int)x).ToList());
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x => (int)x).ToList());
                 predictedResults.Add(pR);
             }
             return predictedResults;
@@ -230,6 +230,13 @@ namespace Classification_App
         public override string ToString()
         {
             return Name;
+        }
+
+        public SVMConfiguration GetConfiguration()
+        {
+            SVMConfiguration retVal = new SVMConfiguration(Parameters[0], features);
+            retVal.Name = Name;
+            return retVal;
         }
         #endregion
 

@@ -13,6 +13,7 @@ namespace Classification_App
 {
     class MetaClassifier : Classifier
     {
+        public Action<int, int> UpdateCallback;
         private List<StdClassifier> standardClassifiers = new List<StdClassifier>();
         public List<int> boostingOrder = new List<int>();
 
@@ -53,13 +54,18 @@ namespace Classification_App
             List<Tuple<SVMProblem, SVMProblem>> problems = featureList.GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
 
             //Get correct results
-            int[] answers = samData.dataPoints.Select(x  => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
 
             List<PredictionResult> finalResults = new List<PredictionResult>();
 
             //Run for each parameter setting
+            int cnt = 1;
             foreach (SVMParameter SVMpara in Parameters)
             {
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(cnt++, Parameters.Count);
+                }
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
                 foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
@@ -72,7 +78,7 @@ namespace Classification_App
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
                 List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x=>(int)x));
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x => (int)x));
                 finalResults.Add(pR);
             }
             return finalResults;
@@ -145,7 +151,7 @@ namespace Classification_App
             {
                 int tempKey = -1;
                 double tempMax = -1;
-                foreach(int key in answer.Keys)
+                foreach (int key in answer.Keys)
                 {
                     if (answer[key] > tempMax)
                     {
@@ -167,7 +173,7 @@ namespace Classification_App
             List<double> pres = CalculatePrecision(confus, numberOfLabels);
             List<double> recall = CalculateRecall(confus, numberOfLabels);
             List<double> fscore = CalculateFScore(pres, recall);
-            return new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x=>(int)x));
+            return new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x => (int)x));
 
         }
 
@@ -190,14 +196,13 @@ namespace Classification_App
                 }
                 else
                 {
-                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidateWithBoosting(feelingsmodel, nFold, prevResult.guesses.ConvertAll(x=>(double)x).ToArray(), useIAPSratings, normalizeFormat));
+                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidateWithBoosting(feelingsmodel, nFold, prevResult.guesses.ConvertAll(x => (double)x).ToArray(), useIAPSratings, normalizeFormat));
                 }
             }
             return prevResult;
         }
 
         #region [Helper Functions]
-
         public PredictionResult FindBestFScorePrediction(List<PredictionResult> results)
         {
             double maxScore = -1;
@@ -211,6 +216,17 @@ namespace Classification_App
                 }
             }
             return bestResult;
+        }
+
+        public MetaSVMConfiguration GetConfiguration()
+        {
+            MetaSVMConfiguration retVal = new MetaSVMConfiguration();
+
+            retVal.parameter = Parameters[0];
+            retVal.Name = Name;
+            retVal.stds = standardClassifiers.Select(x => x.GetConfiguration()).ToList();
+
+            return retVal;
         }
         #endregion
 
