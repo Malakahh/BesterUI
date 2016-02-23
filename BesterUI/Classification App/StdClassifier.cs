@@ -7,6 +7,8 @@ using LibSVMsharp;
 using LibSVMsharp.Extensions;
 using LibSVMsharp.Core;
 using LibSVMsharp.Helpers;
+using BesterUI.Helpers;
+using System.Threading;
 
 namespace Classification_App
 {
@@ -70,12 +72,14 @@ namespace Classification_App
 
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            int progressCounter = 0;
             List<PredictionResult> predictionResults = new List<PredictionResult>();
             foreach (SVMParameter SVMpara in Parameters)
             {
                 //For each feature setup 
                 for (int n = 0; n < featureCombinationProblems.Count; n++)
                 {
+                    PrintProgress(progressCounter, featureCombinationProblems.Count);
                     List<double> guesses = new List<double>();
                     //model and predict each nfold 
                     foreach (var tupleProblem in featureCombinationProblems[n].Item1)
@@ -90,9 +94,12 @@ namespace Classification_App
                     List<double> fscore = CalculateFScore(pres, recall);
                     PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, featureCombinationProblems[n].Item2, answers.ToList(), guesses.ConvertAll(x => (int)x));
                     predictionResults.Add(pR);
+                    progressCounter++;
                 }
 
             }
+
+            PrintProgress(progressCounter, featureCombinationProblems.Count);
             return predictionResults;
         }
 
@@ -105,13 +112,15 @@ namespace Classification_App
         public List<PredictionResult> CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
+            Mutex mutex = new Mutex();
             //Split into crossvalidation parts
             List<Tuple<SVMProblem, SVMProblem>> problems = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
-
+            int progressCounter = 0;
             foreach (SVMParameter SVMpara in Parameters)
             {
+                PrintProgress(progressCounter, 1);
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
                 foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
@@ -123,15 +132,19 @@ namespace Classification_App
                 //Calculate scoring results
                 double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
-                List<double> recall = CalculateRecall(confus, numberOfLabels);  
+                List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x=> (int)x));
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x => (int)x));
                 predictedResults.Add(pR);
+                progressCounter++;
+
+                PrintProgress(progressCounter, 1);
             }
+
             return predictedResults;
         }
 
-        
+
         public List<PredictionResult> CrossValidateWithBoosting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, double[] answersFromPrevious, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
@@ -195,6 +208,11 @@ namespace Classification_App
             }
             return temp;
         }
+
+        private void PrintProgress(int progress, int combinations)
+        {
+            Log.LogMessageSameLine("Done (" + progress + "/" + Parameters.Count * combinations + ")");
+        } 
         #endregion
 
 

@@ -12,6 +12,7 @@ using BesterUI;
 using BesterUI.Data;
 using System.IO;
 using LibSVMsharp;
+using System.Threading;
 
 namespace Classification_App
 {
@@ -46,51 +47,57 @@ namespace Classification_App
                 SVMParameter temp = new SVMParameter();
 
                 SVMConfiguration cfg = new SVMConfiguration(temp, feats);
-
                 StdClassifier lol = new StdClassifier(cfg, samData);
-                var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                foreach (var resTemp in res)
+
+                Thread newThread = new Thread(() =>
                 {
-                    Log.LogMessage("A Score was: " + resTemp.AverageFScore());
-                }
+                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    foreach (var resTemp in res)
+                    {
+                        Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                    }
+                });
+                newThread.Start();
             }
             else if (!chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
             {
                 //param opt checked
                 List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
-                StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
-                var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                double bestF = 0;
-                foreach (var resTemp in res)
-                {
-                    double score = resTemp.AverageFScore();
-                    Log.LogMessage("A Score was: " + score);
-                    if (score > bestF)
-                    {
-                        bestF = score;
-                    }
-                }
 
-                var best = res.Where(x => x.AverageFScore() == bestF);
-                foreach (var item in best)
+                Thread newThread = new Thread(() =>
                 {
-                    SaveConfiguration(item.GenerateConfiguration());
-                }
+                    StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
+                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    foreach (var resTemp in res)
+                    {
+                        Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                    }
+                });
+                newThread.Start();
             }
             else if (chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
             {
+
                 List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
                 SVMParameter temp = new SVMParameter();
 
                 SVMConfiguration cfg = new SVMConfiguration(temp, feats);
 
                 StdClassifier combinations = new StdClassifier(cfg, samData);
-                var res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                foreach (var resTemp in res)
+                //Combination of features
+                Thread someThread = new Thread(() =>
                 {
-                    Log.LogMessage("Score was: " + resTemp.AverageFScore());
-                }
+                    List<PredictionResult> res = new List<PredictionResult>();
 
+                    res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+
+                    foreach (var resTemp in res)
+                    {
+                        Log.LogMessage("Score was: " + resTemp.AverageFScore());
+                    }
+                }
+                );
+                someThread.Start();
             }
             else if (chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
             {//both checked
