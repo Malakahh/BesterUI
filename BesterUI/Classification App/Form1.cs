@@ -111,17 +111,23 @@ namespace Classification_App
             {
                 foreach (double c in cTypes)
                 {
-                    foreach (double g in gammaTypes)
+                    for(int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
                     {
                         SVMParameter t = new SVMParameter();
                         t.Kernel = kernel;
                         t.C = c;
-                        t.Gamma = g;
+                        t.Gamma = gammaTypes[i];
                         svmParams.Add(t);
                     }
                 }
             }
             return svmParams;
+        }
+
+        private void AddStdClassifierToLists(StdClassifier standardClassifier)
+        {
+            chklst_SvmConfigurations.Items.Add(standardClassifier);
+            chklst_meta.Items.Add(standardClassifier);
         }
 
         private void btn_LoadData_Click(object sender, EventArgs e)
