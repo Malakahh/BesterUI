@@ -177,10 +177,10 @@ namespace Classification_App
                 var files = Directory.GetFiles(path + @"\META");
                 Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
                 /* same procedure?? */
-                //foreach (var item in files)
-                //{
-                //    svmConfigs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                //}
+                foreach (var item in files)
+                {
+                    metaConfs.Add(MetaSVMConfiguration.Deserialize(File.ReadAllText(item)));
+                }
             }
 
             if (svmConfs.Count == 0 && metaConfs.Count == 0)
