@@ -60,11 +60,22 @@ namespace Classification_App
                 List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
                 StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
                 var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                double bestF = 0;
                 foreach (var resTemp in res)
                 {
-                    Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                    double score = resTemp.AverageFScore();
+                    Log.LogMessage("A Score was: " + score);
+                    if (score > bestF)
+                    {
+                        bestF = score;
+                    }
                 }
 
+                var best = res.Where(x => x.AverageFScore() == bestF);
+                foreach (var item in best)
+                {
+                    SaveConfiguration(item.GenerateConfiguration());
+                }
             }
             else if (chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
             {
@@ -72,7 +83,7 @@ namespace Classification_App
                 SVMParameter temp = new SVMParameter();
 
                 SVMConfiguration cfg = new SVMConfiguration(temp, feats);
-                        
+
                 StdClassifier combinations = new StdClassifier(cfg, samData);
                 var res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
                 foreach (var resTemp in res)
@@ -111,7 +122,7 @@ namespace Classification_App
             {
                 foreach (double c in cTypes)
                 {
-                    for(int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
                     {
                         SVMParameter t = new SVMParameter();
                         t.Kernel = kernel;
@@ -128,6 +139,26 @@ namespace Classification_App
         {
             chklst_SvmConfigurations.Items.Add(standardClassifier);
             chklst_meta.Items.Add(standardClassifier);
+        }
+
+        void SaveConfiguration(SVMConfiguration conf)
+        {
+            if (!Directory.Exists(currentPath + @"\STD"))
+            {
+                Directory.CreateDirectory(currentPath + @"\STD");
+            }
+
+            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize());
+        }
+
+        void SaveConfiguration(MetaSVMConfiguration conf)
+        {
+            if (!Directory.Exists(currentPath + @"\META"))
+            {
+                Directory.CreateDirectory(currentPath + @"\META");
+            }
+
+            File.WriteAllText(currentPath + @"\META\" + conf.Name, conf.Serialize());
         }
 
         private void btn_LoadData_Click(object sender, EventArgs e)

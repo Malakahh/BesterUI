@@ -33,7 +33,7 @@ namespace Classification_App
         public double AverageFScore()
         {
             double total = 0;
-            for(int i = 0; i < fscores.Count; i++)
+            for (int i = 0; i < fscores.Count; i++)
             {
                 if (!double.IsNaN(fscores[i]))
                 {
@@ -42,6 +42,13 @@ namespace Classification_App
             }
             total /= answers.Count;
             return total;
+        }
+
+        public SVMConfiguration GenerateConfiguration()
+        {
+            SVMConfiguration conf = new SVMConfiguration(svmParams, features);
+            conf.Name = "SVM_" + svmParams.C + "_" + svmParams.Gamma + "_F" + features.Count;
+            return conf;
         }
 
         //TODO: Make some printing functions

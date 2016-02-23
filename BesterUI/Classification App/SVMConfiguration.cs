@@ -43,7 +43,7 @@ namespace Classification_App
         public static SVMConfiguration Deserialize(string input)
         {
             SVMConfiguration retVal = new SVMConfiguration();
-
+            retVal.parameters = new SVMParameter();
             string[] bits = input.Split(SEPARATOR);
 
             retVal.Name = bits[0];
@@ -54,6 +54,11 @@ namespace Classification_App
 
 
             return retVal;
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }
