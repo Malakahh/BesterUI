@@ -40,7 +40,7 @@ namespace BesterUI.Data
 
         }
 
-        public EEGDataReading() : this(true)
+        public EEGDataReading() : this(false)
         { }
 
         public override void Write()
@@ -67,6 +67,11 @@ namespace BesterUI.Data
             foreach (var item in bits)
             {
                 var dat = item.Split(':');
+                //TODO: the line should not end with separator, this is a hax fix until it's removed
+                if (dat[0] == "")
+                {
+                    continue;
+                }
                 data.Add(dat[0], double.Parse(dat[1]));
             }
 

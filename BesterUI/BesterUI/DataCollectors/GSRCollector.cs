@@ -98,7 +98,7 @@ namespace BesterUI.DataCollectors
 
             int resist = (int)(MAGIC_NUMBER / adc) - SHUNT_RESISTANCE;
 
-            return new GSRDataReading() { resistance = resist };
+            return new GSRDataReading(true) { resistance = resist };
         }
     }
 }

@@ -16,7 +16,7 @@ namespace BesterUI
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
 
-        string[] fileNames = new string[3] { "GSR.json", "EEG.json", "HR.json", }; //If you change this, remember to change LoadFromFile as well
+        string[] fileNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", }; //If you change this, remember to change LoadFromFile as well
 
 
         public FusionData()
@@ -121,12 +121,15 @@ namespace BesterUI
                     switch (s)
                     {
                         case "GSR.dat":
+                            Log.LogMessage("Loading GSR data");
                             gsrData = DataReading.LoadFromFile<GSRDataReading>(file);
                             break;
                         case "EEG.dat":
+                            Log.LogMessage("Loading EEG data");
                             eegData = DataReading.LoadFromFile<EEGDataReading>(file);
                             break;
                         case "HR.dat":
+                            Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file);
                             break;
                     }

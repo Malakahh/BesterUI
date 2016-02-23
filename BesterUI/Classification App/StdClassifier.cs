@@ -25,9 +25,9 @@ namespace Classification_App
             features = new List<Feature>(Features);
         }
 
-        public StdClassifier(SVMConfiguration conf, SAMData samData) : base(conf.Name, conf.parameters, samData)
+        public StdClassifier(SVMConfiguration conf, SAMData samData) : base(conf.Name, conf.GetParameter(), samData)
         {
-            features = conf.features;
+            features = conf.GetFeautres();
         }
         #endregion
 
@@ -47,24 +47,25 @@ namespace Classification_App
 
             for (int i = 0; i < combinations.Count; i++)
             {
+                List<Feature> tempFeatures = new List<Feature>();
                 for (int j = 0; j < combinations[i].Count; j++)
                 {
                     // For each feature combination save the different problems for crossvalidation
-                    List<Feature> tempFeatures = new List<Feature>();
+
                     if (combinations[i][j] == true)
                     {
                         tempFeatures.Add(features[j]);
                     }
-                    featureCombinationProblems.
-                        Add
-                        (
-                            new Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>
-                            (
-                                GetFeatureValues(tempFeatures, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings),
-                                tempFeatures
-                            )
-                        );
+
                 }
+                featureCombinationProblems. Add
+                                        (
+                                            new Tuple<List<Tuple<SVMProblem, SVMProblem>>, List<Feature>>
+                                            (
+                                                GetFeatureValues(tempFeatures, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings),
+                                                tempFeatures
+                                            )
+                                         );
             }
 
             //Get correct results
@@ -72,14 +73,14 @@ namespace Classification_App
             List<PredictionResult> predictionResults = new List<PredictionResult>();
             foreach (SVMParameter SVMpara in Parameters)
             {
-                List<double> guesses = new List<double>();
                 //For each feature setup 
                 for (int n = 0; n < featureCombinationProblems.Count; n++)
                 {
+                    List<double> guesses = new List<double>();
                     //model and predict each nfold 
                     foreach (var tupleProblem in featureCombinationProblems[n].Item1)
                     {
-                        guesses.AddRange(tupleProblem.Item1.Predict(tupleProblem.Item2.Train(SVMpara)));
+                        guesses.AddRange(tupleProblem.Item2.Predict(tupleProblem.Item1.Train(SVMpara)));
                     }
                     int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                     //Calculate scoring results
@@ -87,8 +88,8 @@ namespace Classification_App
                     List<double> pres = CalculatePrecision(confus, numberOfLabels);
                     List<double> recall = CalculateRecall(confus, numberOfLabels);
                     List<double> fscore = CalculateFScore(pres, recall);
-                    PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, featureCombinationProblems[n].Item2, answers.ToList(), guesses.Cast<int>().ToList());
-                    //TODO: do something with the result
+                    PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, featureCombinationProblems[n].Item2, answers.ToList(), guesses.ConvertAll(x => (int)x));
+                    predictionResults.Add(pR);
                 }
 
             }
@@ -115,16 +116,17 @@ namespace Classification_App
                 //model and predict each nfold
                 foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
                 {
-                    guesses.AddRange(tupleProblem.Item1.Predict(tupleProblem.Item2.Train(SVMpara)));
+                    SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
+                    guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results
                 double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
-                List<double> recall = CalculateRecall(confus, numberOfLabels);
+                List<double> recall = CalculateRecall(confus, numberOfLabels);  
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.Cast<int>().ToList());
-                //TODO: Do something with the result
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x=> (int)x));
+                predictedResults.Add(pR);
             }
             return predictedResults;
         }
@@ -178,17 +180,18 @@ namespace Classification_App
         private List<List<double>> GetFeatureValues(List<Feature> Features, SAMData samd)
         {
             List<List<double>> temp = new List<List<double>>();
+            for (int j = 0; j < samd.dataPoints.Count; j++)
+            {
+                temp.Add(new List<double>());
+            }
             foreach (Feature f in Features)
             {
                 List<double> values = f.GetAllValues(samd);
                 for (int i = 0; i < values.Count; i++)
                 {
-                    if (i == 0)
-                    {
-                        temp.Add(new List<double>());
-                    }
                     temp[i].Add(values[i]);
                 }
+
             }
             return temp;
         }

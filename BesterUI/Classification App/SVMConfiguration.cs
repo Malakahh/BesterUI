@@ -11,12 +11,28 @@ namespace Classification_App
     {
         const char SEPARATOR = ';';
         public string Name = "undefined";
-        public SVMParameter parameters;
-        public List<Feature> features = new List<Feature>();
+        private SVMParameter parameters;
+        private List<Feature> features = new List<Feature>();
 
-        public SVMConfiguration()
+        public SVMConfiguration(SVMParameter Parameters, List<Feature> Features)
         {
+            parameters = Parameters;
+            features = Features;
+        }
 
+        private SVMConfiguration()
+        {
+        }
+
+        public List<Feature> GetFeautres()
+        {
+            return features;
+        }
+
+
+        public SVMParameter GetParameter()
+        {
+            return parameters;
         }
 
         public string Serialize()

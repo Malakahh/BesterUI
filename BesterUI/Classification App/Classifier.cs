@@ -19,6 +19,7 @@ namespace Classification_App
         public Classifier(string Name, List<SVMParameter> Parameters, SAMData samData)
         {
             this.Name = Name;
+            this.Parameters = new List<SVMParameter>();
             Parameters.ForEach((x) =>
             {
                 this.Parameters.Add(x);

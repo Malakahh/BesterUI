@@ -12,6 +12,7 @@ namespace BesterUI.Data
     public abstract class DataReading
     {
         public static DateTime? startTime = null;
+        public const string dateFormat = "yyyy-MM-dd hh:mm:ss";
         static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
@@ -63,7 +64,7 @@ namespace BesterUI.Data
 
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                dat += deviceName + "|" + startTime + "\n";
+                dat += deviceName + "|" + startTime.Value.ToString(dateFormat, System.Globalization.CultureInfo.InvariantCulture) + "\n";
             }
 
             dat += obj.timestamp + "#" + obj.Serialize();
@@ -80,7 +81,7 @@ namespace BesterUI.Data
             {
                 string curLine = dat.ReadLine();
                 var bits = curLine.Split('|');
-                startTime = DateTime.ParseExact(bits[1], "yyyy-MM-dd_hh.mm.ss", System.Globalization.CultureInfo.InvariantCulture);
+                startTime = DateTime.ParseExact(bits[1], dateFormat, System.Globalization.CultureInfo.InvariantCulture);
 
                 curLine = dat.ReadLine();
                 while (!string.IsNullOrEmpty(curLine))
@@ -89,6 +90,7 @@ namespace BesterUI.Data
                     DataReading t = new T();
                     t.timestamp = long.Parse(datBits[0]);
                     retVal.Add((T)t.Deserialize(datBits[1]));
+                    curLine = dat.ReadLine();
                 }
             }
 

@@ -17,7 +17,7 @@ namespace BesterUI.Data
 
         }
 
-        public GSRDataReading() : this(true)
+        public GSRDataReading() : this(false)
         { }
 
         public override void Write()

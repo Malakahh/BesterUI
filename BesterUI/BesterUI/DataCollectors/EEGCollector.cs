@@ -86,7 +86,7 @@ namespace BesterUI.DataCollectors
                 int len = input[EdkDll.EE_DataChannel_t.TIMESTAMP].Length;
                 for (int i = 0; i < len; i++)
                 {
-                    EEGDataReading dataReading = new EEGDataReading();
+                    EEGDataReading dataReading = new EEGDataReading(true);
 
                     if (UseEmotivTimestamp)
                     {

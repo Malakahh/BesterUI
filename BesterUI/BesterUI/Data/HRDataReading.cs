@@ -18,7 +18,7 @@ namespace BesterUI.Data
 
         }
 
-        public HRDataReading() : this(true)
+        public HRDataReading() : this(false)
         { }
 
         public override void Write()

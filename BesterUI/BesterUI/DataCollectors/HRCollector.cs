@@ -92,17 +92,17 @@ namespace BesterUI.DataCollectors
                     int dBPM = int.Parse(data[2].Split(':')[1]);
                     int dSignal = int.Parse(data[3].Split(':')[1]);
 
-                    return new HRDataReading() { isBeat = disBeat, signal = dSignal, IBI = dIBI, BPM = dBPM };
+                    return new HRDataReading(true) { isBeat = disBeat, signal = dSignal, IBI = dIBI, BPM = dBPM };
                 }
 
                 Log.LogMessage("ERROR: Faulty HeartRate reading! ");
-                return new HRDataReading() { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
+                return new HRDataReading(true) { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
             }
             catch (Exception e)
             {
                 Log.LogMessage("ERROR: Faulty HeartRate reading! ");
                 Log.LogMessage("Error Code: " + e.Message);
-                return new HRDataReading() { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
+                return new HRDataReading(true) { signal = int.MaxValue, BPM = int.MaxValue, IBI = int.MaxValue };
             }
 
         }

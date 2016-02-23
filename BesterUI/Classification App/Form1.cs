@@ -11,6 +11,7 @@ using BesterUI.Helpers;
 using BesterUI;
 using BesterUI.Data;
 using System.IO;
+using LibSVMsharp;
 
 namespace Classification_App
 {
@@ -39,27 +40,88 @@ namespace Classification_App
         private void btn_Run_Click(object sender, EventArgs e)
         {
             if (!chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
-            {//nothing checked
+            {
+                //nothing checked
+                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
+                SVMParameter temp = new SVMParameter();
 
+                SVMConfiguration cfg = new SVMConfiguration(temp, feats);
+
+                StdClassifier lol = new StdClassifier(cfg, samData);
+                var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                foreach (var resTemp in res)
+                {
+                    Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                }
             }
             else if (!chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
-            {//param opt checked
+            {
+                //param opt checked
+                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
+                StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
+                var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                foreach (var resTemp in res)
+                {
+                    Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                }
 
             }
             else if (chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
-            {//feature opt checked
+            {
+                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
+                SVMParameter temp = new SVMParameter();
+
+                SVMConfiguration cfg = new SVMConfiguration(temp, feats);
+                        
+                StdClassifier combinations = new StdClassifier(cfg, samData);
+                var res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                foreach (var resTemp in res)
+                {
+                    Log.LogMessage("Score was: " + resTemp.AverageFScore());
+                }
 
             }
             else if (chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
             {//both checked
-                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
-                SVMConfiguration cfg = new SVMConfiguration();
-                cfg.features = feats;
 
-                StdClassifier lol = new StdClassifier(cfg, samData);
-                var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage("FScore: " + res.First().AverageFScore());
             }
+            else
+            {
+                Log.LogMessage("Something went not right (nor left), just wrong");
+            }
+        }
+
+        private List<SVMParameter> GenerateSVMParameters()
+        {
+            List<double> cTypes = new List<double>() { };
+            List<double> gammaTypes = new List<double>() { };
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
+            for (int t = -5; t <= 15; t++)
+            {
+                cTypes.Add(Math.Pow(2, t));
+            }
+            for (int t = -15; t <= 3; t++)
+            {
+                gammaTypes.Add(Math.Pow(2, t));
+            }
+            //Generate SVMParams
+            List<SVMParameter> svmParams = new List<SVMParameter>();
+
+            foreach (SVMKernelType kernel in kernels)
+            {
+                foreach (double c in cTypes)
+                {
+                    foreach (double g in gammaTypes)
+                    {
+                        SVMParameter t = new SVMParameter();
+                        t.Kernel = kernel;
+                        t.C = c;
+                        t.Gamma = g;
+                        svmParams.Add(t);
+                    }
+                }
+            }
+            return svmParams;
         }
 
         private void btn_LoadData_Click(object sender, EventArgs e)
@@ -71,7 +133,7 @@ namespace Classification_App
                 currentPath = fbd.SelectedPath;
                 Log.LogMessage("Selected folder: " + fbd.SelectedPath);
                 //load fusion data
-                _fd.LoadFromFile(new string[] { fbd.SelectedPath + @"\EEG.json", fbd.SelectedPath + @"\GSR.json", fbd.SelectedPath + @"\HR.json" });
+                _fd.LoadFromFile(new string[] { fbd.SelectedPath + @"\EEG.dat", fbd.SelectedPath + @"\GSR.dat", fbd.SelectedPath + @"\HR.dat" });
                 samData = SAMData.LoadFromPath(fbd.SelectedPath + @"\SAM.json");
                 Log.LogMessage("Fusion Data loaded!");
 

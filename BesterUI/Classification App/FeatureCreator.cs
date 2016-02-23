@@ -59,7 +59,7 @@ namespace Classification_App
 
         public static double Median(List<DataReading> data, Func<DataReading, double> valueAccessor)
         {
-            data.Sort();
+            data.OrderBy(x => valueAccessor(x));
             return data.Count % 2 == 0 ? 0.5 * (valueAccessor(data[data.Count / 2]) + valueAccessor(data[data.Count / 2 + 1])) : valueAccessor(data[data.Count / 2]);
         }
 
