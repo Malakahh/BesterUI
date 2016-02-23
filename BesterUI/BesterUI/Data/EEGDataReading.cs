@@ -63,15 +63,10 @@ namespace BesterUI.Data
         {
             data.Clear();
 
-            var bits = line.Split('|');
+            var bits = line.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var item in bits)
             {
                 var dat = item.Split(':');
-                //TODO: the line should not end with separator, this is a hax fix until it's removed
-                if (dat[0] == "")
-                {
-                    continue;
-                }
                 data.Add(dat[0], double.Parse(dat[1]));
             }
 
