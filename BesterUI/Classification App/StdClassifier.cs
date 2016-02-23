@@ -120,7 +120,6 @@ namespace Classification_App
         public List<PredictionResult> CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
-            Mutex mutex = new Mutex();
             //Split into crossvalidation parts
             List<Tuple<SVMProblem, SVMProblem>> problems = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
             //Get correct results
@@ -156,17 +155,23 @@ namespace Classification_App
         public List<PredictionResult> CrossValidateWithBoosting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, double[] answersFromPrevious, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
-            //Split into crossvalidation parts
-            List<List<double>> tempFeatuers = GetFeatureValues(features, samData);
-            tempFeatuers.Add(answersFromPrevious.ToList());
 
-            if (answersFromPrevious.Length != tempFeatuers[0].Count)
+            List<List<double>> tempFeatuers = GetFeatureValues(features, samData);
+            if (answersFromPrevious.Length != tempFeatuers.Count)
             {
                 //answers from previous is not the same size as current feature list, e.g. something is wrong
+                Log.LogMessage("The number of guessses from previous machine is the same as number of datapoints in this");
                 return null;
             }
+            //Split into crossvalidation parts
+            List<List<double>> tempFeatures = tempFeatuers.NormalizeFeatureList<double>(normalizationType).ToList();
+            for (int i = 0; i < tempFeatuers.Count; i++)
+            {
+                tempFeatuers[i].Add(answersFromPrevious[i]);
+            }
+            List<Tuple<SVMProblem, SVMProblem>> problems = tempFeatuers.GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
+           
 
-            List<Tuple<SVMProblem, SVMProblem>> problems = tempFeatuers.NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
 
@@ -176,7 +181,7 @@ namespace Classification_App
                 //model and predict each nfold
                 foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
                 {
-                    guesses.AddRange(tupleProblem.Item1.Predict(tupleProblem.Item2.Train(SVMpara)));
+                    guesses.AddRange(tupleProblem.Item2.Predict(tupleProblem.Item1.Train(SVMpara)));
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results
@@ -184,8 +189,8 @@ namespace Classification_App
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
                 List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.Cast<int>().ToList());
-                //TODO: Do something with the result
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x=>(int)x).ToList());
+                predictedResults.Add(pR);
             }
             return predictedResults;
         }
@@ -219,7 +224,12 @@ namespace Classification_App
 
         private void PrintProgress(int progress, int combinations)
         {
-            Log.LogMessageSameLine(Name + " Done (" + progress + "/" + Parameters.Count * combinations + ")");
+            Log.LogMessageSameLine("Done (" + progress + "/" + Parameters.Count * combinations + ")");
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
         #endregion
 

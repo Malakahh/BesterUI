@@ -7,6 +7,7 @@ using LibSVMsharp;
 using LibSVMsharp.Core;
 using LibSVMsharp.Extensions;
 using LibSVMsharp.Helpers;
+using BesterUI.Helpers;
 
 namespace Classification_App
 {
@@ -26,7 +27,7 @@ namespace Classification_App
         }
 
 
-        public List<PredictionResult> DoStacking(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings, Normalize normalizeFormat)
+        public List<PredictionResult> DoStacking(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizeFormat = Normalize.OneMinusOne)
         {
             List<PredictionResult> classifiers = new List<PredictionResult>();
             //For each classifier run a crossvalidation and find the best params
@@ -44,14 +45,15 @@ namespace Classification_App
                 List<double> featuresToDataPoint = new List<double>();
                 foreach (PredictionResult classifier in classifiers)
                 {
-                    featuresToDataPoint.Add(classifier.answers[i]);
+                    featuresToDataPoint.Add(classifier.guesses[i]);
                 }
+                featureList.Add(featuresToDataPoint);
             }
             //Split into nfold problems
             List<Tuple<SVMProblem, SVMProblem>> problems = featureList.GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
 
             //Get correct results
-            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            int[] answers = samData.dataPoints.Select(x  => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
 
             List<PredictionResult> finalResults = new List<PredictionResult>();
 
@@ -62,7 +64,7 @@ namespace Classification_App
                 //model and predict each nfold
                 foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
                 {
-                    guesses.AddRange(tupleProblem.Item1.Predict(tupleProblem.Item2.Train(SVMpara)));
+                    guesses.AddRange(tupleProblem.Item2.Predict(tupleProblem.Item1.Train(SVMpara)));
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results
@@ -70,13 +72,13 @@ namespace Classification_App
                 List<double> pres = CalculatePrecision(confus, numberOfLabels);
                 List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
-                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, new List<Feature> { }, answers.ToList(), guesses.Cast<int>().ToList());
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x=>(int)x));
                 finalResults.Add(pR);
             }
             return finalResults;
         }
 
-        public PredictionResult DoVoting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings, Normalize normalizeFormat)
+        public PredictionResult DoVoting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizeFormat = Normalize.OneMinusOne)
         {
             List<PredictionResult> classifiers = new List<PredictionResult>();
             //For each classifier run a crossvalidation and find the best params
@@ -125,17 +127,14 @@ namespace Classification_App
                     //calculate weights
                     for (int trainingIndex = 0; trainingIndex < trainIndicies[i].Count; trainingIndex++)
                     {
-                        if (predictResult.answers[trainingIndex] == samData.dataPoints[trainingIndex].ToAVCoordinate(feelingsmodel))
+                        if (predictResult.guesses[trainIndicies[i][trainingIndex]] == samData.dataPoints[trainIndicies[i][trainingIndex]].ToAVCoordinate(feelingsmodel))
                         {
                             correct++;
                         }
                     }
 
                     //Add weight from the trainingset to each of the guesses
-                    for (int predictionIndex = 0; predictionIndex < predictIndicies[i].Count; predictionIndex++)
-                    {
-                        weightedGuesses[predictionIndex][predictResult.answers[predictionIndex]] += (correct / trainIndicies.Count);
-                    }
+                    weightedGuesses[i][predictResult.guesses[i]] += (correct / trainIndicies.Count);
                 }
             }
 
@@ -168,16 +167,17 @@ namespace Classification_App
             List<double> pres = CalculatePrecision(confus, numberOfLabels);
             List<double> recall = CalculateRecall(confus, numberOfLabels);
             List<double> fscore = CalculateFScore(pres, recall);
-            return new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature> { }, answers.ToList(), guesses.Cast<int>().ToList());
+            return new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x=>(int)x));
 
         }
 
 
-        public PredictionResult DoBoosting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings, Normalize normalizeFormat)
+        public PredictionResult DoBoosting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizeFormat = Normalize.OneMinusOne)
         {
             if (boostingOrder.Count != standardClassifiers.Count)
             {
                 //if boosting order and standardClassifier is not the same size an out of bounds is invetatible 
+                Log.LogMessage("The Boosting order list is not the same as the number of classifiers, I'm giving you a null");
                 return null;
             }
 
@@ -190,7 +190,7 @@ namespace Classification_App
                 }
                 else
                 {
-                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidateWithBoosting(feelingsmodel, nFold, prevResult.answers.Cast<double>().ToArray(), useIAPSratings, normalizeFormat));
+                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidateWithBoosting(feelingsmodel, nFold, prevResult.guesses.ConvertAll(x=>(double)x).ToArray(), useIAPSratings, normalizeFormat));
                 }
             }
             return prevResult;
