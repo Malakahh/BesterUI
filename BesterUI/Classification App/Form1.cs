@@ -121,7 +121,7 @@ namespace Classification_App
                 Directory.CreateDirectory(currentPath + @"\STD");
             }
 
-            File.WriteAllText(currentPath + @"\STD\" + conf.Name, conf.Serialize() + ".svm");
+            File.WriteAllText(currentPath + @"\STD\" + conf.Name + ".svm", conf.Serialize());
         }
 
         void SaveConfiguration(MetaSVMConfiguration conf)
@@ -242,18 +242,101 @@ namespace Classification_App
         }
         #endregion
 
+        volatile int gsrProg = 0;
+        volatile int gsrTot = 1;
+        volatile int hrProg = 0;
+        volatile int hrTot = 1;
+        volatile int eegProg = 0;
+        volatile int eegTot = 1;
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
-
+                List<SVMParameter> parameters = GenerateSVMParameters();
+                int curDat = 1;
+                int maxDat = dataFolders.Length;
                 foreach (var item in dataFolders)
                 {
+                    if (File.Exists(item + @"\donno.dk")) continue;
+
                     LoadData(item);
+
+                    gsrProg = 0;
+                    hrProg = 0;
+                    eegProg = 0;
+
+
+                    Thread gsrThread = new Thread(() =>
+                    {
+                        List<Feature> gsrFeats = FeatureCreator.GSROptimizationFeatures;
+
+                        StdClassifier gsrMachine = new StdClassifier("GSR", parameters, gsrFeats, samData);
+                        gsrMachine.UpdateCallback = (cur, max) => { gsrProg = cur; gsrTot = max; };
+                        var res = gsrMachine.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                        SaveBestResult(res, gsrMachine.Name);
+                    });
+
+                    Thread hrThread = new Thread(() =>
+                    {
+                        List<Feature> hrFeats = FeatureCreator.HROptimizationFeatures;
+
+                        StdClassifier hrMachine = new StdClassifier("HR", parameters, hrFeats, samData);
+                        hrMachine.UpdateCallback = (cur, max) => { hrProg = cur; hrTot = max; };
+                        var res = hrMachine.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                        SaveBestResult(res, hrMachine.Name);
+                    });
+
+                    Thread eegThread = new Thread(() =>
+                    {
+                        List<Feature> eegFeats = FeatureCreator.EEGOptimizationFeatures;
+
+                        StdClassifier eegMachine = new StdClassifier("EEG", parameters, eegFeats, samData);
+                        eegMachine.UpdateCallback = (cur, max) => { eegProg = cur; eegTot = max; };
+                        var res = eegMachine.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                        SaveBestResult(res, eegMachine.Name);
+                    });
+
+                    gsrThread.Priority = ThreadPriority.Highest;
+                    hrThread.Priority = ThreadPriority.Highest;
+                    eegThread.Priority = ThreadPriority.Highest;
+
+                    gsrThread.Start();
+                    hrThread.Start();
+                    eegThread.Start();
+
+                    while (gsrThread.IsAlive || hrThread.IsAlive || eegThread.IsAlive)
+                    {
+                        Thread.Sleep(500);
+                        double pct = (double)(gsrProg + hrProg + eegProg) * (double)100 / (double)(gsrTot + hrTot + eegTot);
+                        Log.LogMessageSameLine(curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")]");
+                        Application.DoEvents();
+                    }
+
+                    using (var temp = File.Create(currentPath + @"\donno.dk")) { }
+                    Log.LogMessage("DonnoDK");
+                    curDat++;
                 }
+            }
+        }
+
+        void SaveBestResult(List<PredictionResult> res, string prefix)
+        {
+            double bestF = 0;
+            foreach (var resTemp in res)
+            {
+                bestF = Math.Max(bestF, resTemp.AverageFScore());
+            }
+
+            var confs = res.Where(x => x.AverageFScore() == bestF);
+            foreach (var conf in confs)
+            {
+                var c = conf.GenerateConfiguration();
+                c.Name = prefix + "_" + c.Name;
+                SaveConfiguration(c);
             }
         }
     }

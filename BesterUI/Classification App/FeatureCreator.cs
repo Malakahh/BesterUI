@@ -10,9 +10,15 @@ namespace Classification_App
     public static class FeatureCreator
     {
         public static List<Feature> allFeatures = new List<Feature>();
+
         public static List<Feature> GSRFeatures = new List<Feature>();
+        public static List<Feature> GSROptimizationFeatures = new List<Feature>();
+
         public static List<Feature> HRFeatures = new List<Feature>();
+        public static List<Feature> HROptimizationFeatures = new List<Feature>();
+
         public static List<Feature> EEGFeatures = new List<Feature>();
+        public static List<Feature> EEGOptimizationFeatures = new List<Feature>();
 
 
         const int GSR_LATENCY = 3000;
@@ -33,7 +39,23 @@ namespace Classification_App
             allFeatures.AddRange(GSRFeatures);
             allFeatures.AddRange(HRFeatures);
             allFeatures.AddRange(EEGFeatures);
+
+            GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("stdev")));
+            //GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
+            //GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
+            //GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Mean")));
+
+            HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
+            //HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Min")));
+            //HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Max")));
+            //HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Mean")));
+
+            EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
+            //EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F4")));
+            //EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F7")));
+            //EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F8")));
         }
+
 
         #region Feature Value Accessors
         public static double GSRValueAccessor(DataReading d)
