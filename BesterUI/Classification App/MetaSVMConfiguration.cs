@@ -35,12 +35,17 @@ namespace Classification_App
             msvmc.parameter.C = double.Parse(bits[1]);
             msvmc.parameter.Gamma = double.Parse(bits[2]);
 
-            foreach (var item in bits.Skip(1))
+            foreach (var item in bits.Skip(3))
             {
                 msvmc.stds.Add(SVMConfiguration.Deserialize(item));
             }
 
             return msvmc;
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }
