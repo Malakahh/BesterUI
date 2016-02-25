@@ -7,7 +7,7 @@ using LibSVMsharp;
 
 namespace Classification_App
 {
-    class SVMConfiguration
+    public class SVMConfiguration
     {
         const char SEPARATOR = ';';
         public string Name = "undefined";

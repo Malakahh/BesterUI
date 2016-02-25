@@ -206,6 +206,10 @@ namespace Classification_App
 
         }
 
+
+        //TEMP!
+        private PredictionResult predicResults;
+
         //Run normal classifier
         private void btn_Run_Click(object sender, EventArgs e)
         {
@@ -223,10 +227,11 @@ namespace Classification_App
                     var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
                     foreach (var resTemp in res)
                     {
-                        Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                        predicResults = resTemp;
                     }
                 });
                 newThread.Start();
+                
             }
             else if (!chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
             {
@@ -239,7 +244,7 @@ namespace Classification_App
                     var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
                     foreach (var resTemp in res)
                     {
-                        Log.LogMessage("A Score was: " + resTemp.AverageFScore());
+                        predicResults = resTemp;
                     }
                 });
                 newThread.Start();
@@ -348,6 +353,9 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                ExcelHandler eh = new ExcelHandler(fbd.SelectedPath);
+                eh.CreateNOpenFiles();
+
                 btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
@@ -362,6 +370,8 @@ namespace Classification_App
                         Log.LogMessage("Already did " + item + ", skipping..");
                         continue;
                     }
+                    string personName = item.Split('\\').Last();
+                    eh.AddPersonToBooks(personName);
 
                     LoadData(item);
 
@@ -452,8 +462,7 @@ namespace Classification_App
                         Log.LogMessage("Using " + cnf.Name + "...");
                     }
 
-
-
+                    
                     //TODO: Gem results as well
                     Log.LogMessage("Doing Stacking");
                     stackProg = 0;
@@ -462,12 +471,16 @@ namespace Classification_App
                     //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
                     var res = meta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
                     var bestRes = meta.FindBestFScorePrediction(res);
+
+                    eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, SAMDataPoint.FeelingModel.Arousal2High);
+
                     meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
 
                     SaveConfiguration(meta.GetConfiguration());
 
                     Log.LogMessage("Doing voting");
-                    meta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    var voteRes = meta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, SAMDataPoint.FeelingModel.Arousal2High);
                     Log.LogMessage("Doing boosting");
                     meta.DoBoosting(SAMDataPoint.FeelingModel.Arousal2High, 1);
 
@@ -490,5 +503,15 @@ namespace Classification_App
         }
 
         #endregion
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ExcelHandler excelHandler = new ExcelHandler(currentPath);
+            excelHandler.CreateNOpenFiles();
+            excelHandler.AddPersonToBooks("Benjamin");
+            excelHandler.AddDataToPerson("Benjamin", ExcelHandler.Book.GSR, predicResults, SAMDataPoint.FeelingModel.Arousal2High);
+            excelHandler.AddDataToPerson("Benjamin", ExcelHandler.Book.HR, predicResults, SAMDataPoint.FeelingModel.Valence2High);
+            excelHandler.CloseBooks();
+        }
     }
 }

@@ -7,7 +7,7 @@ using LibSVMsharp;
 
 namespace Classification_App
 {
-    class PredictionResult
+    public class PredictionResult
     {
         public double[,] confusionMatrix { get; private set; }
         public List<double> recalls { get; private set; }

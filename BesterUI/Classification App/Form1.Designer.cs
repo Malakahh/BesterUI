@@ -30,12 +30,14 @@
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.addMachineBtn = new System.Windows.Forms.Button();
             this.chk_ParameterOptimizationNormal = new System.Windows.Forms.CheckBox();
             this.chk_FeatureOptimizationNormal = new System.Windows.Forms.CheckBox();
             this.btn_RunNormal = new System.Windows.Forms.Button();
             this.chklist_Features = new System.Windows.Forms.CheckedListBox();
             this.chklst_SvmConfigurations = new System.Windows.Forms.CheckedListBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.boostingCB = new System.Windows.Forms.CheckBox();
             this.votingCB = new System.Windows.Forms.CheckBox();
             this.chklst_meta = new System.Windows.Forms.CheckedListBox();
             this.stackingCB = new System.Windows.Forms.CheckBox();
@@ -45,8 +47,7 @@
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
-            this.boostingCB = new System.Windows.Forms.CheckBox();
-            this.addMachineBtn = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -78,6 +79,16 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Normal";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // addMachineBtn
+            // 
+            this.addMachineBtn.Location = new System.Drawing.Point(336, 257);
+            this.addMachineBtn.Name = "addMachineBtn";
+            this.addMachineBtn.Size = new System.Drawing.Size(151, 23);
+            this.addMachineBtn.TabIndex = 5;
+            this.addMachineBtn.Text = "Add Machine";
+            this.addMachineBtn.UseVisualStyleBackColor = true;
+            this.addMachineBtn.Click += new System.EventHandler(this.addMachineBtn_Click);
             // 
             // chk_ParameterOptimizationNormal
             // 
@@ -139,6 +150,16 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Meta";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // boostingCB
+            // 
+            this.boostingCB.AutoSize = true;
+            this.boostingCB.Location = new System.Drawing.Point(27, 141);
+            this.boostingCB.Name = "boostingCB";
+            this.boostingCB.Size = new System.Drawing.Size(67, 17);
+            this.boostingCB.TabIndex = 4;
+            this.boostingCB.Text = "Boosting";
+            this.boostingCB.UseVisualStyleBackColor = true;
             // 
             // votingCB
             // 
@@ -224,31 +245,22 @@
             this.statusLabel.TabIndex = 6;
             this.statusLabel.Text = "Please load data";
             // 
-            // boostingCB
+            // button1
             // 
-            this.boostingCB.AutoSize = true;
-            this.boostingCB.Location = new System.Drawing.Point(27, 141);
-            this.boostingCB.Name = "boostingCB";
-            this.boostingCB.Size = new System.Drawing.Size(67, 17);
-            this.boostingCB.TabIndex = 4;
-            this.boostingCB.Text = "Boosting";
-            this.boostingCB.UseVisualStyleBackColor = true;
-            // 
-            // addMachineBtn
-            // 
-            this.addMachineBtn.Location = new System.Drawing.Point(336, 257);
-            this.addMachineBtn.Name = "addMachineBtn";
-            this.addMachineBtn.Size = new System.Drawing.Size(151, 23);
-            this.addMachineBtn.TabIndex = 5;
-            this.addMachineBtn.Text = "Add Machine";
-            this.addMachineBtn.UseVisualStyleBackColor = true;
-            this.addMachineBtn.Click += new System.EventHandler(this.addMachineBtn_Click);
+            this.button1.Location = new System.Drawing.Point(378, 44);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 7;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 505);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.richTextBox1);
@@ -288,6 +300,7 @@
         private System.Windows.Forms.Label statusLabel;
         private System.Windows.Forms.CheckBox boostingCB;
         private System.Windows.Forms.Button addMachineBtn;
+        private System.Windows.Forms.Button button1;
     }
 }
 
