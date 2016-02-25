@@ -21,7 +21,7 @@ namespace Classification_App
 
         public ExcelHandler(string path)
         {
-            statsFolderPath = path + "/Stats/";
+            statsFolderPath = path + "/";
             MyApp = new Excel.Application() { Visible = false };
         }
 
@@ -31,7 +31,7 @@ namespace Classification_App
         /// </summary>
         /// <param name="Path">Path of where to save/open the files</param>
         /// 
-            List<Book> fileNames = new List<Book> { Book.GSR, Book.EEG, Book.HR, Book.Stacking, Book.Boosting, Book.Voting };
+        List<Book> fileNames = new List<Book> { Book.GSR, Book.EEG, Book.HR, Book.Stacking, Book.Boosting, Book.Voting };
         public void CreateNOpenFiles()
         {
             foreach (Book book in fileNames)
@@ -45,7 +45,7 @@ namespace Classification_App
                         currentBook.SaveAs(statsFolderPath + book);
                         books.Add(book, currentBook);
                         //Added Standard (Front, first, last)
-                        CreateStandardBookSetup(currentBook);                       
+                        CreateStandardBookSetup(currentBook);
                         //Remove default sheet
                         foreach (Excel.Worksheet wS in currentBook.Worksheets)
                         {
@@ -90,7 +90,7 @@ namespace Classification_App
                         books.Add(book, currentBook);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
                     return;
@@ -119,7 +119,7 @@ namespace Classification_App
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 return;
@@ -152,7 +152,7 @@ namespace Classification_App
         {
             //Name
             workSheet.Cells[1, 1] = name;
-            
+
             //A2
             workSheet.Cells[2, 1] = "A2";
             workSheet.Cells[2, 2] = "Features";
@@ -166,7 +166,7 @@ namespace Classification_App
             workSheet.Cells[10, 2] = "Fscore1";
             workSheet.Cells[11, 2] = "Fscore2";
             workSheet.Cells[12, 2] = "WFScore";
-            
+
 
 
             //A3
@@ -241,9 +241,9 @@ namespace Classification_App
                     break;
             }
 
-            for (int i = 3; i < pResult.features.Count+ 3; i++)
+            for (int i = 3; i < pResult.features.Count + 3; i++)
             {
-                workSheet.Cells[counter, i] = pResult.features[i-3].name;
+                workSheet.Cells[counter, i] = pResult.features[i - 3].name;
             }
 
             counter++;
@@ -254,7 +254,7 @@ namespace Classification_App
 
             counter++;
             workSheet.Cells[counter, 3] = pResult.svmParams.Kernel;
-            
+
             for (int r = 0; r < pResult.recalls.Count; r++)
             {
                 counter++;
@@ -296,7 +296,7 @@ namespace Classification_App
             counter++;
 
             workSheet.Cells[counter, 3] = pResult.AverageFScore();
-            
+
 
         }
         private void CreateStandardBookSetup(Excel.Workbook workBook)

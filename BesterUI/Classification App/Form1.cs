@@ -115,14 +115,14 @@ namespace Classification_App
             chklst_meta.Items.Add(standardClassifier);
         }
 
-        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, Action<int, int> UpdateCallback)
+        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, SAMDataPoint.FeelingModel feels, Action<int, int> UpdateCallback)
         {
             return new Thread(() =>
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                SaveBestResult(res, mac.Name);
+                var res = mac.CrossValidateCombinations(feels, 1);
+                SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
 
@@ -231,7 +231,7 @@ namespace Classification_App
                     }
                 });
                 newThread.Start();
-                
+
             }
             else if (!chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
             {
@@ -351,8 +351,18 @@ namespace Classification_App
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
 
+
+
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                List<SAMDataPoint.FeelingModel> feelings = new List<SAMDataPoint.FeelingModel>()
+                {
+                    SAMDataPoint.FeelingModel.Arousal2High,
+                    SAMDataPoint.FeelingModel.Arousal3,
+                    SAMDataPoint.FeelingModel.Valence2Low,
+                    SAMDataPoint.FeelingModel.Valence3
+                };
+
                 ExcelHandler eh = new ExcelHandler(fbd.SelectedPath);
                 eh.CreateNOpenFiles();
 
@@ -374,119 +384,136 @@ namespace Classification_App
                     eh.AddPersonToBooks(personName);
 
                     LoadData(item);
-
-                    gsrProg = 0;
-                    gsrTot = 1;
-                    hrProg = 0;
-                    hrTot = 1;
-                    eegProg = 0;
-                    eegTot = 1;
-
-                    bool gsrWrite = false;
-                    bool hrWrite = false;
-                    bool eegWrite = false;
-
-                    Thread gsrThread = null;
-                    if (!File.Exists(currentPath + @"\gsr.donnodk"))
+                    foreach (var feel in feelings)
                     {
-                        gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures, (cur, max) => { gsrProg = cur; gsrTot = max; });
-                        gsrThread.Priority = ThreadPriority.Highest;
-                        gsrThread.Start();
-                    }
-                    else
-                    {
-                        Log.LogMessage("GSR done already, skipping");
-                    }
+                        gsrProg = 0;
+                        gsrTot = 1;
+                        hrProg = 0;
+                        hrTot = 1;
+                        eegProg = 0;
+                        eegTot = 1;
 
-                    Thread hrThread = null;
-                    if (!File.Exists(currentPath + @"\hr.donnodk"))
-                    {
-                        hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures, (cur, max) => { hrProg = cur; hrTot = max; });
-                        hrThread.Priority = ThreadPriority.Highest;
-                        hrThread.Start();
-                    }
-                    else
-                    {
-                        Log.LogMessage("HR done already, skipping");
-                    }
+                        bool gsrWrite = false;
+                        bool hrWrite = false;
+                        bool eegWrite = false;
 
-                    Thread eegThread = null;
-                    if (!File.Exists(currentPath + @"\eeg.donnodk"))
-                    {
-                        eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures, (cur, max) => { eegProg = cur; eegTot = max; });
-                        eegThread.Priority = ThreadPriority.Highest;
-                        eegThread.Start();
-                    }
-                    else
-                    {
-                        Log.LogMessage("EEG done already, skipping");
-                    }
-
-
-                    while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive))
-                    {
-                        Thread.Sleep(500);
-                        double pct = (double)(gsrProg + hrProg + eegProg) * (double)100 / (double)(gsrTot + hrTot + eegTot);
-                        Log.LogMessageSameLine(curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")]");
-                        Application.DoEvents();
-
-                        if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
+                        Thread gsrThread = null;
+                        if (!File.Exists(currentPath + @"\gsr" + feel + ".donnodk"))
                         {
-                            gsrWrite = true;
-                            using (var temp = File.Create(currentPath + @"\gsr.donnodk")) { }
+                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
+                            gsrThread.Priority = ThreadPriority.Highest;
+                            gsrThread.Start();
+                        }
+                        else
+                        {
+                            Log.LogMessage("GSR done already, skipping");
                         }
 
-                        if (hrThread != null && !hrThread.IsAlive && !hrWrite)
+                        Thread hrThread = null;
+                        if (!File.Exists(currentPath + @"\hr" + feel + ".donnodk"))
                         {
-                            hrWrite = true;
-                            using (var temp = File.Create(currentPath + @"\hr.donnodk")) { }
+                            hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures, feel, (cur, max) => { hrProg = cur; hrTot = max; });
+                            hrThread.Priority = ThreadPriority.Highest;
+                            hrThread.Start();
+                        }
+                        else
+                        {
+                            Log.LogMessage("HR done already, skipping");
                         }
 
-                        if (eegThread != null && !eegThread.IsAlive && !eegWrite)
+                        Thread eegThread = null;
+                        if (!File.Exists(currentPath + @"\eeg" + feel + ".donnodk"))
                         {
-                            eegWrite = true;
-                            using (var temp = File.Create(currentPath + @"\eeg.donnodk")) { }
+                            eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures, feel, (cur, max) => { eegProg = cur; eegTot = max; });
+                            eegThread.Priority = ThreadPriority.Highest;
+                            eegThread.Start();
                         }
+                        else
+                        {
+                            Log.LogMessage("EEG done already, skipping");
+                        }
+
+
+                        while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive))
+                        {
+                            Thread.Sleep(500);
+                            double pct = (double)(gsrProg + hrProg + eegProg) * (double)100 / (double)(gsrTot + hrTot + eegTot);
+                            Log.LogMessageSameLine(feel + " -> " + curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")]");
+                            Application.DoEvents();
+
+                            if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
+                            {
+                                gsrWrite = true;
+                                using (var temp = File.Create(currentPath + @"\gsr" + feel + ".donnodk")) { }
+                            }
+
+                            if (hrThread != null && !hrThread.IsAlive && !hrWrite)
+                            {
+                                hrWrite = true;
+                                using (var temp = File.Create(currentPath + @"\hr" + feel + ".donnodk")) { }
+                            }
+
+                            if (eegThread != null && !eegThread.IsAlive && !eegWrite)
+                            {
+                                eegWrite = true;
+                                using (var temp = File.Create(currentPath + @"\eeg" + feel + ".donnodk")) { }
+                            }
+                        }
+
+                        Log.LogMessage("Done with single machine searching.");
+
+                        List<SVMConfiguration> confs = new List<SVMConfiguration>();
+                        confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString())));
+                        confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString())));
+                        confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString())));
+
+                        Log.LogMessage("Creating meta machine..");
+                        foreach (var cnf in confs)
+                        {
+                            Log.LogMessage("Using " + cnf.Name + "...");
+                        }
+
+                        //normals
+                        var gsrMac = new StdClassifier(confs[0], samData);
+                        var gsrRes = gsrMac.CrossValidate(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
+
+                        var hrMac = new StdClassifier(confs[1], samData);
+                        var hrRes = hrMac.CrossValidate(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
+
+                        var eegMac = new StdClassifier(confs[2], samData);
+                        var eegRes = eegMac.CrossValidate(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
+
+
+                        //TODO: Gem results as well
+                        Log.LogMessage("Doing Stacking");
+                        stackProg = 0;
+                        stackTot = 1;
+                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
+                        //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
+                        var res = meta.DoStacking(feel, 1);
+                        var bestRes = meta.FindBestFScorePrediction(res);
+
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+
+                        meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+
+                        SaveConfiguration(meta.GetConfiguration());
+
+                        Log.LogMessage("Doing voting");
+                        var voteRes = meta.DoVoting(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                        Log.LogMessage("Doing boosting");
+                        meta.boostingOrder = new List<int>() { 0, 1, 2 };
+                        var boostRes = meta.DoBoosting(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.Boosting, boostRes, feel);
                     }
 
-                    Log.LogMessage("Done with single machine searching.");
-
-                    List<SVMConfiguration> confs = new List<SVMConfiguration>();
-                    confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR")));
-                    confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR")));
-                    confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG")));
-
-                    Log.LogMessage("Creating meta machine..");
-                    foreach (var cnf in confs)
-                    {
-                        Log.LogMessage("Using " + cnf.Name + "...");
-                    }
-
-                    
-                    //TODO: Gem results as well
-                    Log.LogMessage("Doing Stacking");
-                    stackProg = 0;
-                    stackTot = 1;
-                    MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
-                    //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
-                    var res = meta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                    var bestRes = meta.FindBestFScorePrediction(res);
-
-                    eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, SAMDataPoint.FeelingModel.Arousal2High);
-
-                    meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
-
-                    SaveConfiguration(meta.GetConfiguration());
-
-                    Log.LogMessage("Doing voting");
-                    var voteRes = meta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                    eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, SAMDataPoint.FeelingModel.Arousal2High);
-                    Log.LogMessage("Doing boosting");
-                    meta.DoBoosting(SAMDataPoint.FeelingModel.Arousal2High, 1);
-
+                    curDat++;
                     using (var temp = File.Create(currentPath + @"\donno.dk")) { }
                     Log.LogMessage("DonnoDK");
-                    curDat++;
                 }
             }
 
