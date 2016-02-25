@@ -515,6 +515,8 @@ namespace Classification_App
                     using (var temp = File.Create(currentPath + @"\donno.dk")) { }
                     Log.LogMessage("DonnoDK");
                 }
+                eh.CloseBooks();
+                Log.LogMessage("Closing books and saving");
             }
 
             btn_LoadData.Enabled = true;

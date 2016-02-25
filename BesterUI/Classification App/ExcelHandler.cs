@@ -144,6 +144,9 @@ namespace Classification_App
                 books[book].Save();
                 books[book].Close(true);
             }
+            books.Clear();
+            MyApp.Quit();
+            MyApp = null;
         }
 
         #region [Helper functions]
