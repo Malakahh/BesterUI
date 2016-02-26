@@ -35,7 +35,7 @@ namespace Classification_App
             foreach (StdClassifier classifier in standardClassifiers)
             {
                 List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat);
-                classifiers.Add(results.OrderBy(x => x.AverageFScore()).First());
+                classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
             }
 
 
@@ -91,7 +91,7 @@ namespace Classification_App
             foreach (StdClassifier classifier in standardClassifiers)
             {
                 List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat);
-                classifiers.Add(results.OrderBy(x => x.AverageFScore()).First());
+                classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
             }
             int labelCount = SAMData.GetNumberOfLabels(feelingsmodel);
 
@@ -209,10 +209,10 @@ namespace Classification_App
             PredictionResult bestResult = null;
             foreach (PredictionResult result in results)
             {
-                if (result.AverageFScore() > maxScore)
+                if (result.GetAverageFScore() > maxScore)
                 {
                     bestResult = result;
-                    maxScore = result.AverageFScore();
+                    maxScore = result.GetAverageFScore();
                 }
             }
             return bestResult;

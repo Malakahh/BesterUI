@@ -13,6 +13,7 @@ using BesterUI.Data;
 using System.IO;
 using LibSVMsharp;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Classification_App
 {
@@ -131,10 +132,10 @@ namespace Classification_App
             double bestF = 0;
             foreach (var resTemp in res)
             {
-                bestF = Math.Max(bestF, resTemp.AverageFScore());
+                bestF = Math.Max(bestF, resTemp.GetAverageFScore());
             }
 
-            var confs = res.Where(x => x.AverageFScore() == bestF);
+            var confs = res.Where(x => x.GetAverageFScore() == bestF);
             foreach (var conf in confs)
             {
                 var c = conf.GenerateConfiguration();
@@ -267,7 +268,7 @@ namespace Classification_App
 
                     foreach (var resTemp in res)
                     {
-                        Log.LogMessage("Score was: " + resTemp.AverageFScore());
+                        Log.LogMessage("Score was: " + resTemp.GetAverageFScore());
                     }
                 }
                 );
@@ -305,7 +306,7 @@ namespace Classification_App
                 }
                 MetaClassifier votingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
                 PredictionResult result = votingMeta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage(result.AverageFScore());
+                Log.LogMessage(result.GetAverageFScore());
 
             }
             if (stackingCB.Checked)
@@ -317,7 +318,7 @@ namespace Classification_App
                 }
                 MetaClassifier stackingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
                 List<PredictionResult> result = stackingMeta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage(result[0].AverageFScore());
+                Log.LogMessage(result[0].GetAverageFScore());
             }
             if (boostingCB.Checked)
             {
@@ -335,7 +336,7 @@ namespace Classification_App
                 }
 
                 PredictionResult result = boostingMeta.DoBoosting(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage(result.AverageFScore());
+                Log.LogMessage(result.GetAverageFScore());
             }
         }
 
@@ -355,6 +356,9 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                Log.LogMessage("Starting Stopwatch");
                 List<SAMDataPoint.FeelingModel> feelings = new List<SAMDataPoint.FeelingModel>()
                 {
                     SAMDataPoint.FeelingModel.Arousal2High,
@@ -364,7 +368,11 @@ namespace Classification_App
                 };
 
                 ExcelHandler eh = new ExcelHandler(fbd.SelectedPath);
-                eh.CreateNOpenFiles();
+                if (!eh.BooksOpen)
+                {
+                    Log.LogMessage("Cannot open or write to books");
+                    return;
+                }
 
                 btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
@@ -378,6 +386,11 @@ namespace Classification_App
                     if (File.Exists(item + @"\donno.dk"))
                     {
                         Log.LogMessage("Already did " + item + ", skipping..");
+                        continue;
+                    }
+                    else if (item.Split('\\').Last() == "Stats")
+                    {
+                        Log.LogMessage("Stats folder skipping");
                         continue;
                     }
                     string personName = item.Split('\\').Last();
@@ -487,7 +500,7 @@ namespace Classification_App
                         eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
 
 
-                        //TODO: Gem results as well
+                        eh.Save();
                         Log.LogMessage("Doing Stacking");
                         stackProg = 0;
                         stackTot = 1;
@@ -512,14 +525,17 @@ namespace Classification_App
                     }
 
                     curDat++;
+                    eh.Save();
                     using (var temp = File.Create(currentPath + @"\donno.dk")) { }
                     Log.LogMessage("DonnoDK");
                 }
                 eh.CloseBooks();
                 Log.LogMessage("Closing books and saving");
+                Log.LogMessage("Done in: " + stopwatch.Elapsed);
             }
-
+            
             btn_LoadData.Enabled = true;
+
         }
 
         List<StdClassifier> ConfigurationsToStds(List<SVMConfiguration> confs)
@@ -532,15 +548,6 @@ namespace Classification_App
         }
 
         #endregion
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            ExcelHandler excelHandler = new ExcelHandler(currentPath);
-            excelHandler.CreateNOpenFiles();
-            excelHandler.AddPersonToBooks("Benjamin");
-            excelHandler.AddDataToPerson("Benjamin", ExcelHandler.Book.GSR, predicResults, SAMDataPoint.FeelingModel.Arousal2High);
-            excelHandler.AddDataToPerson("Benjamin", ExcelHandler.Book.HR, predicResults, SAMDataPoint.FeelingModel.Valence2High);
-            excelHandler.CloseBooks();
-        }
+        
     }
 }

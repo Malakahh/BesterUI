@@ -16,7 +16,7 @@ namespace Classification_App
         public SVMParameter svmParams { get; private set; }
         public List<Feature> features { get; private set; }
         public List<int> guesses = new List<int>();
-        public List<int> answers = new List<int>();
+        public List<int> correct = new List<int>();
 
         public PredictionResult(double[,] ConfusionMatrix, List<double> Recalls, List<double> Precisions, List<double> Fscores, SVMParameter SVMParam, List<Feature> Features, List<int> Answers, List<int> Guesses)
         {
@@ -27,21 +27,35 @@ namespace Classification_App
             svmParams = SVMParam;
             features = Features;
             guesses = Guesses;
-            answers = Answers;
+            correct = Answers;
         }
 
-        public double AverageFScore()
+        public double GetAverageFScore()
         {
             double total = 0;
             for (int i = 0; i < fscores.Count; i++)
             {
+                
                 if (!double.IsNaN(fscores[i]))
                 {
-                    total += fscores[i] * answers.Count(x => x == i);
+                    total += fscores[i] * correct.Count(x => x == i);
                 }
             }
-            total /= answers.Count;
+            total /= correct.Count;
             return total;
+        }
+
+        public double GetAccuracy()
+        {
+            double correct = 0;
+            for(int i = 0; i < guesses.Count; i++)
+            {
+                if (guesses[i] == this.correct[i])
+                {
+                    correct++;
+                }
+            }
+            return correct / guesses.Count;
         }
 
         public SVMConfiguration GenerateConfiguration()
@@ -50,7 +64,5 @@ namespace Classification_App
             conf.Name = "SVM_" + svmParams.C + "_" + svmParams.Gamma + "_F" + features.Count;
             return conf;
         }
-
-        //TODO: Make some printing functions
     }
 }
