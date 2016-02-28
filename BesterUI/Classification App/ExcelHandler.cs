@@ -97,7 +97,7 @@ namespace Classification_App
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    MessageError(ex.ToString());
                     return false;
                 }
             }

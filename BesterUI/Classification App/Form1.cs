@@ -92,7 +92,6 @@ namespace Classification_App
             }
             //Generate SVMParams
             List<SVMParameter> svmParams = new List<SVMParameter>();
-
             foreach (SVMKernelType kernel in kernels)
             {
                 foreach (double c in cTypes)
@@ -351,9 +350,7 @@ namespace Classification_App
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
-
-
-
+            
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 Stopwatch stopwatch = new Stopwatch();
@@ -411,21 +408,27 @@ namespace Classification_App
                         bool eegWrite = false;
 
                         Thread gsrThread = null;
-                        if (!File.Exists(currentPath + @"\gsr" + feel + ".donnodk"))
+                        if (!File.Exists(currentPath + @"\gsr" + feel + ".donnodk") ||
+                            feel == SAMDataPoint.FeelingModel.Valence2High || 
+                            feel == SAMDataPoint.FeelingModel.Valence2Low || 
+                            feel == SAMDataPoint.FeelingModel.Valence3)
                         {
-                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSROptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
+                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
                             gsrThread.Priority = ThreadPriority.Highest;
                             gsrThread.Start();
                         }
                         else
                         {
-                            Log.LogMessage("GSR done already, skipping");
+                            Log.LogMessage("GSR done skipping (because it's already done or searching on valence");
                         }
 
                         Thread hrThread = null;
                         if (!File.Exists(currentPath + @"\hr" + feel + ".donnodk"))
                         {
-                            hrThread = CreateMachineThread("HR", parameters, FeatureCreator.HROptimizationFeatures, feel, (cur, max) => { hrProg = cur; hrTot = max; });
+                            hrThread = CreateMachineThread("HR", parameters,
+                                (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
+                                    ? FeatureCreator.HRValenceOptimizationFeatures : FeatureCreator.HRArousalOptimizationFeatures,
+                                feel, (cur, max) => { hrProg = cur; hrTot = max; });
                             hrThread.Priority = ThreadPriority.Highest;
                             hrThread.Start();
                         }
@@ -437,7 +440,10 @@ namespace Classification_App
                         Thread eegThread = null;
                         if (!File.Exists(currentPath + @"\eeg" + feel + ".donnodk"))
                         {
-                            eegThread = CreateMachineThread("EEG", parameters, FeatureCreator.EEGOptimizationFeatures, feel, (cur, max) => { eegProg = cur; eegTot = max; });
+                            eegThread = CreateMachineThread("EEG", parameters,
+                                 (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
+                                    ? FeatureCreator.EEGValenceOptimizationFeatures : FeatureCreator.EEGArousalOptimizationFeatures, 
+                                 feel, (cur, max) => { eegProg = cur; eegTot = max; });
                             eegThread.Priority = ThreadPriority.Highest;
                             eegThread.Start();
                         }
@@ -475,10 +481,29 @@ namespace Classification_App
 
                         Log.LogMessage("Done with single machine searching.");
 
-                        List<SVMConfiguration> confs = new List<SVMConfiguration>();
-                        confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString())));
-                        confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString())));
-                        confs.Add(svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString())));
+                        
+                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
+                        SVMConfiguration gsrConf;
+                        SVMConfiguration eegConf;
+                        SVMConfiguration hrConf;
+
+
+                        if (gsrWrite)
+                        {
+                            gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
+                            confs.Add(gsrConf);
+                        }
+                        if (eegWrite)
+                        {
+                            eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                            confs.Add(eegConf);
+                        }
+                        if (hrWrite)
+                        {
+                            hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                            confs.Add(hrConf);
+                        }
+
 
                         Log.LogMessage("Creating meta machine..");
                         foreach (var cnf in confs)
@@ -486,7 +511,7 @@ namespace Classification_App
                             Log.LogMessage("Using " + cnf.Name + "...");
                         }
 
-                        //normals
+                        //Write normal results
                         var gsrMac = new StdClassifier(confs[0], samData);
                         var gsrRes = gsrMac.CrossValidate(feel, 1);
                         eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
