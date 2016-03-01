@@ -178,7 +178,8 @@ namespace BesterUI
                 */
                 if (requiredDevices[0] == EEGDeviceReady &&
                     requiredDevices[1] == GSRDeviceReady &&
-                    requiredDevices[2] == HRDeviceReady)
+                    requiredDevices[2] == HRDeviceReady &&
+                    requiredDevices[3] == FACEDeviceReady)
                 {
                     StartTestFromCollector();
                     eegCollect.StartCollect();
@@ -194,6 +195,7 @@ namespace BesterUI
                     Log.LogMessage("EEG: " + requiredDevices[0].ToString());
                     Log.LogMessage("GSR: " + requiredDevices[1].ToString());
                     Log.LogMessage("HR: " + requiredDevices[2].ToString());
+                    Log.LogMessage("FACE: " + requiredDevices[3].ToString());
                 }
             }
             else
