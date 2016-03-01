@@ -26,11 +26,12 @@ namespace BesterUI
 
         bool collectingData = false;
 
-        bool[] requiredDevices = { true, true, true}; // Required devices for collecting data, EEG, GSR, HR
+        bool[] requiredDevices = { true, true, true, true }; // Required devices for collecting data, EEG, GSR, HR
 
         bool EEGDeviceReady = false;
         bool GSRDeviceReady = false;
         bool HRDeviceReady = false;
+        bool FACEDeviceReady = false;
 
         public CollectForm()
         {
@@ -72,6 +73,10 @@ namespace BesterUI
                 GSR Initiation
             */
             InitiateGSR();
+
+
+            //kinect time
+            InitiateFACE();
         }
 
         private void EEGReady()
@@ -80,11 +85,51 @@ namespace BesterUI
             eegReady.BackColor = Color.Green;
         }
 
+        private void FACEReady()
+        {
+            FACEDeviceReady = true;
+            faceReady.BackColor = Color.Green;
+        }
+
         private void SensorsPending()
         {
             eegReady.BackColor = Color.Yellow;
             gsrReady.BackColor = Color.Yellow;
             hrReady.BackColor = Color.Yellow;
+            faceReady.BackColor = Color.Yellow;
+        }
+
+        private void InitiateFACE()
+        {
+            int kinectStep = 0;
+        }
+
+        private void UpdateFACEDisplayState(int step)
+        {
+            if (step == 0)
+            {
+                rdyLookForward.BackColor = Color.Yellow;
+            }
+            else if (step == 1)
+            {
+                rdyLookForward.BackColor = Color.Green;
+                rdyLookLeft.BackColor = Color.Yellow;
+            }
+            else if (step == 2)
+            {
+                rdyLookLeft.BackColor = Color.Green;
+                rdyLookRight.BackColor = Color.Yellow;
+            }
+            else if (step == 3)
+            {
+                rdyLookRight.BackColor = Color.Green;
+                rdyLookUp.BackColor = Color.Yellow;
+            }
+            else if (step == 4)
+            {
+                rdyLookUp.BackColor = Color.Green;
+                FACEReady();
+            }
         }
 
         private void InitiateGSR()
