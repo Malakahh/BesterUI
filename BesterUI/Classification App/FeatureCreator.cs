@@ -22,6 +22,11 @@ namespace Classification_App
         public static List<Feature> EEGArousalOptimizationFeatures = new List<Feature>();
         public static List<Feature> EEGValenceOptimizationFeatures = new List<Feature>();
 
+        public static List<Feature> FACEFeatures = new List<Feature>();
+        public static List<Feature> FACEArousalOptimizationFeatures = new List<Feature>();
+        public static List<Feature> FACEValenceOptimizationFeatures = new List<Feature>();
+
+
 
         const int GSR_LATENCY = 3000;
         const int GSR_DURATION = 4000;
@@ -37,29 +42,25 @@ namespace Classification_App
             PopulateEEG();
             PopulateGSR();
             PopulateHR();
+            PopulateFACE();
 
             allFeatures.AddRange(GSRFeatures);
             allFeatures.AddRange(HRFeatures);
             allFeatures.AddRange(EEGFeatures);
+            allFeatures.AddRange(FACEFeatures);
 
             //Arousal Features
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("stdev")));
-            //GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
-            //GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
-            //GSROptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Mean")));
             HRArousalOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
-            //HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Min")));
-            //HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Max")));
-            //HROptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Mean")));
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
-            //EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F4")));
-            //EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F7")));
-            //EEGOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F8")));
+            HRArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
 
             //Valence Features
             HRValenceOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
             HRValenceOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Mean")));
 
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean")));
 
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F4")));
@@ -197,6 +198,11 @@ namespace Classification_App
             GSRFeatures.Add(new Feature("GSR Min", (data, sam) => Min(GSRDataSlice(data, sam), GSRValueAccessor)));
             GSRFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
             GSRFeatures.Add(new Feature("GSR Last", (data, sam) => Last(GSRDataSlice(data, sam), GSRValueAccessor)));
+        }
+
+        static void PopulateFACE()
+        {
+            //TODO: SOMETHING
         }
     }
 }

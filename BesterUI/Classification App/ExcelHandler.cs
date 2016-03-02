@@ -13,7 +13,7 @@ namespace Classification_App
 {
     class ExcelHandler
     {
-        public enum Book { GSR, EEG, HR, Stacking, Boosting, Voting };
+        public enum Book { GSR, EEG, HR, FACE, Stacking, Boosting, Voting };
         private static Excel.Application MyApp = null; //The Application
         private Dictionary<Book, Excel.Workbook> books = new Dictionary<Book, Excel.Workbook>(); //Dictionary of the different books
         object missingValue = System.Reflection.Missing.Value; //Used for filler purpose
@@ -267,7 +267,7 @@ namespace Classification_App
                     counter = V3Start;
                     break;
             }
-           
+
             workSheet.Cells[counter, 3] = pResult.GetAccuracy();
 
             counter++;
@@ -336,9 +336,9 @@ namespace Classification_App
         /// <param name="workBook"></param>
         private void CheckWriteAccess(Excel.Workbook workBook)
         {
-                string temp = workBook.Sheets[1].Cells[1, 1].value;
-                workBook.Sheets[1].Cells[1, 1] = "writing";
-                workBook.Sheets[1].Cells[1, 1] = temp;
+            string temp = workBook.Sheets[1].Cells[1, 1].value;
+            workBook.Sheets[1].Cells[1, 1] = "writing";
+            workBook.Sheets[1].Cells[1, 1] = temp;
 
         }
 
@@ -347,7 +347,7 @@ namespace Classification_App
             //Create frontpage
             Excel.Worksheet overview = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
             overview.Name = "Overview";
-            
+
             //Create First
             Excel.Worksheet first = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
             first.Name = "First";
@@ -374,8 +374,8 @@ namespace Classification_App
             workSheet.Cells[3, 1] = "AVG";
             workSheet.Cells[4, 1] = "STD";
             //A3
-            workSheet.Cells[8, 1] = "AVG"; 
-            workSheet.Cells[9, 1] = "STD"; 
+            workSheet.Cells[8, 1] = "AVG";
+            workSheet.Cells[9, 1] = "STD";
             //A4
             workSheet.Cells[13, 1] = "AVG";
             workSheet.Cells[14, 1] = "STD";
@@ -386,7 +386,7 @@ namespace Classification_App
 
             #region [Score Labels]
             List<string> scoring2Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "P1", "P2", "R1", "R2" };
-            List<string> scoring3Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "F3", "P1", "P2", "P3", "R1", "R2", "R3"};
+            List<string> scoring3Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "F3", "P1", "P2", "P3", "R1", "R2", "R3" };
             //A2
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
