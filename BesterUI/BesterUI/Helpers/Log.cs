@@ -51,7 +51,7 @@ namespace BesterUI.Helpers
 
         static void AddLogMessage(object text)
         {
-            logBox.AppendText("\n[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text.ToString());
+            logBox.AppendText("\n[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text);
             logBox.ScrollToCaret();
         }
 
@@ -62,7 +62,7 @@ namespace BesterUI.Helpers
             {
                 logBox.Text = logBox.Text.Remove(idx) + "\n";
             }
-            logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text.ToString());
+            logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text);
         }
 
     }

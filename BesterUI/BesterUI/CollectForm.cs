@@ -23,10 +23,9 @@ namespace BesterUI
         EEGCollector eegCollect;
         GSRCollector gsrCollect;
         HRCollector hrCollect;
+        FaceCollector faceCollect;
 
         bool collectingData = false;
-
-        bool[] requiredDevices = { true, true, true, true }; // Required devices for collecting data, EEG, GSR, HR
 
         bool EEGDeviceReady = false;
         bool GSRDeviceReady = false;
@@ -45,6 +44,8 @@ namespace BesterUI
             SensorsPending();
 
             Application.DoEvents();
+
+
 
             /*
                 EEG Initiation
@@ -87,6 +88,7 @@ namespace BesterUI
 
         private void FACEReady()
         {
+
             FACEDeviceReady = true;
             faceReady.BackColor = Color.Green;
         }
@@ -101,35 +103,21 @@ namespace BesterUI
 
         private void InitiateFACE()
         {
-            int kinectStep = 0;
+            Log.LogMessage("Kinect starting");
+            faceCollect = new FaceCollector(fusionData);
+            faceCollect.OnAskIfCaptured += UpdateFACEDisplayState;
+            faceCollect.PrepareSensor();
         }
 
-        private void UpdateFACEDisplayState(int step)
+        private void UpdateFACEDisplayState(bool front, bool right, bool left, bool tilt, bool complete)
         {
-            if (step == 0)
-            {
-                rdyLookForward.BackColor = Color.Yellow;
-            }
-            else if (step == 1)
-            {
-                rdyLookForward.BackColor = Color.Green;
-                rdyLookLeft.BackColor = Color.Yellow;
-            }
-            else if (step == 2)
-            {
-                rdyLookLeft.BackColor = Color.Green;
-                rdyLookRight.BackColor = Color.Yellow;
-            }
-            else if (step == 3)
-            {
-                rdyLookRight.BackColor = Color.Green;
-                rdyLookUp.BackColor = Color.Yellow;
-            }
-            else if (step == 4)
-            {
-                rdyLookUp.BackColor = Color.Green;
+            rdyLookForward.BackColor = (front) ? Color.Green : Color.Yellow;
+            rdyLookRight.BackColor = (right) ? Color.Green : Color.Yellow;
+            rdyLookLeft.BackColor = (left) ? Color.Green : Color.Yellow;
+            rdyLookUp.BackColor = (tilt) ? Color.Green : Color.Yellow;
+
+            if (complete)
                 FACEReady();
-            }
         }
 
         private void InitiateGSR()
@@ -173,36 +161,23 @@ namespace BesterUI
             {
                 fusionData.Reset();
                 DataReading.ResetTimers();
-                /*
-                    Required devices to start collecting data.
-                */
-                if (requiredDevices[0] == EEGDeviceReady &&
-                    requiredDevices[1] == GSRDeviceReady &&
-                    requiredDevices[2] == HRDeviceReady &&
-                    requiredDevices[3] == FACEDeviceReady)
-                {
-                    StartTestFromCollector();
-                    eegCollect.StartCollect();
-                    gsrCollect.StartCollecting();
-                    hrCollect.StartCollecting();
-                    button2.Text = "STOP COLLECTING";
-                    collectingData = true;
-                    collectingDataPanel.BackColor = Color.Green;
-                }
-                else
-                {
-                    Log.LogMessage("ERROR: Device requirements not filled - Requirements are: ");
-                    Log.LogMessage("EEG: " + requiredDevices[0].ToString());
-                    Log.LogMessage("GSR: " + requiredDevices[1].ToString());
-                    Log.LogMessage("HR: " + requiredDevices[2].ToString());
-                    Log.LogMessage("FACE: " + requiredDevices[3].ToString());
-                }
+
+                //StartTestFromCollector();
+                //eegCollect.StartCollect();
+                //gsrCollect.StartCollecting();
+                //hrCollect.StartCollecting();
+                faceCollect.CollectData = true;
+                button2.Text = "STOP COLLECTING";
+                collectingData = true;
+                collectingDataPanel.BackColor = Color.Green;
+
             }
             else
             {
                 eegCollect.StopCollect();
                 gsrCollect.StopCollecting();
                 hrCollect.StopCollecting();
+                faceCollect.CollectData = false;
                 button2.Text = "START COLLECTING";
                 collectingData = true;
                 collectingDataPanel.BackColor = Color.Red;
