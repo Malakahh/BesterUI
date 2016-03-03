@@ -78,7 +78,7 @@ namespace BesterUI.Data
         static volatile bool doneReading = true;
         static volatile string fPath;
         static volatile System.Collections.Queue q;
-        public static List<T> LoadFromFile<T>(string path) where T : DataReading, new()
+        public static List<T> LoadFromFile<T>(string path, DateTime dT) where T : DataReading, new()
         {
             List<T> retVal = new List<T>();
 
@@ -93,8 +93,10 @@ namespace BesterUI.Data
             long progress = 0;
             long next = size / 100;
 
-            Log.LogMessage("Loading " + typeof(T).Name + ": 0/" + size + " bytes.");
+            TimeSpan offset = new TimeSpan();
 
+            Log.LogMessage("Loading " + typeof(T).Name + ": 0/" + size + " bytes.");
+                
             while (!doneReading || q.Count > 0)
             {
                 if (q.Count > 0)
@@ -106,6 +108,7 @@ namespace BesterUI.Data
                         progress += curLine.Length;
                         var bits = curLine.Split('|');
                         startTime = DateTime.ParseExact(bits[1], dateFormat, System.Globalization.CultureInfo.InvariantCulture);
+                        offset = startTime.Value.Subtract(dT);
                         first = false;
                     }
                     else
@@ -113,7 +116,7 @@ namespace BesterUI.Data
                         progress += curLine.Length;
                         var datBits = curLine.Split('#');
                         DataReading t = new T();
-                        t.timestamp = long.Parse(datBits[0]);
+                        t.timestamp = long.Parse(datBits[0]) - (long)offset.TotalMilliseconds;
                         retVal.Add((T)t.Deserialize(datBits[1]));
 
                         if ((progress / 1024) > next)

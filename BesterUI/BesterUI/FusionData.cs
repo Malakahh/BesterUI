@@ -40,7 +40,8 @@ namespace BesterUI
 
             if (res == DialogResult.OK)
             {
-                this.LoadFromFile(fb.FileNames);
+                //Commented out because it has 0 references
+                //this.LoadFromFile(fb.FileNames);
             }
         }
 
@@ -96,7 +97,7 @@ namespace BesterUI
             gsrData.Add(data);
         }
 
-        public void LoadFromFile(string[] filesToLoad)
+        public void LoadFromFile(string[] filesToLoad, DateTime dT)
         {
             string[] correctNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", };
 
@@ -113,15 +114,15 @@ namespace BesterUI
                 {
                     case "GSR.dat":
                         Log.LogMessage("Loading GSR data");
-                        gsrData = DataReading.LoadFromFile<GSRDataReading>(file);
+                        gsrData = DataReading.LoadFromFile<GSRDataReading>(file, dT);
                         break;
                     case "EEG.dat":
                         Log.LogMessage("Loading EEG data");
-                        eegData = DataReading.LoadFromFile<EEGDataReading>(file);
+                        eegData = DataReading.LoadFromFile<EEGDataReading>(file, dT);
                         break;
                     case "HR.dat":
                         Log.LogMessage("Loading HR data");
-                        hrData = DataReading.LoadFromFile<HRDataReading>(file);
+                        hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
                         break;
                 }
             }
