@@ -55,6 +55,7 @@ namespace BesterUI.Data
             bool isFirst = false;
             if (!writers.ContainsKey(deviceName))
             {
+                dir += @"\" + startTime.Value.ToString(dateFormat, System.Globalization.CultureInfo.InvariantCulture);
                 isFirst = true;
                 if (!Directory.Exists(dir))
                 {
