@@ -162,10 +162,10 @@ namespace BesterUI
                 fusionData.Reset();
                 DataReading.ResetTimers();
 
-                //StartTestFromCollector();
-                //eegCollect.StartCollect();
-                //gsrCollect.StartCollecting();
-                //hrCollect.StartCollecting();
+                StartTestFromCollector();
+                eegCollect.StartCollect();
+                gsrCollect.StartCollecting();
+                hrCollect.StartCollecting();
                 faceCollect.CollectData = true;
                 button2.Text = "STOP COLLECTING";
                 collectingData = true;
@@ -193,13 +193,13 @@ namespace BesterUI
 
         private void StartTestFromCollector()
         {
-            var f = File.Create(@"C:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
+            var f = File.Create(@"D:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
             f.Close();
         }
 
         private void DeleteStartFile()
         {
-            File.Delete(@"C:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
+            File.Delete(@"D:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
         }
 
     }
