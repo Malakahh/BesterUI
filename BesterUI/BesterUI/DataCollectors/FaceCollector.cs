@@ -283,9 +283,11 @@ namespace BesterUI.DataCollectors
             this.highDefinitionFaceFrameSource = new HighDefinitionFaceFrameSource(this.sensor);
             this.highDefinitionFaceFrameSource.TrackingIdLost += this.HdFaceSource_TrackingIdLost;
 
-
+            
             this.highDefinitionFaceFrameReader = this.highDefinitionFaceFrameSource.OpenReader();
             this.highDefinitionFaceFrameReader.FrameArrived += this.HdFaceReader_FrameArrived;
+
+            this.highDefinitionFaceFrameSource.TrackingIdLost += (x, y) => Log.LogMessage("Lost tracking id " + y.TrackingId);
 
             this.currentFaceModel = new FaceModel();
 
