@@ -344,12 +344,14 @@ namespace Classification_App
         volatile int hrTot = 1;
         volatile int eegProg = 0;
         volatile int eegTot = 1;
+        volatile int faceProg = 0;
+        volatile int faceTot = 1;
         volatile int stackProg = 0;
         volatile int stackTot = 1;
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
-            
+
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 Stopwatch stopwatch = new Stopwatch();
@@ -401,15 +403,18 @@ namespace Classification_App
                         hrTot = 1;
                         eegProg = 0;
                         eegTot = 1;
+                        faceProg = 0;
+                        faceTot = 1;
 
                         bool gsrWrite = false;
                         bool hrWrite = false;
                         bool eegWrite = false;
+                        bool faceWrite = false;
 
                         Thread gsrThread = null;
                         if (!File.Exists(currentPath + @"\gsr" + feel + ".donnodk") ||
-                            feel == SAMDataPoint.FeelingModel.Valence2High || 
-                            feel == SAMDataPoint.FeelingModel.Valence2Low || 
+                            feel == SAMDataPoint.FeelingModel.Valence2High ||
+                            feel == SAMDataPoint.FeelingModel.Valence2Low ||
                             feel == SAMDataPoint.FeelingModel.Valence3)
                         {
                             gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
@@ -441,7 +446,7 @@ namespace Classification_App
                         {
                             eegThread = CreateMachineThread("EEG", parameters,
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
-                                    ? FeatureCreator.EEGValenceOptimizationFeatures : FeatureCreator.EEGArousalOptimizationFeatures, 
+                                    ? FeatureCreator.EEGValenceOptimizationFeatures : FeatureCreator.EEGArousalOptimizationFeatures,
                                  feel, (cur, max) => { eegProg = cur; eegTot = max; });
                             eegThread.Priority = ThreadPriority.Highest;
                             eegThread.Start();
@@ -451,12 +456,27 @@ namespace Classification_App
                             Log.LogMessage("EEG done already, skipping");
                         }
 
+                        Thread faceThread = null;
+                        if (!File.Exists(currentPath + @"\face" + feel + ".donnodk"))
+                        {
+                            faceThread = CreateMachineThread("FACE", parameters,
+                                                             (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
+                                                                ? FeatureCreator.FACEValenceOptimizationFeatures : FeatureCreator.FACEArousalOptimizationFeatures,
+                                                             feel, (cur, max) => { faceProg = cur; faceTot = max; });
+                            faceThread.Priority = ThreadPriority.Highest;
+                            faceThread.Start();
+                        }
+                        else
+                        {
+                            Log.LogMessage("FACE done already, skipping");
+                        }
 
-                        while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive))
+
+                        while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive) || (faceThread != null && faceThread.IsAlive))
                         {
                             Thread.Sleep(500);
-                            double pct = (double)(gsrProg + hrProg + eegProg) * (double)100 / (double)(gsrTot + hrTot + eegTot);
-                            Log.LogMessageSameLine(feel + " -> " + curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")]");
+                            double pct = (double)(gsrProg + hrProg + eegProg + faceProg) * (double)100 / (double)(gsrTot + hrTot + eegTot + faceTot);
+                            Log.LogMessageSameLine(feel + " -> " + curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")] - [FACE(" + faceProg + "/" + faceTot + ")]");
                             Application.DoEvents();
 
                             if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
@@ -476,16 +496,22 @@ namespace Classification_App
                                 eegWrite = true;
                                 using (var temp = File.Create(currentPath + @"\eeg" + feel + ".donnodk")) { }
                             }
+
+                            if (faceThread != null && !faceThread.IsAlive && !faceWrite)
+                            {
+                                faceWrite = true;
+                                using (var temp = File.Create(currentPath + @"\face" + feel + ".donnodk")) { }
+                            }
                         }
 
                         Log.LogMessage("Done with single machine searching.");
 
-                        
-                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
+
+                        List<SVMConfiguration> confs = new List<SVMConfiguration>();
                         SVMConfiguration gsrConf;
                         SVMConfiguration eegConf;
                         SVMConfiguration hrConf;
-
+                        SVMConfiguration faceConf;
 
                         if (gsrWrite)
                         {
@@ -502,7 +528,11 @@ namespace Classification_App
                             hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
                             confs.Add(hrConf);
                         }
-
+                        if (faceWrite)
+                        {
+                            faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
+                            confs.Add(faceConf);
+                        }
 
                         Log.LogMessage("Creating meta machine..");
                         foreach (var cnf in confs)
@@ -523,6 +553,9 @@ namespace Classification_App
                         var eegRes = eegMac.CrossValidate(feel, 1);
                         eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
 
+                        var faceMac = new StdClassifier(confs[2], samData);
+                        var faceRes = faceMac.CrossValidate(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
 
                         eh.Save();
                         Log.LogMessage("Doing Stacking");
@@ -557,7 +590,7 @@ namespace Classification_App
                 Log.LogMessage("Closing books and saving");
                 Log.LogMessage("Done in: " + stopwatch.Elapsed);
             }
-            
+
             btn_LoadData.Enabled = true;
 
         }
@@ -572,6 +605,6 @@ namespace Classification_App
         }
 
         #endregion
-        
+
     }
 }

@@ -15,6 +15,7 @@ namespace BesterUI
         public List<HRDataReading> hrData = new List<HRDataReading>();
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
+        public List<FaceDataReading> faceData = new List<FaceDataReading>();
 
         string[] fileNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", }; //If you change this, remember to change LoadFromFile as well
 
@@ -77,6 +78,12 @@ namespace BesterUI
             }
 
             Reset();
+        }
+
+        public void AddFaceData(FaceDataReading data)
+        {
+            data.Write();
+            faceData.Add(data);
         }
 
         public void AddHRData(HRDataReading data)

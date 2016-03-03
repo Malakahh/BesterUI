@@ -44,7 +44,21 @@
             this.button2 = new System.Windows.Forms.Button();
             this.collectingDataPanel = new System.Windows.Forms.Panel();
             this.exportBtn = new System.Windows.Forms.Button();
+            this.faceReady = new System.Windows.Forms.Panel();
+            this.facePort = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.label3 = new System.Windows.Forms.Label();
+            this.rdyLookUp = new System.Windows.Forms.Panel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.rdyLookForward = new System.Windows.Forms.Panel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.rdyLookLeft = new System.Windows.Forms.Panel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.rdyLookRight = new System.Windows.Forms.Panel();
+            this.label8 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // logTextBox
@@ -57,6 +71,9 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.facePort);
+            this.panel1.Controls.Add(this.faceReady);
+            this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.hrPort);
             this.panel1.Controls.Add(this.gsrPort);
             this.panel1.Controls.Add(this.eegPort);
@@ -68,7 +85,7 @@
             this.panel1.Controls.Add(this.label1);
             this.panel1.Location = new System.Drawing.Point(12, 25);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(102, 83);
+            this.panel1.Size = new System.Drawing.Size(102, 107);
             this.panel1.TabIndex = 3;
             // 
             // hrPort
@@ -160,9 +177,9 @@
             // 
             // btnVerifySensors
             // 
-            this.btnVerifySensors.Location = new System.Drawing.Point(12, 114);
+            this.btnVerifySensors.Location = new System.Drawing.Point(12, 138);
             this.btnVerifySensors.Name = "btnVerifySensors";
-            this.btnVerifySensors.Size = new System.Drawing.Size(140, 55);
+            this.btnVerifySensors.Size = new System.Drawing.Size(140, 31);
             this.btnVerifySensors.TabIndex = 5;
             this.btnVerifySensors.Text = "Verify sensors";
             this.btnVerifySensors.UseVisualStyleBackColor = true;
@@ -196,11 +213,131 @@
             this.exportBtn.UseVisualStyleBackColor = true;
             this.exportBtn.Click += new System.EventHandler(this.exportBtn_Click);
             // 
+            // faceReady
+            // 
+            this.faceReady.BackColor = System.Drawing.Color.Red;
+            this.faceReady.Location = new System.Drawing.Point(75, 77);
+            this.faceReady.Name = "faceReady";
+            this.faceReady.Size = new System.Drawing.Size(16, 16);
+            this.faceReady.TabIndex = 11;
+            // 
+            // facePort
+            // 
+            this.facePort.AutoSize = true;
+            this.facePort.Location = new System.Drawing.Point(32, 79);
+            this.facePort.Name = "facePort";
+            this.facePort.Size = new System.Drawing.Size(40, 13);
+            this.facePort.TabIndex = 13;
+            this.facePort.Text = "- - - - - -";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(1, 79);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(34, 13);
+            this.label4.TabIndex = 12;
+            this.label4.Text = "FACE";
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.rdyLookRight);
+            this.panel2.Controls.Add(this.label8);
+            this.panel2.Controls.Add(this.rdyLookLeft);
+            this.panel2.Controls.Add(this.label7);
+            this.panel2.Controls.Add(this.rdyLookForward);
+            this.panel2.Controls.Add(this.label6);
+            this.panel2.Controls.Add(this.rdyLookUp);
+            this.panel2.Controls.Add(this.label5);
+            this.panel2.Location = new System.Drawing.Point(211, 25);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(113, 107);
+            this.panel2.TabIndex = 9;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(208, 9);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(70, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "Kinect Status";
+            // 
+            // rdyLookUp
+            // 
+            this.rdyLookUp.BackColor = System.Drawing.Color.Red;
+            this.rdyLookUp.Location = new System.Drawing.Point(82, 81);
+            this.rdyLookUp.Name = "rdyLookUp";
+            this.rdyLookUp.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookUp.TabIndex = 14;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(8, 83);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(48, 13);
+            this.label5.TabIndex = 15;
+            this.label5.Text = "Look Up";
+            // 
+            // rdyLookForward
+            // 
+            this.rdyLookForward.BackColor = System.Drawing.Color.Red;
+            this.rdyLookForward.Location = new System.Drawing.Point(82, 10);
+            this.rdyLookForward.Name = "rdyLookForward";
+            this.rdyLookForward.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookForward.TabIndex = 16;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(8, 12);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(72, 13);
+            this.label6.TabIndex = 17;
+            this.label6.Text = "Look Forward";
+            // 
+            // rdyLookLeft
+            // 
+            this.rdyLookLeft.BackColor = System.Drawing.Color.Red;
+            this.rdyLookLeft.Location = new System.Drawing.Point(82, 35);
+            this.rdyLookLeft.Name = "rdyLookLeft";
+            this.rdyLookLeft.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookLeft.TabIndex = 18;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(8, 37);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(52, 13);
+            this.label7.TabIndex = 19;
+            this.label7.Text = "Look Left";
+            // 
+            // rdyLookRight
+            // 
+            this.rdyLookRight.BackColor = System.Drawing.Color.Red;
+            this.rdyLookRight.Location = new System.Drawing.Point(82, 59);
+            this.rdyLookRight.Name = "rdyLookRight";
+            this.rdyLookRight.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookRight.TabIndex = 20;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(8, 61);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(59, 13);
+            this.label8.TabIndex = 21;
+            this.label8.Text = "Look Right";
+            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(816, 311);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.panel2);
             this.Controls.Add(this.exportBtn);
             this.Controls.Add(this.collectingDataPanel);
             this.Controls.Add(this.button2);
@@ -212,6 +349,8 @@
             this.Text = "CollectForm";
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -234,5 +373,18 @@
         private System.Windows.Forms.Label eegPort;
         private System.Windows.Forms.Panel collectingDataPanel;
         private System.Windows.Forms.Button exportBtn;
+        private System.Windows.Forms.Label facePort;
+        private System.Windows.Forms.Panel faceReady;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel rdyLookForward;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Panel rdyLookUp;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Panel rdyLookRight;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Panel rdyLookLeft;
+        private System.Windows.Forms.Label label7;
     }
 }

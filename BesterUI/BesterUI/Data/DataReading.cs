@@ -13,7 +13,7 @@ namespace BesterUI.Data
     public abstract class DataReading
     {
         public static DateTime? startTime = null;
-        public const string dateFormat = "yyyy-MM-dd hh:mm:ss";
+        public const string dateFormat = "yyyy-MM-dd HH_mm_ss";
         static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
@@ -55,6 +55,7 @@ namespace BesterUI.Data
             bool isFirst = false;
             if (!writers.ContainsKey(deviceName))
             {
+                dir += @"\" + startTime.Value.ToString(dateFormat);
                 isFirst = true;
                 if (!Directory.Exists(dir))
                 {
@@ -65,7 +66,7 @@ namespace BesterUI.Data
 
                 writers.Add(deviceName, new StreamWriter(fileName));
 
-                dat += deviceName + "|" + startTime.Value.ToString(dateFormat, System.Globalization.CultureInfo.InvariantCulture) + "\n";
+                dat += deviceName + "|" + startTime.Value.ToString(dateFormat) + "\n";
             }
 
             dat += obj.timestamp + "#" + obj.Serialize();
