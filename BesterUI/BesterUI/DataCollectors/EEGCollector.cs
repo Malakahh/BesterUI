@@ -57,6 +57,12 @@ namespace BesterUI.DataCollectors
             int numReadings = 0;
             //Clearing of buffer
             Dictionary<EdkDll.EE_DataChannel_t, double[]> input = eegEngine.GetData((uint)userID);
+            
+            if (input == null)
+            {
+                Log.LogMessage("ERROR: NO EEG INPUT, RESTART PROGRAM!");
+                return;
+            }
 
             double startTime = input[EdkDll.EE_DataChannel_t.TIMESTAMP].Max();
 

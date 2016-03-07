@@ -62,7 +62,7 @@ namespace BesterUI.Data
                     Directory.CreateDirectory(dir);
                 }
 
-                string fileName = dir + "/" + deviceName + ".dat";
+                string fileName = dir + @"\" + deviceName + ".dat";
 
                 writers.Add(deviceName, new StreamWriter(fileName));
 
