@@ -13,7 +13,7 @@ namespace BesterUI.Data
     public abstract class DataReading
     {
         public static DateTime? startTime = null;
-        public const string dateFormat = "yyyy-MM-dd HH_mm_ss";
+        public const string dateFormat = "yyyy-MM-dd HH_mm_ss_fff";
         static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
