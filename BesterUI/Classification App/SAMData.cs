@@ -26,7 +26,6 @@ namespace Classification_App
                 var JObj = hej.Deserialize<dynamic>(jsonTxt);
 
                 data.startTime = DateTimeFromUnixTime((long)JObj["startTime"]);
-                data.endTime = DateTimeFromUnixTime((long)JObj["endTime"]);
 
                 int i = 0;
                 while (true)

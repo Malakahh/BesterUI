@@ -202,5 +202,13 @@ namespace BesterUI
             File.Delete(@"D:\wamp\www\data-visualization-dat9\public\test\colrdy.txt");
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            HRDataReading hrD = new HRDataReading(true);
+            hrD.isBeat = true;
+            hrD.Write();
+
+
+        }
     }
 }

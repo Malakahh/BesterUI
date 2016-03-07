@@ -29,7 +29,6 @@ namespace Classification_App
         public Form1()
         {
             InitializeComponent();
-
             svmConfs = chklst_SvmConfigurations.Items;
             metaConfs = chklst_meta.Items;
             features = chklist_Features.Items;
@@ -148,8 +147,8 @@ namespace Classification_App
             currentPath = path;
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
-            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat" });
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
+            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat" }, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
