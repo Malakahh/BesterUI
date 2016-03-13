@@ -130,10 +130,20 @@ namespace Classification_App
                 PrintProgress(progressCounter, 1);
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
-                foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                try
                 {
-                    SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
-                    guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
+                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                    {
+                        SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
+                        guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
+                    }
+                }
+                catch
+                {
+                    for (int i = 0; i < samData.dataPoints.Count; i++)
+                    {
+                        guesses.Add(-1);
+                    }
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results

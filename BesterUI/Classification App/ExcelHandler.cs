@@ -33,7 +33,7 @@ namespace Classification_App
         /// </summary>
         /// <param name="Path">Path of where to save/open the files</param>
         /// 
-        List<Book> fileNames = new List<Book> { Book.GSR, Book.EEG, Book.HR, Book.Stacking, Book.Boosting, Book.Voting };
+        List<Book> fileNames = new List<Book> { Book.GSR, Book.EEG, Book.HR, Book.FACE, Book.Stacking, Book.Boosting, Book.Voting };
         private bool CreateNOpenFiles()
         {
             Log.LogMessage("Opening books");
@@ -144,6 +144,28 @@ namespace Classification_App
                 }
             }
         }
+
+        public void AddBookToBook(string path)
+        {
+            Excel.Workbook otherBook = MyApp.Workbooks.Open(path, missingValue,
+                                                                false,
+                                                                missingValue,
+                                                                missingValue,
+                                                                missingValue,
+                                                                true,
+                                                                missingValue,
+                                                                missingValue,
+                                                                true,
+                                                                missingValue,
+                                                                missingValue,
+                                                                missingValue);
+
+            for (int i = ((Excel.Worksheet)otherBook.Sheets["First"]).Index; i < ((Excel.Worksheet)otherBook.Sheets["Last"]).Index; i++)
+            {
+            }
+
+        }
+
 
         public void Save()
         {

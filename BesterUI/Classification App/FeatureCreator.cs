@@ -51,16 +51,20 @@ namespace Classification_App
 
             //Arousal Features
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("stdev")));
+            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Mean")));
+            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Median")));
+            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
+            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
+
+
             HRArousalOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
-            HRArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
+            //FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
 
             //Valence Features
             HRValenceOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
-            HRValenceOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("Mean")));
 
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean")));
+          //  FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
 
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F4")));

@@ -55,7 +55,7 @@ namespace Classification_App
         {
             if (!svmConfs.Contains(conf))
             {
-                svmConfs.Add(conf);
+                this.Invoke((MethodInvoker)delegate {svmConfs.Add(conf);});
             }
 
             if (!Directory.Exists(currentPath + @"\STD"))
@@ -120,7 +120,7 @@ namespace Classification_App
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.CrossValidateCombinations(feels, 1);
+                var res = mac.CrossValidate(feels, 1);
                 SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
@@ -223,11 +223,13 @@ namespace Classification_App
 
                 Thread newThread = new Thread(() =>
                 {
-                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal3, 1);
                     foreach (var resTemp in res)
                     {
                         predicResults = resTemp;
                     }
+                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
+                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
                 });
                 newThread.Start();
 
@@ -240,11 +242,13 @@ namespace Classification_App
                 Thread newThread = new Thread(() =>
                 {
                     StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
-                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal3, 1);
                     foreach (var resTemp in res)
                     {
                         predicResults = resTemp;
                     }
+                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
+                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
                 });
                 newThread.Start();
             }
@@ -262,12 +266,14 @@ namespace Classification_App
                 {
                     List<PredictionResult> res = new List<PredictionResult>();
 
-                    res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal3, 1);
 
                     foreach (var resTemp in res)
                     {
                         Log.LogMessage("Score was: " + resTemp.GetAverageFScore());
                     }
+                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
+                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
                 }
                 );
                 someThread.Start();
@@ -348,6 +354,13 @@ namespace Classification_App
         volatile int faceTot = 1;
         volatile int stackProg = 0;
         volatile int stackTot = 1;
+
+        private bool skipGSR = false;
+        private bool skipEEG = true;
+        private bool skipKinect = true;
+        private bool skipHR = true;
+        private bool doMetas = false;
+
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -376,6 +389,9 @@ namespace Classification_App
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
 
+                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                
+
                 int curDat = 1;
                 int maxDat = dataFolders.Length;
 
@@ -384,6 +400,7 @@ namespace Classification_App
                     if (File.Exists(item + @"\donno.dk"))
                     {
                         Log.LogMessage("Already did " + item + ", skipping..");
+                        curDat++;
                         continue;
                     }
                     else if (item.Split('\\').Last() == "Stats")
@@ -412,10 +429,11 @@ namespace Classification_App
                         bool faceWrite = false;
 
                         Thread gsrThread = null;
-                        if (!File.Exists(currentPath + @"\gsr" + feel + ".donnodk") ||
-                            feel == SAMDataPoint.FeelingModel.Valence2High ||
-                            feel == SAMDataPoint.FeelingModel.Valence2Low ||
-                            feel == SAMDataPoint.FeelingModel.Valence3)
+                        if ((!File.Exists(currentPath + @"\gsr" + feel + ".donnodk") &&
+                            feel != SAMDataPoint.FeelingModel.Valence2High &&
+                            feel != SAMDataPoint.FeelingModel.Valence2Low &&
+                            feel != SAMDataPoint.FeelingModel.Valence3) &&
+                            !skipGSR)
                         {
                             gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
                             gsrThread.Priority = ThreadPriority.Highest;
@@ -423,11 +441,11 @@ namespace Classification_App
                         }
                         else
                         {
-                            Log.LogMessage("GSR done skipping (because it's already done or searching on valence");
+                            Log.LogMessage("GSR skipping");
                         }
 
                         Thread hrThread = null;
-                        if (!File.Exists(currentPath + @"\hr" + feel + ".donnodk"))
+                        if (!File.Exists(currentPath + @"\hr" + feel + ".donnodk") && !skipHR)
                         {
                             hrThread = CreateMachineThread("HR", parameters,
                                 (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -438,11 +456,11 @@ namespace Classification_App
                         }
                         else
                         {
-                            Log.LogMessage("HR done already, skipping");
+                            Log.LogMessage("HR skipping");
                         }
 
                         Thread eegThread = null;
-                        if (!File.Exists(currentPath + @"\eeg" + feel + ".donnodk"))
+                        if (!File.Exists(currentPath + @"\eeg" + feel + ".donnodk") && !skipEEG)
                         {
                             eegThread = CreateMachineThread("EEG", parameters,
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -453,11 +471,11 @@ namespace Classification_App
                         }
                         else
                         {
-                            Log.LogMessage("EEG done already, skipping");
+                            Log.LogMessage("EEG skipping");
                         }
 
                         Thread faceThread = null;
-                        if (!File.Exists(currentPath + @"\face" + feel + ".donnodk"))
+                        if (!File.Exists(currentPath + @"\face" + feel + ".donnodk") && !skipKinect)
                         {
                             faceThread = CreateMachineThread("FACE", parameters,
                                                              (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -468,9 +486,9 @@ namespace Classification_App
                         }
                         else
                         {
-                            Log.LogMessage("FACE done already, skipping");
+                            Log.LogMessage("FACE skipping");
                         }
-
+                        
 
                         while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive) || (faceThread != null && faceThread.IsAlive))
                         {
@@ -533,52 +551,70 @@ namespace Classification_App
                             faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
                             confs.Add(faceConf);
                         }
-
-                        Log.LogMessage("Creating meta machine..");
+                        
                         foreach (var cnf in confs)
                         {
                             Log.LogMessage("Using " + cnf.Name + "...");
                         }
 
                         //Write normal results
-                        var gsrMac = new StdClassifier(confs[0], samData);
-                        var gsrRes = gsrMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
 
-                        var hrMac = new StdClassifier(confs[1], samData);
-                        var hrRes = hrMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
+                        if (!skipGSR && gsrWrite)
+                        {
+                            var gsrMac = new StdClassifier(confs[0], samData);
+                            var gsrRes = gsrMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
+                        }
 
-                        var eegMac = new StdClassifier(confs[2], samData);
-                        var eegRes = eegMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
 
-                        var faceMac = new StdClassifier(confs[2], samData);
-                        var faceRes = faceMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
+                        if (!skipHR && hrWrite)
+                        {
+                            var hrMac = new StdClassifier(confs[1], samData);
+                            var hrRes = hrMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
+                        }
+
+
+                        if (!skipEEG && eegWrite)
+                        {
+                            var eegMac = new StdClassifier(confs[2], samData);
+                            var eegRes = eegMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
+                        }
+
+                        if (!skipKinect && faceWrite)
+                        {
+                            var faceMac = new StdClassifier(confs[2], samData);
+                            var faceRes = faceMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
+                        }
 
                         eh.Save();
-                        Log.LogMessage("Doing Stacking");
-                        stackProg = 0;
-                        stackTot = 1;
-                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
-                        //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
-                        var res = meta.DoStacking(feel, 1);
-                        var bestRes = meta.FindBestFScorePrediction(res);
+                        if (doMetas)
+                        {
+                            Log.LogMessage("Creating meta machine..");
+                            Log.LogMessage("Doing Stacking");
+                            stackProg = 0;
+                            stackTot = 1;
+                            MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
+                            //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
+                            var res = meta.DoStacking(feel, 1);
+                            var bestRes = meta.FindBestFScorePrediction(res);
 
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
 
-                        meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+                            meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
 
-                        SaveConfiguration(meta.GetConfiguration());
+                            SaveConfiguration(meta.GetConfiguration());
 
-                        Log.LogMessage("Doing voting");
-                        var voteRes = meta.DoVoting(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
-                        Log.LogMessage("Doing boosting");
-                        meta.boostingOrder = new List<int>() { 0, 1, 2 };
-                        var boostRes = meta.DoBoosting(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Boosting, boostRes, feel);
+                            Log.LogMessage("Doing voting");
+                            var voteRes = meta.DoVoting(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                            Log.LogMessage("Doing boosting");
+                            meta.boostingOrder = new List<int>() { 0 }; //TODO: SET THE CORRECT ORDER!
+                            var boostRes = meta.DoBoosting(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.Boosting, boostRes, feel);
+                        }
                     }
 
                     curDat++;
