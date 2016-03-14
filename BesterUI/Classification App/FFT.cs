@@ -79,9 +79,10 @@ namespace Classification_App
                 }
             }
         }
-
+        
         private void ComputeFrequencyPowerSamples()
         {
+            
             FrequencyPowerSampling = new double[rawFFTOutput.Length / 2];
 
             for (int i = 0; i < FrequencyPowerSampling.Length; i++)
