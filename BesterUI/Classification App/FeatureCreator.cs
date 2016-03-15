@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BesterUI.Data;
+using Microsoft.Kinect.Face;
 
 namespace Classification_App
 {
@@ -34,6 +35,8 @@ namespace Classification_App
         const int HR_DURATION = 4000;
         const int EEG_LATENCY = 0;
         const int EEG_DURATION = 3000;
+        const int FACE_LATENCY = 0;
+        const int FACE_DURATION = 7000;
 
         const char SEPARATOR = '|';
 
@@ -55,8 +58,7 @@ namespace Classification_App
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Median")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
-
-
+            
             HRArousalOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
             //FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
@@ -64,11 +66,15 @@ namespace Classification_App
             //Valence Features
             HRValenceOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
 
-            //  FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
-
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F4")));
-
+            //FACE FEatures
+            FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("11")));
+            FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("11")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("5")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("13")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("15")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("13")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
         }
 
 
@@ -87,6 +93,12 @@ namespace Classification_App
         {
             return ((EEGDataReading)d).data[electrode];
         }
+
+        public static double KinectValueAccessor(DataReading d, FaceShapeAnimations FSA)
+        {
+            return ((FaceDataReading)d).data[FSA];
+        }
+
         #endregion
         #region Stats
         public static double Mean(List<DataReading> data, Func<DataReading, double> valueAccessor)
@@ -133,6 +145,22 @@ namespace Classification_App
             return fft1.AbsoluteBandPower[band] - fft2.AbsoluteBandPower[band];
         }
 
+        public static double FaceMean(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
+        {
+            return (data.Average(x => valueAccessor1(x)) + data.Average(x => valueAccessor2(x))) / 2;
+        }
+
+        public static double FaceStandardDeviation(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
+        {
+
+            double avg1 = Mean(data, valueAccessor1);
+            double sd1 = Math.Sqrt(data.Average(x => Math.Pow(valueAccessor1(x) - avg1, 2)));
+
+            double avg2 = Mean(data, valueAccessor2);
+            double sd2 = Math.Sqrt(data.Average(x => Math.Pow(valueAccessor2(x) - avg2, 2)));
+            return (sd1 + sd2) / 2;
+        }
+
         #endregion
 
 
@@ -151,6 +179,11 @@ namespace Classification_App
         static List<DataReading> HRDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
             return data.SkipWhile(x => x.timestamp < sam.timeOffset + HR_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + HR_LATENCY + HR_DURATION).ToList();
+        }
+
+        static List<DataReading> FaceDataSlice(List<DataReading> data, SAMDataPoint sam)
+        {
+            return data.SkipWhile(x => x.timestamp < sam.timeOffset + FACE_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + FACE_LATENCY + FACE_DURATION).ToList();
         }
         #endregion
 
@@ -257,10 +290,28 @@ namespace Classification_App
             GSRFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
             GSRFeatures.Add(new Feature("GSR Last", (data, sam) => Last(GSRDataSlice(data, sam), GSRValueAccessor)));
         }
+        private static List<int> meanFaceLeftSide = new List<int> { 5, 13, 15, 11 };
+        private static List<int> meanFaceRightSide = new List<int> { 6, 14, 16, 12 };
+
+        private static List<int> sdFaceLeftSide = new List<int> { 5, 13, 15, 11 };
+        private static List<int> sdFaceRightSide = new List<int> { 6, 14, 16, 12 };
 
         static void PopulateFACE()
         {
-            //TODO: SOMETHING
+            for (int i = 0; i < meanFaceLeftSide.Count; i++)
+            {
+                FACEFeatures.Add(new Feature("Face Mean " +meanFaceLeftSide[i]+ " & " + meanFaceRightSide[i], (data, sam) => FaceMean(FaceDataSlice(data, sam),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[i])),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[i])))));
+            }
+
+            for (int j = 0; j < sdFaceLeftSide.Count; j++)
+            {
+                FACEFeatures.Add(new Feature("Face SD " + sdFaceLeftSide[j] + " & " + sdFaceRightSide[j],
+                    (data, sam) => FaceStandardDeviation(FaceDataSlice(data, sam),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceLeftSide[j])),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceRightSide[j])))));
+            }
         }
     }
 }
