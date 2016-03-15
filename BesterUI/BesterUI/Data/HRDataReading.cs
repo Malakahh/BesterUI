@@ -9,7 +9,7 @@ namespace BesterUI.Data
     public class HRDataReading : DataReading
     {
         public int signal;
-        public int IBI;
+        public int? IBI;
         public int BPM;
         public bool isBeat;
 

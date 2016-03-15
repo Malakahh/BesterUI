@@ -58,13 +58,10 @@ namespace Classification_App
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Median")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
-            
-            HRArousalOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("stdev") && x.name.Contains("F3")));
-            //FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("stdev")));
-
-            //Valence Features
-            HRValenceOptimizationFeatures.Add(HRFeatures.Find(x => x.name.Contains("stdev")));
+        
+            //HR Features
+            HRValenceOptimizationFeatures.AddRange(HRFeatures);
+            HRArousalOptimizationFeatures.AddRange(HRFeatures);
 
             //FACE FEatures
             FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("11")));
@@ -83,10 +80,10 @@ namespace Classification_App
         {
             return ((GSRDataReading)d).resistance;
         }
-
+        
         public static double HRValueAccessor(DataReading d)
         {
-            return ((HRDataReading)d).signal;
+            return ((HRDataReading)d).BPM;
         }
 
         public static double EEGValueAccessor(DataReading d, string electrode)
@@ -161,6 +158,59 @@ namespace Classification_App
             return (sd1 + sd2) / 2;
         }
 
+        public static double IBIMean(List<DataReading> data)
+        {
+            return data.Where(x=> ((HRDataReading)x).isBeat).Average(x=> (int)((HRDataReading)x).IBI);
+        }
+
+        public static double IBISD(List<DataReading> data)
+        {
+            double avg = data.Where(x => ((HRDataReading)x).isBeat).Average(x => (int)((HRDataReading)x).IBI);
+            return Math.Sqrt(data.Average(x => Math.Pow((int)((HRDataReading)x).IBI - avg, 2)));
+        }
+
+        public static double HRVMean(List<DataReading> data)
+        {
+            List<double> hrv = new List<double>();
+            HRDataReading lastBeat = new HRDataReading();
+            foreach (HRDataReading d in data)
+            {
+                if (d.isBeat)
+                {
+                    if (lastBeat.IBI != null)
+                    {
+                        hrv.Add((int)d.IBI - (int)lastBeat.IBI);
+                    }
+                    else
+                    {
+                        lastBeat = d;
+                    }
+                }
+            }
+            return hrv.Average(x => x);
+        }
+
+        public static double HRVSD(List<DataReading> data)
+        {
+            List<double> hrv = new List<double>();
+            HRDataReading lastBeat = new HRDataReading();
+            foreach (HRDataReading d in data)
+            {
+                if (d.isBeat)
+                {
+                    if (lastBeat.IBI != null)
+                    {
+                        hrv.Add((int)d.IBI - (int)lastBeat.IBI);
+                    }
+                    else
+                    {
+                        lastBeat = d;
+                    }
+                }
+            }
+            double avg = hrv.Average(x => x);
+            return Math.Sqrt(hrv.Average(x => Math.Pow(x - avg, 2)));
+        }
         #endregion
 
 
@@ -270,12 +320,11 @@ namespace Classification_App
         static void PopulateHR()
         {
             HRFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR Median", (data, sam) => Median(HRDataSlice(data, sam), HRValueAccessor)));
             HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR Max", (data, sam) => Max(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR Min", (data, sam) => Min(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR First", (data, sam) => First(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR Last", (data, sam) => Last(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
+            HRFeatures.Add(new Feature("HR Mean HRV", (data, sam) => HRVMean(HRDataSlice(data, sam))));
+            HRFeatures.Add(new Feature("HR SD IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
+            HRFeatures.Add(new Feature("HR SD HRV", (data, sam) => HRVSD(HRDataSlice(data, sam))));
         }
 
 
@@ -300,17 +349,18 @@ namespace Classification_App
         {
             for (int i = 0; i < meanFaceLeftSide.Count; i++)
             {
-                FACEFeatures.Add(new Feature("Face Mean " +meanFaceLeftSide[i]+ " & " + meanFaceRightSide[i], (data, sam) => FaceMean(FaceDataSlice(data, sam),
-                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[i])),
-                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[i])))));
+                int l = i;
+                FACEFeatures.Add(new Feature("Face Mean " +meanFaceLeftSide[l]+ " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[l])),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[l])))));
             }
-
             for (int j = 0; j < sdFaceLeftSide.Count; j++)
             {
-                FACEFeatures.Add(new Feature("Face SD " + sdFaceLeftSide[j] + " & " + sdFaceRightSide[j],
+                int k = j;
+                FACEFeatures.Add(new Feature("Face SD " + sdFaceLeftSide[k] + " & " + sdFaceRightSide[k],
                     (data, sam) => FaceStandardDeviation(FaceDataSlice(data, sam),
-                    (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceLeftSide[j])),
-                    (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceRightSide[j])))));
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceLeftSide.ElementAt(k))),
+                    (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceRightSide.ElementAt(k))))));
             }
         }
     }

@@ -359,7 +359,7 @@ namespace Classification_App
         private bool skipGSR = true;
         private bool skipEEG = true;
         private bool skipFace = false;
-        private bool skipHR = true;
+        private bool skipHR = false;
         private bool doMetas = false;
 
         private void btn_RunAll_Click(object sender, EventArgs e)
@@ -536,61 +536,43 @@ namespace Classification_App
                         {
                             gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
                             confs.Add(gsrConf);
+                            var gsrMac = new StdClassifier(gsrConf, samData);
+                            var gsrRes = gsrMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                         }
                         if (eegWrite)
                         {
-                            eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                            eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
                             confs.Add(eegConf);
+                            var eegMac = new StdClassifier(eegConf, samData);
+                            var eegRes = eegMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
                         }
                         if (hrWrite)
                         {
-                            hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                            hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
                             confs.Add(hrConf);
+                            var hrMac = new StdClassifier(hrConf, samData);
+                            var hrRes = hrMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
                         }
                         if (faceWrite)
                         {
                             faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
                             confs.Add(faceConf);
+                            var faceMac = new StdClassifier(faceConf, samData);
+                            var faceRes = faceMac.CrossValidate(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
                         }
                         
                         foreach (var cnf in confs)
                         {
-                            Log.LogMessage("Using " + cnf.Name + "...");
+                            Log.LogMessage("Saving " + cnf.Name + "...");
                         }
 
                         //Write normal results
-
-                        if (!skipGSR && gsrWrite)
-                        {
-                            var gsrMac = new StdClassifier(confs[0], samData);
-                            var gsrRes = gsrMac.CrossValidate(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
-                        }
-
-
-                        if (!skipHR && hrWrite)
-                        {
-                            var hrMac = new StdClassifier(confs[1], samData);
-                            var hrRes = hrMac.CrossValidate(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
-                        }
-
-
-                        if (!skipEEG && eegWrite)
-                        {
-                            var eegMac = new StdClassifier(confs[2], samData);
-                            var eegRes = eegMac.CrossValidate(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
-                        }
-
-                        if (!skipFace && faceWrite)
-                        {
-                            var faceMac = new StdClassifier(confs[2], samData);
-                            var faceRes = faceMac.CrossValidate(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
-                        }
-
                         eh.Save();
+
                         if (doMetas)
                         {
                             Log.LogMessage("Creating meta machine..");
