@@ -16,10 +16,7 @@ namespace BesterUI
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<FaceDataReading> faceData = new List<FaceDataReading>();
-
-        string[] fileNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", }; //If you change this, remember to change LoadFromFile as well
-
-
+        
         public FusionData()
         {
 
@@ -106,17 +103,10 @@ namespace BesterUI
 
         public void LoadFromFile(string[] filesToLoad, DateTime dT)
         {
-            string[] correctNames = new string[3] { "GSR.dat", "EEG.dat", "HR.dat", };
-
 
             foreach (string file in filesToLoad)
             {
                 string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                if (!fileNames.Contains(s))
-                {
-                    continue;
-                }
-
                 switch (s)
                 {
                     case "GSR.dat":
@@ -131,6 +121,12 @@ namespace BesterUI
                         Log.LogMessage("Loading HR data");
                         hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
                         break;
+                    case "KINECT.dat":
+                        Log.LogMessage("Loading Face data");
+                        faceData = DataReading.LoadFromFile<FaceDataReading>(file, dT);
+                        break;
+                    default:
+                        throw new Exception("Sorry don't recognize the file name");
                 }
             }
 

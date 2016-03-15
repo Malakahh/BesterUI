@@ -148,7 +148,7 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat" }, samData.startTime);
+            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path+ @"\KINECT.dat" }, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
@@ -156,6 +156,7 @@ namespace Classification_App
             FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
             FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
             FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
+            FeatureCreator.FACEFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
 
             Log.LogMessage("Looking for configurations...");
 
