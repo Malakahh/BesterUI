@@ -355,9 +355,9 @@ namespace Classification_App
         volatile int stackProg = 0;
         volatile int stackTot = 1;
 
-        private bool skipGSR = false;
+        private bool skipGSR = true;
         private bool skipEEG = true;
-        private bool skipKinect = true;
+        private bool skipFace = false;
         private bool skipHR = true;
         private bool doMetas = false;
 
@@ -475,7 +475,7 @@ namespace Classification_App
                         }
 
                         Thread faceThread = null;
-                        if (!File.Exists(currentPath + @"\face" + feel + ".donnodk") && !skipKinect)
+                        if (!File.Exists(currentPath + @"\face" + feel + ".donnodk") && !skipFace)
                         {
                             faceThread = CreateMachineThread("FACE", parameters,
                                                              (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -582,7 +582,7 @@ namespace Classification_App
                             eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
                         }
 
-                        if (!skipKinect && faceWrite)
+                        if (!skipFace && faceWrite)
                         {
                             var faceMac = new StdClassifier(confs[2], samData);
                             var faceRes = faceMac.CrossValidate(feel, 1);
