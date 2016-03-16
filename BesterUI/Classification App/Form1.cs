@@ -177,7 +177,7 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat"}, samData.startTime); //path+ @"\KINECT.dat" 
+            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat"}, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");

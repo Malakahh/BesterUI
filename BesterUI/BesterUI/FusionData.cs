@@ -111,7 +111,7 @@ namespace BesterUI
                 {
                     case "GSR.dat":
                         Log.LogMessage("Loading GSR data");
-                        gsrData = DataReading.LoadFromFile<GSRDataReading>(file, dT);
+                        gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT),15);
                         break;
                     case "EEG.dat":
                         Log.LogMessage("Loading EEG data");
@@ -129,6 +129,25 @@ namespace BesterUI
                         throw new Exception("Sorry don't recognize the file name");
                 }
             }
+
+        }
+
+        public static List<GSRDataReading> GSRMedianFilter(List<GSRDataReading> data, int windowSize)
+        {
+            List<GSRDataReading> newValues = new List<GSRDataReading>();
+            GSRDataReading LastValue = null;
+            for (int i = 0; i < data.Count - windowSize; i++)
+            {
+                List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).ToList();
+                tempValues = tempValues.OrderBy(x => x.resistance).ToList();
+                if (LastValue != null|| tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
+                {
+                    newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
+                    LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
+                }
+            }
+
+            return newValues;
 
         }
 
