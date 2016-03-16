@@ -113,16 +113,29 @@ namespace Classification_App
                 {
                     foreach (Book book in fileNames)
                     {
+                        bool shouldAddPerson = true;
                         //Get Current book
-                        Excel.Workbook currentBook = books[book];
+                        foreach (Excel.Worksheet sheet in books[book].Sheets)
+                        {
+                            if (sheet.Name == name)
+                            {
+                                Log.LogMessage("Person already exist in excel book:"+ books[book].Name + ", skipping adding");
+                                shouldAddPerson = false;
+                                break;
+                            }
+                        }
+                        if (shouldAddPerson == true)
+                        {
+                            Excel.Workbook currentBook = books[book];
 
-                        //Add person
-                        Excel.Worksheet lastSheet = currentBook.Sheets["Last"];
-                        Excel.Worksheet currentSheet = (Excel.Worksheet)currentBook.Sheets.Add(lastSheet);
-                        currentSheet.Name = name;
+                            //Add person
+                            Excel.Worksheet lastSheet = currentBook.Sheets["Last"];
+                            Excel.Worksheet currentSheet = (Excel.Worksheet)currentBook.Sheets.Add(lastSheet);
+                            currentSheet.Name = name;
 
-                        //Write standard data
-                        WriteSheetMetaData(currentSheet, name);
+                            //Write standard data
+                            WriteSheetMetaData(currentSheet, name);
+                        }
                     }
                 }
             }
@@ -179,14 +192,17 @@ namespace Classification_App
         public void CloseBooks()
         {
             Log.LogMessage("Closing, saving and quiting excel");
-            foreach (Book book in books.Keys)
+            if (MyApp != null)
             {
-                books[book].Save();
-                books[book].Close(true);
+                foreach (Book book in books.Keys)
+                {
+                    books[book].Save();
+                    books[book].Close(true);
+                }
+                books.Clear();
+                MyApp.Quit();
+                MyApp = null;
             }
-            books.Clear();
-            MyApp.Quit();
-            MyApp = null;
         }
 
         #region [Helper functions]

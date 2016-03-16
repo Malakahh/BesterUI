@@ -25,6 +25,7 @@ namespace Classification_App
         CheckedListBox.ObjectCollection svmConfs;
         CheckedListBox.ObjectCollection metaConfs;
         CheckedListBox.ObjectCollection features;
+        
 
         public Form1()
         {
@@ -36,8 +37,36 @@ namespace Classification_App
             FeatureCreator.allFeatures.ForEach(x => features.Add(x, false));
 
             Log.LogBox = richTextBox1;
+            this.FormClosing += Form1_FormClosing;
         }
 
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (gsrThread != null)
+            {
+                gsrThread.Abort();
+            }
+
+            if (eegThread != null)
+            {
+                eegThread.Abort();
+            }
+
+            if (faceThread != null)
+            {
+                faceThread.Abort();
+            }
+            if (hrThread != null)
+            {
+                hrThread.Abort();
+            }
+            if (eh != null)
+            {
+                eh.Save();
+                eh.CloseBooks();
+            }
+            DataReading.kill = true;
+        }
 
         #region [Enable UI Steps]
         private void DataLoaded()
@@ -357,10 +386,16 @@ namespace Classification_App
         volatile int stackTot = 1;
 
         private bool skipGSR = true;
-        private bool skipEEG = true;
+        private bool skipEEG = false;
         private bool skipFace = true;
-        private bool skipHR = false;
+        private bool skipHR = true;
         private bool doMetas = false;
+
+        ExcelHandler eh;
+        Thread gsrThread = null;
+        Thread hrThread = null;
+        Thread eegThread = null;
+        Thread faceThread = null;
 
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
@@ -374,12 +409,14 @@ namespace Classification_App
                 List<SAMDataPoint.FeelingModel> feelings = new List<SAMDataPoint.FeelingModel>()
                 {
                     SAMDataPoint.FeelingModel.Arousal2High,
+                    SAMDataPoint.FeelingModel.Arousal2Low,
                     SAMDataPoint.FeelingModel.Arousal3,
                     SAMDataPoint.FeelingModel.Valence2Low,
+                    SAMDataPoint.FeelingModel.Valence2High,
                     SAMDataPoint.FeelingModel.Valence3
                 };
 
-                ExcelHandler eh = new ExcelHandler(fbd.SelectedPath);
+                eh = new ExcelHandler(fbd.SelectedPath);
                 if (!eh.BooksOpen)
                 {
                     Log.LogMessage("Cannot open or write to books");
@@ -388,9 +425,9 @@ namespace Classification_App
 
                 btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
-                List<SVMParameter> parameters = GenerateSVMParameters();
+                //List<SVMParameter> parameters = GenerateSVMParameters();
 
-                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
                 
 
                 int curDat = 1;
@@ -398,6 +435,11 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
+                    if (item.Split('\\').Last() == "Stats")
+                    {
+                        Log.LogMessage("Stats folder skipping");
+                        continue;
+                    }
                     DataProgressHandler DPH = new DataProgressHandler(item);
                     if (DPH.AllDone)
                     {
@@ -405,11 +447,7 @@ namespace Classification_App
                         curDat++;
                         continue;
                     }
-                    else if (item.Split('\\').Last() == "Stats")
-                    {
-                        Log.LogMessage("Stats folder skipping");
-                        continue;
-                    }
+
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
 
@@ -429,8 +467,7 @@ namespace Classification_App
                         bool hrWrite = false;
                         bool eegWrite = false;
                         bool faceWrite = false;
-
-                        Thread gsrThread = null;
+                        
                         if (feel != SAMDataPoint.FeelingModel.Valence2High &&
                             feel != SAMDataPoint.FeelingModel.Valence2Low &&
                             feel != SAMDataPoint.FeelingModel.Valence3 &&
@@ -445,8 +482,7 @@ namespace Classification_App
                         {
                             Log.LogMessage("GSR skipping");
                         }
-
-                        Thread hrThread = null;
+                        
                         if (!DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipHR)
                         {
                             hrThread = CreateMachineThread("HR", parameters,
@@ -460,8 +496,7 @@ namespace Classification_App
                         {
                             Log.LogMessage("HR skipping");
                         }
-
-                        Thread eegThread = null;
+                        
                         if (!DPH.done["EEG"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipEEG)
                         {
                             eegThread = CreateMachineThread("EEG", parameters,
@@ -475,8 +510,7 @@ namespace Classification_App
                         {
                             Log.LogMessage("EEG skipping");
                         }
-
-                        Thread faceThread = null;
+                        
                         if (!DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipFace)
                         {
                             faceThread = CreateMachineThread("FACE", parameters,
@@ -595,7 +629,6 @@ namespace Classification_App
 
                     curDat++;
                     eh.Save();
-                    using (var temp = File.Create(currentPath + @"\donno.dk")) { }
                     Log.LogMessage("DonnoDK");
                 }
                 eh.CloseBooks();

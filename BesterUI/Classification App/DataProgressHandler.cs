@@ -16,7 +16,8 @@ namespace Classification_App
         public DataProgressHandler(string path)
         {
             Path = path;
-            if (!Directory.GetFiles(path).Contains("progress.file"))
+            string[] files = Directory.GetFiles(path);
+            if (!files.Contains(path+"\\progress.file"))
             {
                 GenerateProgressFile(path);
             }
@@ -51,22 +52,29 @@ namespace Classification_App
             lines.Add("AllDone:false");
             //GSR
             lines.Add("GSR"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High)+ ":false");
+            lines.Add("GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2Low) + ":false");
             lines.Add("GSR"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3)+":false");
 
             //EEG
             lines.Add("EEG"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High)+":false");
+            lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2Low) + ":false");
             lines.Add("EEG"+ Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3) + ":false");
             lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2High) + ":false");
+            lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2Low) + ":false");
             lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence3) + ":false");
             //Kiect
             lines.Add("Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High) + ":false");
+            lines.Add("Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2Low) + ":false");
             lines.Add("Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3) + ":false");
             lines.Add("Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2High) + ":false");
+            lines.Add("Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2Low) + ":false");
             lines.Add("Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence3) + ":false");
             //HR 
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High) + ":false");
+            lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2Low) + ":false");
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3) + ":false");
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2High) + ":false");
+            lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2Low) + ":false");
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence3) + ":false");
             File.WriteAllLines(path + @"/progress.file", lines);
         }
@@ -76,11 +84,11 @@ namespace Classification_App
             List<string> lines = new List<string>();
             if (done.Values.All(x => x))
             {
-                lines.Add("AllDone::true");
+                lines.Add("AllDone:true");
             }
             else
             {
-                lines.Add("AllDone::false");
+                lines.Add("AllDone:false");
             }
 
             foreach (string s in done.Keys)

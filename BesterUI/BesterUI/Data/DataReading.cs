@@ -78,6 +78,7 @@ namespace BesterUI.Data
         public abstract string Serialize();
 
         static volatile bool doneReading = true;
+        public static volatile bool kill = false;
         static volatile string fPath;
         static volatile System.Collections.Queue q;
         public static List<T> LoadFromFile<T>(string path, DateTime dT) where T : DataReading, new()
@@ -99,7 +100,7 @@ namespace BesterUI.Data
 
             Log.LogMessage("Loading " + typeof(T).Name + ": 0/" + size + " bytes.");
                 
-            while (!doneReading || q.Count > 0)
+            while ((!doneReading || q.Count > 0) && !kill)
             {
                 if (q.Count > 0)
                 {
@@ -153,8 +154,16 @@ namespace BesterUI.Data
                 string curLine = dat.ReadLine();
                 while (!string.IsNullOrEmpty(curLine))
                 {
-                    q.Enqueue(curLine);
-                    curLine = dat.ReadLine();
+                    if (Log.LogBox != null)
+                    {
+                        q.Enqueue(curLine);
+                        curLine = dat.ReadLine();
+                    }
+                    else
+                    {
+                        kill = true;
+                        return;
+                    }
                 }
             }
 

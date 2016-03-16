@@ -29,12 +29,12 @@ namespace Classification_App
 
 
 
-        const int GSR_LATENCY = 3000;
-        const int GSR_DURATION = 4000;
-        const int HR_LATENCY = 3000;
-        const int HR_DURATION = 4000;
+        const int GSR_LATENCY = 2000;
+        const int GSR_DURATION = 5000;
+        const int HR_LATENCY = 0;
+        const int HR_DURATION = 7000;
         const int EEG_LATENCY = 0;
-        const int EEG_DURATION = 3000;
+        const int EEG_DURATION = 7000;
         const int FACE_LATENCY = 0;
         const int FACE_DURATION = 7000;
 
@@ -72,6 +72,29 @@ namespace Classification_App
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("13")));
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
+
+            //EEG Arousal
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("High Beta")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Theta")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF3") && x.name.Contains("Gamma")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Mid Beta")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Gamma")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("P8") && x.name.Contains("Theta")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("FC6") && x.name.Contains("Theta")));
+
+
+            //EEG Valence
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Beta")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Gamma")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Low Beta")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Theta")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F8") && x.name.Contains("Gamma")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF3") && x.name.Contains("High Beta")));
+            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Low Alpha")));
+
+
         }
 
 
@@ -134,14 +157,7 @@ namespace Classification_App
         {
             return valueAccessor(data.Last());
         }
-
-        public static double DASM(List<DataReading> data, string band, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
-        {
-            FFT fft1 = new FFT(data.Select(x => valueAccessor1(x)).ToList());
-            FFT fft2 = new FFT(data.Select(x => valueAccessor2(x)).ToList());
-            return fft1.AbsoluteBandPower[band] - fft2.AbsoluteBandPower[band];
-        }
-
+      
         public static double FaceMean(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
         {
             return (data.Average(x => valueAccessor1(x)) + data.Average(x => valueAccessor2(x))) / 2;
@@ -160,19 +176,19 @@ namespace Classification_App
 
         public static double IBIMean(List<DataReading> data)
         {
-            return data.Where(x=> ((HRDataReading)x).isBeat).Average(x=> (int)((HRDataReading)x).IBI);
+            return data.Where(x=> ((HRDataReading)x).isBeat || x==data.First()).Average(x=> (int)((HRDataReading)x).IBI);
         }
 
         public static double IBISD(List<DataReading> data)
         {
-            double avg = data.Where(x => ((HRDataReading)x).isBeat).Average(x => (int)((HRDataReading)x).IBI);
-            return Math.Sqrt(data.Average(x => Math.Pow((int)((HRDataReading)x).IBI - avg, 2)));
+            double avg = data.Where(x => ((HRDataReading)x).isBeat || x==data.First()).Average(x => (int)((HRDataReading)x).IBI);
+            return Math.Sqrt(data.Where(x=>((HRDataReading)x).isBeat || x == data.First()).Average(x => Math.Pow((int)((HRDataReading)x).IBI - avg, 2)));
         }
 
         public static double HRVMean(List<DataReading> data)
         {
             List<double> hrv = new List<double>();
-            HRDataReading lastBeat = new HRDataReading();
+            HRDataReading lastBeat = (HRDataReading)data.First();
             foreach (HRDataReading d in data)
             {
                 if (d.isBeat)
@@ -193,7 +209,7 @@ namespace Classification_App
         public static double HRVSD(List<DataReading> data)
         {
             List<double> hrv = new List<double>();
-            HRDataReading lastBeat = new HRDataReading();
+            HRDataReading lastBeat = (HRDataReading)data.First();
             foreach (HRDataReading d in data)
             {
                 if (d.isBeat)
@@ -211,6 +227,18 @@ namespace Classification_App
             double avg = hrv.Average(x => x);
             return Math.Sqrt(hrv.Average(x => Math.Pow(x - avg, 2)));
         }
+
+        public static double EEGPSD(List<DataReading> data, BandFrequencyDefinition BFD, Func<DataReading, double> valueAccesor)
+        {
+            List<FFT> ffts = new List<FFT>();
+            for (int i = 0; i < data.Count- FFT.SAMPLING_WINDOW_LENGTH; i++)
+            {
+                ffts.Add(new FFT(data.Skip(i).Take(FFT.SAMPLING_WINDOW_LENGTH).Select(x => valueAccesor(x)).ToList()));
+            }
+
+            return ffts.Average(x=>x.AbsoluteBandPower[BFD.Label]);
+        }
+        
         #endregion
 
 
@@ -258,63 +286,26 @@ namespace Classification_App
 
         static void PopulateEEG()
         {
-          /*  foreach (var electrode in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
+            List<EEGDataReading.ELECTRODE> eletrodeList = new List<EEGDataReading.ELECTRODE>()
             {
-                Func<DataReading, double> va = (x => EEGValueAccessor(x, electrode));
-
-                EEGFeatures.Add(new Feature("EEG " + electrode + " Mean", (data, sam) => Mean(EEGDataSlice(data, sam), va)));
-                EEGFeatures.Add(new Feature("EEG " + electrode + " Median", (data, sam) => Median(EEGDataSlice(data, sam), va)));
-                EEGFeatures.Add(new Feature("EEG " + electrode + " stdev", (data, sam) => StandardDeviation(EEGDataSlice(data, sam), va)));
-                EEGFeatures.Add(new Feature("EEG " + electrode + " Max", (data, sam) => Max(EEGDataSlice(data, sam), va)));
-                EEGFeatures.Add(new Feature("EEG " + electrode + " Min", (data, sam) => Min(EEGDataSlice(data, sam), va)));
-                EEGFeatures.Add(new Feature("EEG " + electrode + " First", (data, sam) => First(EEGDataSlice(data, sam), va)));
-                EEGFeatures.Add(new Feature("EEG " + electrode + " Last", (data, sam) => Last(EEGDataSlice(data, sam), va)));
-            }*/
-
-            //dasm
-
-            //## START DASM ##
-            List<Tuple<EEGDataReading.ELECTRODE, EEGDataReading.ELECTRODE>> dasmPairs = new List<Tuple<EEGDataReading.ELECTRODE, EEGDataReading.ELECTRODE>>();
-            dasmPairs.Add(Tuple.Create(EEGDataReading.ELECTRODE.AF3, EEGDataReading.ELECTRODE.AF4));
-            dasmPairs.Add(Tuple.Create(EEGDataReading.ELECTRODE.F3, EEGDataReading.ELECTRODE.F4));
-            dasmPairs.Add(Tuple.Create(EEGDataReading.ELECTRODE.F7, EEGDataReading.ELECTRODE.F8));
-            dasmPairs.Add(Tuple.Create(EEGDataReading.ELECTRODE.T7, EEGDataReading.ELECTRODE.T8));
-            dasmPairs.Add(Tuple.Create(EEGDataReading.ELECTRODE.P7, EEGDataReading.ELECTRODE.P8));
-            dasmPairs.Add(Tuple.Create(EEGDataReading.ELECTRODE.O1, EEGDataReading.ELECTRODE.O2));
-
-            //Not original dasm12 pair
-            // dasmPairs.Add(Tuple.Create(Electrodes.FC5, Electrodes.FC6));
-            List<string> bandNames = new List<string> { "Delta", "Theta", "Alpha","Beta", "Gamma"};
-            foreach (var pair in dasmPairs)
+                EEGDataReading.ELECTRODE.T7,
+                EEGDataReading.ELECTRODE.F7,
+                EEGDataReading.ELECTRODE.F8,
+                EEGDataReading.ELECTRODE.AF3,
+                EEGDataReading.ELECTRODE.AF4,
+                EEGDataReading.ELECTRODE.P8,
+                EEGDataReading.ELECTRODE.FC6
+            };
+            foreach (EEGDataReading.ELECTRODE electrode in eletrodeList)
             {
-                EEGDataReading.ELECTRODE a = pair.Item1;
-                EEGDataReading.ELECTRODE b = pair.Item2;
-                foreach (string bandName in bandNames)
+                foreach (BandFrequencyDefinition bfd in BandFrequencyDefinition.preDef)
                 {
-                    if (a != null && b != null)
-                    {
-                        //Test this
-                        EEGFeatures.Add(new Feature("DASM " + a.ToString() + a.ToString().Last(),
-                            (data, sam) => {
-                                return DASM(EEGDataSlice(data, sam), bandName, 
-                                    (x => EEGValueAccessor(x, Enum.GetName(typeof(EEGDataReading.ELECTRODE), a))),
-                                    (x => EEGValueAccessor(x, Enum.GetName(typeof(EEGDataReading.ELECTRODE), a))));
-                            }
-                            ));
-                    }
+                    EEGFeatures.Add(new Feature("EEG PSD " + Enum.GetName(typeof(EEGDataReading.ELECTRODE), electrode) + " "+bfd.Label,
+                        (data, sam) =>
+                        EEGPSD(EEGDataSlice(data, sam), bfd, 
+                        (x => EEGValueAccessor(x, electrode.ToString())))));
                 }
             }
-            //## END DASM ##
-
-            //## START INDIVIDUAL ##
-            /*foreach (var elec in FusionDataReference.eeg.electrodes)
-            {
-                features.Add(elec.data[timeIndex].fft.AbsoluteBandPower[BandFrequencyDefinition.Delta.Label]);
-                features.Add(elec.data[timeIndex].fft.AbsoluteBandPower[BandFrequencyDefinition.Theta.Label]);
-                features.Add(elec.data[timeIndex].fft.AbsoluteBandPower[BandFrequencyDefinition.Alpha.Label]);
-                features.Add(elec.data[timeIndex].fft.AbsoluteBandPower[BandFrequencyDefinition.Beta.Label]);
-                features.Add(elec.data[timeIndex].fft.AbsoluteBandPower[BandFrequencyDefinition.Gamma.Label]);
-            }*/
         }   
 
         static void PopulateHR()
