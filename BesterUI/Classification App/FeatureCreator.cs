@@ -55,10 +55,9 @@ namespace Classification_App
             //Arousal Features
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("stdev")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Mean")));
-            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Median")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
             GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
-        
+
             //HR Features
             HRValenceOptimizationFeatures.AddRange(HRFeatures);
             HRArousalOptimizationFeatures.AddRange(HRFeatures);
@@ -71,7 +70,7 @@ namespace Classification_App
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("15")));
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("13")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
+            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("15")));
 
             //EEG Arousal
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
@@ -82,7 +81,6 @@ namespace Classification_App
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Gamma")));
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("P8") && x.name.Contains("Theta")));
             EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("FC6") && x.name.Contains("Theta")));
-
 
             //EEG Valence
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
@@ -103,7 +101,7 @@ namespace Classification_App
         {
             return ((GSRDataReading)d).resistance;
         }
-        
+
         public static double HRValueAccessor(DataReading d)
         {
             return ((HRDataReading)d).BPM;
@@ -157,7 +155,7 @@ namespace Classification_App
         {
             return valueAccessor(data.Last());
         }
-      
+
         public static double FaceMean(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
         {
             return (data.Average(x => valueAccessor1(x)) + data.Average(x => valueAccessor2(x))) / 2;
@@ -176,13 +174,13 @@ namespace Classification_App
 
         public static double IBIMean(List<DataReading> data)
         {
-            return data.Where(x=> ((HRDataReading)x).isBeat || x==data.First()).Average(x=> (int)((HRDataReading)x).IBI);
+            return data.Where(x => ((HRDataReading)x).isBeat || x == data.First()).Average(x => (int)((HRDataReading)x).IBI);
         }
 
         public static double IBISD(List<DataReading> data)
         {
-            double avg = data.Where(x => ((HRDataReading)x).isBeat || x==data.First()).Average(x => (int)((HRDataReading)x).IBI);
-            return Math.Sqrt(data.Where(x=>((HRDataReading)x).isBeat || x == data.First()).Average(x => Math.Pow((int)((HRDataReading)x).IBI - avg, 2)));
+            double avg = data.Where(x => ((HRDataReading)x).isBeat || x == data.First()).Average(x => (int)((HRDataReading)x).IBI);
+            return Math.Sqrt(data.Where(x => ((HRDataReading)x).isBeat || x == data.First()).Average(x => Math.Pow((int)((HRDataReading)x).IBI - avg, 2)));
         }
 
         public static double HRVMean(List<DataReading> data)
@@ -231,14 +229,14 @@ namespace Classification_App
         public static double EEGPSD(List<DataReading> data, BandFrequencyDefinition BFD, Func<DataReading, double> valueAccesor)
         {
             List<FFT> ffts = new List<FFT>();
-            for (int i = 0; i < data.Count- FFT.SAMPLING_WINDOW_LENGTH; i++)
+            for (int i = 0; i < data.Count - FFT.SAMPLING_WINDOW_LENGTH; i++)
             {
                 ffts.Add(new FFT(data.Skip(i).Take(FFT.SAMPLING_WINDOW_LENGTH).Select(x => valueAccesor(x)).ToList()));
             }
 
-            return ffts.Average(x=>x.AbsoluteBandPower[BFD.Label]);
+            return ffts.Average(x => x.AbsoluteBandPower[BFD.Label]);
         }
-        
+
         #endregion
 
 
@@ -300,22 +298,22 @@ namespace Classification_App
             {
                 foreach (BandFrequencyDefinition bfd in BandFrequencyDefinition.preDef)
                 {
-                    EEGFeatures.Add(new Feature("EEG PSD " + Enum.GetName(typeof(EEGDataReading.ELECTRODE), electrode) + " "+bfd.Label,
+                    EEGFeatures.Add(new Feature("EEG PSD " + Enum.GetName(typeof(EEGDataReading.ELECTRODE), electrode) + " " + bfd.Label,
                         (data, sam) =>
-                        EEGPSD(EEGDataSlice(data, sam), bfd, 
+                        EEGPSD(EEGDataSlice(data, sam), bfd,
                         (x => EEGValueAccessor(x, electrode.ToString())))));
                 }
             }
-        }   
+        }
 
         static void PopulateHR()
         {
             HRFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
             HRFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
             HRFeatures.Add(new Feature("HR Mean HRV", (data, sam) => HRVMean(HRDataSlice(data, sam))));
-            HRFeatures.Add(new Feature("HR SD IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
-            HRFeatures.Add(new Feature("HR SD HRV", (data, sam) => HRVSD(HRDataSlice(data, sam))));
+            HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
+            HRFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
+            HRFeatures.Add(new Feature("HR stdev HRV", (data, sam) => HRVSD(HRDataSlice(data, sam))));
         }
 
 
@@ -341,9 +339,9 @@ namespace Classification_App
             for (int i = 0; i < meanFaceLeftSide.Count; i++)
             {
                 int l = i;
-                FACEFeatures.Add(new Feature("Face Mean " +meanFaceLeftSide[l]+ " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
-                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[l])),
-                    (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[l])))));
+                FACEFeatures.Add(new Feature("Face Mean " + meanFaceLeftSide[l] + " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
+                      (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[l])),
+                      (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[l])))));
             }
             for (int j = 0; j < sdFaceLeftSide.Count; j++)
             {
