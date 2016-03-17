@@ -177,7 +177,7 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat"}, samData.startTime);
+            shouldRun =  _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat"}, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
@@ -385,10 +385,11 @@ namespace Classification_App
         volatile int stackProg = 0;
         volatile int stackTot = 1;
 
-        private bool skipGSR = true;
+        //Debug purposes
+        private bool skipGSR = false;
         private bool skipEEG = false;
-        private bool skipFace = true;
-        private bool skipHR = true;
+        private bool skipFace = false;
+        private bool skipHR = false;
         private bool doMetas = false;
 
         ExcelHandler eh;
@@ -396,6 +397,7 @@ namespace Classification_App
         Thread hrThread = null;
         Thread eegThread = null;
         Thread faceThread = null;
+        Dictionary<string, bool> shouldRun;
 
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
@@ -472,7 +474,8 @@ namespace Classification_App
                             feel != SAMDataPoint.FeelingModel.Valence2Low &&
                             feel != SAMDataPoint.FeelingModel.Valence3 &&
                             !skipGSR&&
-                            !DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)])
+                            !DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] &&
+                            shouldRun["GSR.dat"])
                         {
                             gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
                             gsrThread.Priority = ThreadPriority.Highest;
@@ -483,7 +486,7 @@ namespace Classification_App
                             Log.LogMessage("GSR skipping");
                         }
                         
-                        if (!DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipHR)
+                        if (!DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipHR && shouldRun["HR.dat"])
                         {
                             hrThread = CreateMachineThread("HR", parameters,
                                 (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -497,7 +500,7 @@ namespace Classification_App
                             Log.LogMessage("HR skipping");
                         }
                         
-                        if (!DPH.done["EEG"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipEEG)
+                        if (!DPH.done["EEG"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipEEG && shouldRun["EEG.dat"])
                         {
                             eegThread = CreateMachineThread("EEG", parameters,
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -511,7 +514,7 @@ namespace Classification_App
                             Log.LogMessage("EEG skipping");
                         }
                         
-                        if (!DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipFace)
+                        if (!DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipFace && shouldRun["KINECT.dat"])
                         {
                             faceThread = CreateMachineThread("FACE", parameters,
                                                              (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -550,6 +553,8 @@ namespace Classification_App
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
+                                gsrThread = null;
+
 
                             }
 
@@ -563,6 +568,7 @@ namespace Classification_App
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
                                 DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
+                                hrThread = null;
                             }
 
                             if (eegThread != null && !eegThread.IsAlive && !eegWrite)
@@ -575,6 +581,7 @@ namespace Classification_App
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
                                 DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
+                                eegThread = null;
                             }
 
                             if (faceThread != null && !faceThread.IsAlive && !faceWrite)
@@ -587,6 +594,7 @@ namespace Classification_App
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
                                 DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
+                                faceThread = null;
                             }
                         }
 

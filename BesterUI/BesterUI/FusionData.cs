@@ -101,35 +101,79 @@ namespace BesterUI
             gsrData.Add(data);
         }
 
-        public void LoadFromFile(string[] filesToLoad, DateTime dT)
-        {
 
+        private const int MINIMUM_GSR_FILE_SIZE = 250;
+        private const int MINIMUM_FACE_FILE_SIZE = 7000;
+        private const int MINIMUM_HR_FILE_SIZE = 1000;
+        private const int MINIMUM_EEG_FILE_SIZE = 45000;
+
+        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT)
+        {
+            Dictionary<string, bool> shouldRun = new Dictionary<string, bool>();
             foreach (string file in filesToLoad)
             {
                 string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                double size = new FileInfo(file).Length / 1024;
                 switch (s)
                 {
                     case "GSR.dat":
-                        Log.LogMessage("Loading GSR data");
-                        gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT),15);
+                        if (size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
+                        {
+                            Log.LogMessage("Loading GSR data");
+                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 15);
+                            shouldRun.Add(s, true);
+                        }
+                        else
+                        {
+                            Log.LogMessage("File size for the GSR.dat was not big enough might be faulty");
+                            shouldRun.Add(s, false);
+                        }
                         break;
                     case "EEG.dat":
-                        Log.LogMessage("Loading EEG data");
-                        eegData = DataReading.LoadFromFile<EEGDataReading>(file, dT);
+                        if (size > MINIMUM_EEG_FILE_SIZE && File.Exists(file))
+                        {
+                            Log.LogMessage("Loading EEG data");
+                            eegData = DataReading.LoadFromFile<EEGDataReading>(file, dT);
+                            shouldRun.Add(s, true);
+                        }
+                        else
+                        {
+                            Log.LogMessage("File size for the EEG.dat was not big enough might be faulty");
+                            shouldRun.Add(s, false);
+                        }
                         break;
+
                     case "HR.dat":
-                        Log.LogMessage("Loading HR data");
-                        hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
+                        if (size > MINIMUM_HR_FILE_SIZE && File.Exists(file))
+                        {
+                            Log.LogMessage("Loading HR data");
+                            hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
+                            shouldRun.Add(s, true);
+                        }
+                        else
+                        {
+                            Log.LogMessage("File size for the HR.dat was not big enough might be faulty");
+                            shouldRun.Add(s, false);
+                        }
                         break;
                     case "KINECT.dat":
-                        Log.LogMessage("Loading Face data");
-                        faceData = DataReading.LoadFromFile<FaceDataReading>(file, dT);
+                        if (size > MINIMUM_FACE_FILE_SIZE && File.Exists(file))
+                        {
+                            Log.LogMessage("Loading Face data");
+                            faceData = DataReading.LoadFromFile<FaceDataReading>(file, dT);
+                            shouldRun.Add(s, true);
+                        }
+                        else
+                        {
+                            Log.LogMessage("File size for the Kinect.dat was not big enough might be faulty");
+                            shouldRun.Add(s, false);
+                        }
                         break;
                     default:
                         throw new Exception("Sorry don't recognize the file name");
                 }
             }
-
+            return shouldRun;
         }
 
         public static List<GSRDataReading> GSRMedianFilter(List<GSRDataReading> data, int windowSize)
