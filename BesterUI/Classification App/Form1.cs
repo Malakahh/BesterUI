@@ -427,9 +427,9 @@ namespace Classification_App
 
                 btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
-                //List<SVMParameter> parameters = GenerateSVMParameters();
+                List<SVMParameter> parameters = GenerateSVMParameters();
 
-                List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
                 
 
                 int curDat = 1;
