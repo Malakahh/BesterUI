@@ -52,7 +52,7 @@ namespace Classification_App
             ComputeFrequencyPowerSamples();
 
             //FrequencyBands
-            ComputeAbsoluteBandPower(BandFrequencyDefinition.Beta);
+            ComputeAbsoluteBandPower(BandFrequencyDefinition.FullBeta);
             ComputeAbsoluteBandPower(BandFrequencyDefinition.Theta);
             ComputeAbsoluteBandPower(BandFrequencyDefinition.Gamma);
             ComputeAbsoluteBandPower(BandFrequencyDefinition.HighBeta);
@@ -66,7 +66,7 @@ namespace Classification_App
                     ComputeAbsoluteBandPower(customBand);
                 }
             }
-            ComputeRelativeBandPower(BandFrequencyDefinition.Beta);
+            ComputeRelativeBandPower(BandFrequencyDefinition.FullBeta);
             ComputeRelativeBandPower(BandFrequencyDefinition.Theta);
             ComputeRelativeBandPower(BandFrequencyDefinition.Gamma);
             ComputeRelativeBandPower(BandFrequencyDefinition.HighBeta);
@@ -140,12 +140,12 @@ namespace Classification_App
         public static BandFrequencyDefinition LowBeta = new BandFrequencyDefinition(12, 18, "Low Beta");
         public static BandFrequencyDefinition MidBeta = new BandFrequencyDefinition(18, 24, "Mid Beta");
         public static BandFrequencyDefinition HighBeta = new BandFrequencyDefinition(24, 30, "High Beta");
-        public static BandFrequencyDefinition Beta = new BandFrequencyDefinition(12, 30, "Beta");
+        public static BandFrequencyDefinition FullBeta = new BandFrequencyDefinition(12, 30, "Beta");
         public static BandFrequencyDefinition Gamma = new BandFrequencyDefinition(30, 45, "Gamma");
 
         public static List<BandFrequencyDefinition> preDef = new List<BandFrequencyDefinition>()
         {
-            Theta, LowAlpha, LowBeta, MidBeta, HighBeta, Beta, Gamma
+            Theta, LowAlpha, LowBeta, MidBeta, HighBeta, FullBeta, Gamma
         };
 
         public int LowerLimit;

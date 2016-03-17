@@ -63,8 +63,12 @@ namespace Classification_App
             HRArousalOptimizationFeatures.AddRange(HRFeatures);
 
             //FACE FEatures
+
+            //Arousal
             FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("11")));
             FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("11")));
+
+            //Valence
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("5")));
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("13")));
             FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("15")));
@@ -84,13 +88,13 @@ namespace Classification_App
 
             //EEG Valence
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Beta")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("FullBeta")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Gamma")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Low Beta")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Theta")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F8") && x.name.Contains("Gamma")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF3") && x.name.Contains("High Beta")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Low Alpha")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Low Alpha")));
 
 
         }

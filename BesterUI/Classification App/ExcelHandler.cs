@@ -213,8 +213,8 @@ namespace Classification_App
             //Name
             workSheet.Cells[i++, 1] = name;
 
-            //A2
-            workSheet.Cells[i, 1] = "A2"; //2
+            //A2High
+            workSheet.Cells[i, 1] = "A2High"; //2
             workSheet.Cells[i++, 2] = "Accuracy"; //2
             workSheet.Cells[i++, 2] = "WFScore";
             workSheet.Cells[i++, 2] = "Fscore1";
@@ -228,12 +228,27 @@ namespace Classification_App
             workSheet.Cells[i++, 2] = "Gamma";
             workSheet.Cells[i++, 2] = "Kernel";//13
 
-            //A3
-            workSheet.Cells[++i, 1] = "A3"; //15
+            //A2Low
+            workSheet.Cells[++i, 1] = "A2Low"; //15
             workSheet.Cells[i++, 2] = "Accuracy"; //15
             workSheet.Cells[i++, 2] = "WFScore";
             workSheet.Cells[i++, 2] = "Fscore1";
             workSheet.Cells[i++, 2] = "Fscore2";
+            workSheet.Cells[i++, 2] = "P1";
+            workSheet.Cells[i++, 2] = "P2";
+            workSheet.Cells[i++, 2] = "R1";
+            workSheet.Cells[i++, 2] = "R2";
+            workSheet.Cells[i++, 2] = "Features";
+            workSheet.Cells[i++, 2] = "C";
+            workSheet.Cells[i++, 2] = "Gamma";
+            workSheet.Cells[i++, 2] = "Kernel";//26
+
+            //A3
+            workSheet.Cells[++i, 1] = "A3"; //28
+            workSheet.Cells[i++, 2] = "Accuracy"; //28
+            workSheet.Cells[i++, 2] = "WFScore";
+            workSheet.Cells[i++, 2] = "Fscore1";
+            workSheet.Cells[i++, 2] = "Fscore2";
             workSheet.Cells[i++, 2] = "Fscore3";
             workSheet.Cells[i++, 2] = "P1";
             workSheet.Cells[i++, 2] = "P2";
@@ -244,29 +259,44 @@ namespace Classification_App
             workSheet.Cells[i++, 2] = "Features";
             workSheet.Cells[i++, 2] = "C";
             workSheet.Cells[i++, 2] = "Gamma";
-            workSheet.Cells[i++, 2] = "Kernel"; //29
+            workSheet.Cells[i++, 2] = "Kernel"; //42
 
-            //A2
-            workSheet.Cells[++i, 1] = "V2"; //31
-            workSheet.Cells[i++, 2] = "Accuracy"; //31
-            workSheet.Cells[i++, 2] = "WFScore";
-            workSheet.Cells[i++, 2] = "Fscore1";
-            workSheet.Cells[i++, 2] = "Fscore2";
-            workSheet.Cells[i++, 2] = "P1";
-            workSheet.Cells[i++, 2] = "P2";
-            workSheet.Cells[i++, 2] = "R1";
-            workSheet.Cells[i++, 2] = "R2";
-            workSheet.Cells[i++, 2] = "Features";
-            workSheet.Cells[i++, 2] = "C";
-            workSheet.Cells[i++, 2] = "Gamma";
-            workSheet.Cells[i++, 2] = "Kernel";//42
-
-            //V3
-            workSheet.Cells[++i, 1] = "V3"; //44
+            //V2High
+            workSheet.Cells[++i, 1] = "V2High"; //44
             workSheet.Cells[i++, 2] = "Accuracy"; //44
             workSheet.Cells[i++, 2] = "WFScore";
             workSheet.Cells[i++, 2] = "Fscore1";
             workSheet.Cells[i++, 2] = "Fscore2";
+            workSheet.Cells[i++, 2] = "P1";
+            workSheet.Cells[i++, 2] = "P2";
+            workSheet.Cells[i++, 2] = "R1";
+            workSheet.Cells[i++, 2] = "R2";
+            workSheet.Cells[i++, 2] = "Features";
+            workSheet.Cells[i++, 2] = "C";
+            workSheet.Cells[i++, 2] = "Gamma";
+            workSheet.Cells[i++, 2] = "Kernel";//55
+
+            //V2Low
+            workSheet.Cells[++i, 1] = "V2Low"; //57
+            workSheet.Cells[i++, 2] = "Accuracy"; //57
+            workSheet.Cells[i++, 2] = "WFScore";
+            workSheet.Cells[i++, 2] = "Fscore1";
+            workSheet.Cells[i++, 2] = "Fscore2";
+            workSheet.Cells[i++, 2] = "P1";
+            workSheet.Cells[i++, 2] = "P2";
+            workSheet.Cells[i++, 2] = "R1";
+            workSheet.Cells[i++, 2] = "R2";
+            workSheet.Cells[i++, 2] = "Features";
+            workSheet.Cells[i++, 2] = "C";
+            workSheet.Cells[i++, 2] = "Gamma";
+            workSheet.Cells[i++, 2] = "Kernel";//68
+
+            //V3
+            workSheet.Cells[++i, 1] = "V3"; //70
+            workSheet.Cells[i++, 2] = "Accuracy"; //70
+            workSheet.Cells[i++, 2] = "WFScore";
+            workSheet.Cells[i++, 2] = "Fscore1";
+            workSheet.Cells[i++, 2] = "Fscore2";
             workSheet.Cells[i++, 2] = "Fscore3";
             workSheet.Cells[i++, 2] = "P1";
             workSheet.Cells[i++, 2] = "P2";
@@ -277,13 +307,15 @@ namespace Classification_App
             workSheet.Cells[i++, 2] = "Features";
             workSheet.Cells[i++, 2] = "C";
             workSheet.Cells[i++, 2] = "Gamma";
-            workSheet.Cells[i++, 2] = "Kernel"; //58
+            workSheet.Cells[i++, 2] = "Kernel"; //84
 
         }
-        private const int A2Start = 2;
-        private const int A3Start = 15;
-        private const int V2Start = 31;
-        private const int V3Start = 44;
+        private const int A2HighStart = 2;
+        private const int A2LowStart = 15;
+        private const int A3Start = 28;
+        private const int V2HighStart = 44;
+        private const int V2LowStart = 57;
+        private const int V3Start = 70;
 
         private void WriteResult(Excel.Worksheet workSheet, PredictionResult pResult, SAMDataPoint.FeelingModel feelingModel)
         {
@@ -291,15 +323,19 @@ namespace Classification_App
             switch (feelingModel)
             {
                 case SAMDataPoint.FeelingModel.Arousal2High:
+                    counter = A2HighStart;
+                    break;
                 case SAMDataPoint.FeelingModel.Arousal2Low:
-                    counter = A2Start;
+                    counter = A2LowStart;
                     break;
                 case SAMDataPoint.FeelingModel.Arousal3:
                     counter = A3Start;
                     break;
                 case SAMDataPoint.FeelingModel.Valence2High:
+                    counter = V2HighStart;
+                    break;
                 case SAMDataPoint.FeelingModel.Valence2Low:
-                    counter = V2Start;
+                    counter = V2LowStart;
                     break;
                 case SAMDataPoint.FeelingModel.Valence3:
                     counter = V3Start;
@@ -401,52 +437,72 @@ namespace Classification_App
         private void WriteOverviewMeta(Excel.Worksheet workSheet)
         {
             #region [Names]
-            workSheet.Cells[1, 1] = "A2";
-            workSheet.Cells[6, 1] = "A3";
-            workSheet.Cells[11, 1] = "V2";
-            workSheet.Cells[16, 1] = "V3";
+            workSheet.Cells[1, 1] = "A2High";
+            workSheet.Cells[6, 1] = "A2Low";
+            workSheet.Cells[11, 1] = "A3";
+            workSheet.Cells[16, 1] = "V2High";
+            workSheet.Cells[21, 1] = "V2Low";
+            workSheet.Cells[26, 1] = "V3";
             #endregion
 
             #region [Average & standard deviation markers]
-            //A2
+            //A2High
             workSheet.Cells[3, 1] = "AVG";
-            workSheet.Cells[4, 1] = "STD";
-            //A3
+            workSheet.Cells[4, 1] = "STD";            
+            //A2Low
             workSheet.Cells[8, 1] = "AVG";
             workSheet.Cells[9, 1] = "STD";
-            //A4
+            //A3
             workSheet.Cells[13, 1] = "AVG";
             workSheet.Cells[14, 1] = "STD";
-            //A5
+            //V2High
             workSheet.Cells[18, 1] = "AVG";
             workSheet.Cells[19, 1] = "STD";
+            //V2Low
+            workSheet.Cells[23, 1] = "AVG";
+            workSheet.Cells[24, 1] = "STD";
+            //V3
+            workSheet.Cells[28, 1] = "AVG";
+            workSheet.Cells[29, 1] = "STD";
             #endregion
 
             #region [Score Labels]
             List<string> scoring2Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "P1", "P2", "R1", "R2" };
             List<string> scoring3Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "F3", "P1", "P2", "P3", "R1", "R2", "R3" };
-            //A2
+            //A2High
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
                 workSheet.Cells[2, i + 2] = scoring2Labels[i];
             }
 
-            //V2
+            //A2Low
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
-                workSheet.Cells[12, i + 2] = scoring2Labels[i];
+                workSheet.Cells[7, i + 2] = scoring2Labels[i];
             }
 
             //A3
             for (int i = 0; i < scoring3Labels.Count; i++)
             {
-                workSheet.Cells[7, i + 2] = scoring3Labels[i];
+                workSheet.Cells[12, i + 2] = scoring3Labels[i];
+            }
+
+            //V2High
+            for (int i = 0; i < scoring2Labels.Count; i++)
+            {
+                workSheet.Cells[17, i + 2] = scoring2Labels[i];
+            }
+
+            //V2Low
+            for (int i = 0; i < scoring2Labels.Count; i++)
+            {
+                workSheet.Cells[22, i + 2] = scoring2Labels[i];
             }
 
             //V3
             for (int i = 0; i < scoring3Labels.Count; i++)
             {
-                workSheet.Cells[17, i + 2] = scoring3Labels[i];
+                workSheet.Cells[27, i + 2] = scoring3Labels[i];
             }
 
             #endregion
@@ -455,29 +511,41 @@ namespace Classification_App
             string avgFormula = "=AVERAGE(First:Last!C";
             string stdevFormula = "=STDEV.S(First:Last!C"; //TODO: Find out whether to use stdev.s or .p
             string endFormula = ")";
-            //A2 AVG and Stdev
+            //A2High AVG and Stdev
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
-                workSheet.Cells[3, i + 2] = avgFormula + (i + 2) + endFormula;
-                workSheet.Cells[4, i + 2] = stdevFormula + (i + 2) + endFormula;
+                workSheet.Cells[3, i + 2] = avgFormula + (i + A2HighStart) + endFormula;
+                workSheet.Cells[4, i + 2] = stdevFormula + (i + A2HighStart) + endFormula;
+            }            
+            //A2Low AVG and Stdev
+            for (int i = 0; i < scoring2Labels.Count; i++)
+            {
+                workSheet.Cells[8, i + 2] = avgFormula + (i + A2LowStart) + endFormula;
+                workSheet.Cells[9, i + 2] = stdevFormula + (i + A2LowStart) + endFormula;
             }
             //A3 AVG and Stdev
             for (int i = 0; i < scoring3Labels.Count; i++)
             {
-                workSheet.Cells[8, i + 2] = avgFormula + (i + 15) + endFormula;
-                workSheet.Cells[9, i + 2] = stdevFormula + (i + 15) + endFormula;
+                workSheet.Cells[13, i + 2] = avgFormula + (i + A3Start) + endFormula;
+                workSheet.Cells[14, i + 2] = stdevFormula + (i + A3Start) + endFormula;
             }
-            //V2 AVG and stdev
+            //V2High AVG and stdev
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
-                workSheet.Cells[13, i + 2] = avgFormula + (i + 31) + endFormula;
-                workSheet.Cells[14, i + 2] = stdevFormula + (i + 31) + endFormula;
+                workSheet.Cells[18, i + 2] = avgFormula + (i + V2HighStart) + endFormula;
+                workSheet.Cells[19, i + 2] = stdevFormula + (i + V2HighStart) + endFormula;
+            }            
+            //V2Low AVG and stdev
+            for (int i = 0; i < scoring2Labels.Count; i++)
+            {
+                workSheet.Cells[23, i + 2] = avgFormula + (i + V2LowStart) + endFormula;
+                workSheet.Cells[24, i + 2] = stdevFormula + (i + V2LowStart) + endFormula;
             }
             //V3 AVG and Stdev
             for (int i = 0; i < scoring3Labels.Count; i++)
             {
-                workSheet.Cells[18, i + 2] = avgFormula + (i + 44) + endFormula;
-                workSheet.Cells[19, i + 2] = stdevFormula + (i + 44) + endFormula;
+                workSheet.Cells[28, i + 2] = avgFormula + (i + V3Start) + endFormula;
+                workSheet.Cells[29, i + 2] = stdevFormula + (i + V3Start) + endFormula;
             }
 
 
