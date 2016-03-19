@@ -140,7 +140,7 @@ namespace Classification_App
         public static BandFrequencyDefinition LowBeta = new BandFrequencyDefinition(12, 18, "Low Beta");
         public static BandFrequencyDefinition MidBeta = new BandFrequencyDefinition(18, 24, "Mid Beta");
         public static BandFrequencyDefinition HighBeta = new BandFrequencyDefinition(24, 30, "High Beta");
-        public static BandFrequencyDefinition FullBeta = new BandFrequencyDefinition(12, 30, "Beta");
+        public static BandFrequencyDefinition FullBeta = new BandFrequencyDefinition(12, 30, "Full Beta");
         public static BandFrequencyDefinition Gamma = new BandFrequencyDefinition(30, 45, "Gamma");
 
         public static List<BandFrequencyDefinition> preDef = new List<BandFrequencyDefinition>()
