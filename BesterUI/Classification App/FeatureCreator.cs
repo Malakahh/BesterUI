@@ -88,7 +88,7 @@ namespace Classification_App
 
             //EEG Valence
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("FullBeta")));
+            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Full Beta")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Gamma")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Low Beta")));
             EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Theta")));

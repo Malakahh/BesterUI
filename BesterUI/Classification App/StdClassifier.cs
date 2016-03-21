@@ -9,6 +9,8 @@ using LibSVMsharp.Core;
 using LibSVMsharp.Helpers;
 using BesterUI.Helpers;
 using System.Threading;
+using System.Runtime.InteropServices;
+
 
 namespace Classification_App
 {
@@ -138,7 +140,7 @@ namespace Classification_App
                         guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
                     }
                 }
-                catch
+                catch(Exception e)
                 {
                     for (int i = 0; i < samData.dataPoints.Count; i++)
                     {

@@ -389,7 +389,7 @@ namespace Classification_App
         private bool skipGSR = false;
         private bool skipEEG = false;
         private bool skipFace = false;
-        private bool skipHR = false;
+        private bool skipHR = true;
         private bool doMetas = false;
 
         ExcelHandler eh;
@@ -538,7 +538,7 @@ namespace Classification_App
 
                         while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive) || (faceThread != null && faceThread.IsAlive))
                         {
-                            Thread.Sleep(1000);
+                            Thread.Sleep(10);
                             double pct = (double)(gsrProg + hrProg + eegProg + faceProg) * (double)100 / (double)(gsrTot + hrTot + eegTot + faceTot);
                             Log.LogMessageSameLine(feel + " -> " + curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")] - [FACE(" + faceProg + "/" + faceTot + ")]");
                             Application.DoEvents();
