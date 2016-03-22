@@ -551,7 +551,7 @@ namespace Classification_App
                                 gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
                                 confs.Add(gsrConf);
                                 var gsrMac = new StdClassifier(gsrConf, samData);
-                                var gsrRes = gsrMac.CrossValidate(xfeel, 1);
+                                var gsrRes = gsrMac.CrossValidate(feel, 1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
