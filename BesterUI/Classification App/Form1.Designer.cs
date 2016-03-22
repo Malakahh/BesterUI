@@ -47,6 +47,14 @@
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
+            this.gsrBar = new System.Windows.Forms.ProgressBar();
+            this.GSR = new System.Windows.Forms.Label();
+            this.EEG = new System.Windows.Forms.Label();
+            this.eegBar = new System.Windows.Forms.ProgressBar();
+            this.label3 = new System.Windows.Forms.Label();
+            this.faceBar = new System.Windows.Forms.ProgressBar();
+            this.label4 = new System.Windows.Forms.Label();
+            this.hrBar = new System.Windows.Forms.ProgressBar();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -56,7 +64,6 @@
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Enabled = false;
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -65,6 +72,14 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.label4);
+            this.tabPage1.Controls.Add(this.hrBar);
+            this.tabPage1.Controls.Add(this.label3);
+            this.tabPage1.Controls.Add(this.faceBar);
+            this.tabPage1.Controls.Add(this.EEG);
+            this.tabPage1.Controls.Add(this.eegBar);
+            this.tabPage1.Controls.Add(this.GSR);
+            this.tabPage1.Controls.Add(this.gsrBar);
             this.tabPage1.Controls.Add(this.addMachineBtn);
             this.tabPage1.Controls.Add(this.chk_ParameterOptimizationNormal);
             this.tabPage1.Controls.Add(this.chk_FeatureOptimizationNormal);
@@ -244,6 +259,74 @@
             this.statusLabel.TabIndex = 6;
             this.statusLabel.Text = "Please load data";
             // 
+            // gsrBar
+            // 
+            this.gsrBar.Location = new System.Drawing.Point(6, 129);
+            this.gsrBar.Name = "gsrBar";
+            this.gsrBar.Size = new System.Drawing.Size(167, 23);
+            this.gsrBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.gsrBar.TabIndex = 6;
+            // 
+            // GSR
+            // 
+            this.GSR.AutoSize = true;
+            this.GSR.Location = new System.Drawing.Point(6, 113);
+            this.GSR.Name = "GSR";
+            this.GSR.Size = new System.Drawing.Size(30, 13);
+            this.GSR.TabIndex = 7;
+            this.GSR.Text = "GSR";
+            // 
+            // EEG
+            // 
+            this.EEG.AutoSize = true;
+            this.EEG.Location = new System.Drawing.Point(6, 158);
+            this.EEG.Name = "EEG";
+            this.EEG.Size = new System.Drawing.Size(29, 13);
+            this.EEG.TabIndex = 9;
+            this.EEG.Text = "EEG";
+            // 
+            // eegBar
+            // 
+            this.eegBar.Location = new System.Drawing.Point(6, 174);
+            this.eegBar.Name = "eegBar";
+            this.eegBar.Size = new System.Drawing.Size(167, 23);
+            this.eegBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.eegBar.TabIndex = 8;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 201);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(37, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Kinect";
+            // 
+            // faceBar
+            // 
+            this.faceBar.Location = new System.Drawing.Point(6, 217);
+            this.faceBar.Name = "faceBar";
+            this.faceBar.Size = new System.Drawing.Size(167, 23);
+            this.faceBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.faceBar.TabIndex = 10;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(6, 247);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(23, 13);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "HR";
+            // 
+            // hrBar
+            // 
+            this.hrBar.Location = new System.Drawing.Point(6, 263);
+            this.hrBar.Name = "hrBar";
+            this.hrBar.Size = new System.Drawing.Size(167, 23);
+            this.hrBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.hrBar.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -288,6 +371,14 @@
         private System.Windows.Forms.Label statusLabel;
         private System.Windows.Forms.CheckBox boostingCB;
         private System.Windows.Forms.Button addMachineBtn;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ProgressBar hrBar;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ProgressBar faceBar;
+        private System.Windows.Forms.Label EEG;
+        private System.Windows.Forms.ProgressBar eegBar;
+        private System.Windows.Forms.Label GSR;
+        private System.Windows.Forms.ProgressBar gsrBar;
     }
 }
 

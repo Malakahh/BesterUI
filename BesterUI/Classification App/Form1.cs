@@ -538,9 +538,11 @@ namespace Classification_App
 
                         while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive) || (faceThread != null && faceThread.IsAlive))
                         {
-                            Thread.Sleep(10);
-                            double pct = (double)(gsrProg + hrProg + eegProg + faceProg) * (double)100 / (double)(gsrTot + hrTot + eegTot + faceTot);
-                            Log.LogMessageSameLine(feel + " -> " + curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")] - [FACE(" + faceProg + "/" + faceTot + ")]");
+                            Thread.Sleep(1000);
+                            eegBar.Value = (int)(((double)eegProg / eegTot) * 100);
+                            gsrBar.Value = (int)(((double)gsrProg / gsrTot) * 100);
+                            faceBar.Value = (int)(((double)faceProg / faceTot) * 100);
+                            hrBar.Value = (int)(((double)hrProg / hrTot) * 100);
                             Application.DoEvents();
 
                             if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
@@ -549,7 +551,7 @@ namespace Classification_App
                                 gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
                                 confs.Add(gsrConf);
                                 var gsrMac = new StdClassifier(gsrConf, samData);
-                                var gsrRes = gsrMac.CrossValidate(feel, 1);
+                                var gsrRes = gsrMac.CrossValidate(xfeel, 1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();

@@ -142,12 +142,14 @@ namespace Classification_App
                 progressCounter++;
                 Log.LogMessage(ONLY_ONE_CLASS);
                 Log.LogMessage("");
-                PrintProgress(progressCounter, 1);
                 return predictedResults;
             }
             foreach (SVMParameter SVMpara in Parameters)
             {
-                PrintProgress(progressCounter, 1);
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(progressCounter, Parameters.Count);
+                }
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
                 try
@@ -184,8 +186,10 @@ namespace Classification_App
                 PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x => (int)x));
                 predictedResults.Add(pR);
                 progressCounter++;
-
-                PrintProgress(progressCounter, 1);
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(progressCounter, Parameters.Count);
+                }
             }
 
             return predictedResults;
@@ -261,12 +265,6 @@ namespace Classification_App
             }
             return temp;
         }
-
-        private void PrintProgress(int progress, int combinations)
-        {
-            Log.LogMessageSameLine("Done (" + progress + "/" + Parameters.Count * combinations + ")");
-        }
-
         public override string ToString()
         {
             return Name;
