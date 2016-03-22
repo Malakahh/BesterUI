@@ -105,10 +105,6 @@ namespace Classification_App
                 double magnitude = Math.Sqrt(c.real * c.real + c.imag * c.imag);
                 bandPower += Math.Pow(magnitude, 2);
             }
-
-            //Convert to dB
-            bandPower = FFT.Amplitude2Decibel(bandPower);
-
             //Add to list of frequency bands
             AbsoluteBandPower.Add(def.Label, bandPower);
             totalFrequencyPower += bandPower;

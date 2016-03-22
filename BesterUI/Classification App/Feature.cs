@@ -10,7 +10,6 @@ namespace Classification_App
 {
     public class Feature
     {
-        public static int infiniteCounter = 0;
         public readonly string name;
         Func<List<DataReading>, SAMDataPoint, double> featureCalculator;
         List<DataReading> dataReadings;

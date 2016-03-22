@@ -389,7 +389,7 @@ namespace Classification_App
         private bool skipGSR = false;
         private bool skipEEG = false;
         private bool skipFace = false;
-        private bool skipHR = true;
+        private bool skipHR = false;
         private bool doMetas = false;
 
         ExcelHandler eh;
@@ -604,9 +604,9 @@ namespace Classification_App
                         {
                             Log.LogMessage("Saving " + cnf.Name + "...");
                         }
-
                         //Write normal results
                         eh.Save();
+                        Log.LogMessage("Time for person " + curDat + " calculations was " + stopwatch.Elapsed);
 
                         if (doMetas)
                         {

@@ -106,6 +106,7 @@ namespace BesterUI
         private const int MINIMUM_FACE_FILE_SIZE = 7000;
         private const int MINIMUM_HR_FILE_SIZE = 1000;
         private const int MINIMUM_EEG_FILE_SIZE = 45000;
+        private const int EEG_FILTER_MIN_VALUE = 700;
 
         public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT)
         {
@@ -133,7 +134,7 @@ namespace BesterUI
                         if (size > MINIMUM_EEG_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading EEG data");
-                            eegData = DataReading.LoadFromFile<EEGDataReading>(file, dT);
+                            eegData = EEGFilter(DataReading.LoadFromFile<EEGDataReading>(file, dT), EEG_FILTER_MIN_VALUE);
                             shouldRun.Add(s, true);
                         }
                         else
@@ -176,8 +177,16 @@ namespace BesterUI
             return shouldRun;
         }
 
+        public static List<EEGDataReading> EEGFilter(List<EEGDataReading> data, double lowerLimit)
+        {
+            Log.LogMessage("Removing artifacts from EEG data");
+           return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
+        }
+
+
         public static List<GSRDataReading> GSRMedianFilter(List<GSRDataReading> data, int windowSize)
         {
+            Log.LogMessage("Doing median filter on GSR data");
             List<GSRDataReading> newValues = new List<GSRDataReading>();
             GSRDataReading LastValue = null;
             for (int i = 0; i < data.Count - windowSize; i++)

@@ -235,7 +235,13 @@ namespace Classification_App
             List<FFT> ffts = new List<FFT>();
             for (int i = 0; i < data.Count - FFT.SAMPLING_WINDOW_LENGTH; i++)
             {
-                ffts.Add(new FFT(data.Skip(i).Take(FFT.SAMPLING_WINDOW_LENGTH).Select(x => valueAccesor(x)).ToList()));
+                FFT temp = new FFT(data.Skip(i).Take(FFT.SAMPLING_WINDOW_LENGTH).Select(x => valueAccesor(x)).ToList());
+                if (double.IsNegativeInfinity(temp.AbsoluteBandPower[BFD.Label]))
+                {
+                    int j = 0;
+                }
+                ffts.Add(temp);
+
             }
 
             return ffts.Average(x => x.AbsoluteBandPower[BFD.Label]);
