@@ -703,6 +703,7 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
+                    this.Text = curDat + "/" + maxDat + " -> " + item;
                     if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
