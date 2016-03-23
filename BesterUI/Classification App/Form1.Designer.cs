@@ -59,6 +59,7 @@
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.prg_meta = new System.Windows.Forms.ProgressBar();
+            this.prg_meta_txt = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -367,11 +368,21 @@
             this.prg_meta.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.prg_meta.TabIndex = 14;
             // 
+            // prg_meta_txt
+            // 
+            this.prg_meta_txt.AutoSize = true;
+            this.prg_meta_txt.Location = new System.Drawing.Point(398, 18);
+            this.prg_meta_txt.Name = "prg_meta_txt";
+            this.prg_meta_txt.Size = new System.Drawing.Size(35, 13);
+            this.prg_meta_txt.TabIndex = 15;
+            this.prg_meta_txt.Text = "label2";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 505);
+            this.Controls.Add(this.prg_meta_txt);
             this.Controls.Add(this.prg_meta);
             this.Controls.Add(this.Label);
             this.Controls.Add(this.threadBox);
@@ -427,6 +438,7 @@
         private System.Windows.Forms.ComboBox threadBox;
         private System.Windows.Forms.Label Label;
         private System.Windows.Forms.ProgressBar prg_meta;
+        private System.Windows.Forms.Label prg_meta_txt;
     }
 }
 

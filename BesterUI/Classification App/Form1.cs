@@ -384,8 +384,7 @@ namespace Classification_App
         volatile int eegTot = 1;
         volatile int faceProg = 0;
         volatile int faceTot = 1;
-        volatile int stackProg = 0;
-        volatile int stackTot = 1;
+
 
         //Debug purposes
         private bool skipGSR = false;
@@ -462,7 +461,7 @@ namespace Classification_App
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
-                        this.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
+                        statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
 
                         gsrProg = 0;
                         gsrTot = 1;
@@ -622,8 +621,6 @@ namespace Classification_App
                         {
                             Log.LogMessage("Creating meta machine..");
                             Log.LogMessage("Doing Stacking");
-                            stackProg = 0;
-                            stackTot = 1;
                             MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
                             //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
                             var res = meta.DoStacking(feel, 1);
@@ -669,6 +666,8 @@ namespace Classification_App
 
         #endregion
 
+        volatile int metaProg = 0;
+        volatile int metaMax = 1;
         private void btn_metaAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -726,7 +725,7 @@ namespace Classification_App
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
-                        this.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
+                        statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
                         SVMConfiguration gsrConf;
                         SVMConfiguration eegConf;
@@ -759,17 +758,31 @@ namespace Classification_App
                         }
 
                         Log.LogMessage("Creating meta machine..");
-                        Log.LogMessage("Doing Stacking");
-                        stackProg = 0;
-                        stackTot = 1;
-                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
-                        //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
-                        Log.LogMessage("Doing voting");
-                        var voteRes = meta.DoVoting(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
-                        DPH.done["Voting" + feel] = true;
-                        DPH.SaveProgress();
 
+
+                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
+                        prg_meta.Minimum = 0;
+
+
+                        meta.UpdateCallback = (cur, max) => { metaProg = cur; metaMax = max; };
+                        Thread tVote = new Thread(() =>
+                        {
+                            var voteRes = meta.DoVoting(feel, 1);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                            DPH.done["Voting" + feel] = true;
+                            DPH.SaveProgress();
+                        });
+                        tVote.Priority = threadPrio;
+                        Log.LogMessage("Doing voting");
+                        tVote.Start();
+                        while (tVote != null && tVote.IsAlive)
+                        {
+                            Thread.Sleep(500);
+                            prg_meta.Maximum = metaMax;
+                            prg_meta.Value = metaProg;
+                            prg_meta_txt.Text = "Voting: " + metaProg + " / " + metaMax;
+                            Application.DoEvents();
+                        }
 
                         Thread tStack = new Thread(() =>
                         {
@@ -782,14 +795,16 @@ namespace Classification_App
                             SaveConfiguration(meta.GetConfiguration());
                         });
                         tStack.Priority = threadPrio;
-                        prg_meta.Minimum = 0;
-                        meta.UpdateCallback = (cur, max) => { prg_meta.Maximum = max; prg_meta.Value = cur; };
 
+                        Log.LogMessage("Doing Stacking");
                         tStack.Start();
 
                         while (tStack != null && tStack.IsAlive)
                         {
                             Thread.Sleep(500);
+                            prg_meta.Maximum = metaMax;
+                            prg_meta.Value = metaProg;
+                            prg_meta_txt.Text = "Stacking: " + metaProg + " / " + metaMax;
                             Application.DoEvents();
                         }
                     }
