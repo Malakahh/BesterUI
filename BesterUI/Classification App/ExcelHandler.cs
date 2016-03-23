@@ -509,7 +509,7 @@ namespace Classification_App
 
             #region[Score Formulas]
             string avgFormula = "=AVERAGE(First:Last!C";
-            string stdevFormula = "=STDEV.S(First:Last!C"; //TODO: Find out whether to use stdev.s or .p
+            string stdevFormula = "=STDEV.P(First:Last!C";
             string endFormula = ")";
             //A2High AVG and Stdev
             for (int i = 0; i < scoring2Labels.Count; i++)
