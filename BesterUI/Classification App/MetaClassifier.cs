@@ -88,8 +88,13 @@ namespace Classification_App
         {
             List<PredictionResult> classifiers = new List<PredictionResult>();
             //For each classifier run a crossvalidation and find the best params
+            int prg = 0;
             foreach (StdClassifier classifier in standardClassifiers)
             {
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(prg++, standardClassifiers.Count);
+                }
                 List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat);
                 classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
             }
