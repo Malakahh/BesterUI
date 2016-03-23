@@ -765,50 +765,56 @@ namespace Classification_App
 
 
                         meta.UpdateCallback = (cur, max) => { metaProg = cur; metaMax = max; };
-                        Thread tVote = new Thread(() =>
+
+                        if (!DPH.done["Voting" + feel])
                         {
-                            var voteRes = meta.DoVoting(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
-                            DPH.done["Voting" + feel] = true;
-                            DPH.SaveProgress();
-                        });
-                        tVote.Priority = threadPrio;
-                        Log.LogMessage("Doing voting");
-                        tVote.Start();
-                        while (tVote != null && tVote.IsAlive)
-                        {
-                            Thread.Sleep(500);
-                            prg_meta.Maximum = metaMax;
-                            prg_meta.Value = metaProg;
-                            prg_meta_txt.Text = "Voting: " + metaProg + " / " + metaMax;
-                            Application.DoEvents();
+                            Thread tVote = new Thread(() =>
+                            {
+                                var voteRes = meta.DoVoting(feel, 1);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                                DPH.done["Voting" + feel] = true;
+                                DPH.SaveProgress();
+                            });
+                            tVote.Priority = threadPrio;
+                            Log.LogMessage("Doing voting");
+                            tVote.Start();
+                            while (tVote != null && tVote.IsAlive)
+                            {
+                                Thread.Sleep(500);
+                                prg_meta.Maximum = metaMax;
+                                prg_meta.Value = metaProg;
+                                prg_meta_txt.Text = "Voting: " + metaProg + " / " + metaMax;
+                                Application.DoEvents();
+                            }
+                            eh.Save();
                         }
-                        eh.Save();
 
 
-
-                        Thread tStack = new Thread(() =>
+                        if (!DPH.done["Stacking" + feel])
                         {
-                            var res = meta.DoStacking(feel, 1);
-                            var bestRes = meta.FindBestFScorePrediction(res);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
-                            DPH.done["Stacking" + feel] = true;
-                            DPH.SaveProgress();
-                            meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
-                            SaveConfiguration(meta.GetConfiguration());
-                        });
-                        tStack.Priority = threadPrio;
-                        Log.LogMessage("Doing Stacking");
-                        tStack.Start();
-                        while (tStack != null && tStack.IsAlive)
-                        {
-                            Thread.Sleep(500);
-                            prg_meta.Maximum = metaMax;
-                            prg_meta.Value = metaProg;
-                            prg_meta_txt.Text = "Stacking: " + metaProg + " / " + metaMax;
-                            Application.DoEvents();
+                            Thread tStack = new Thread(() =>
+                            {
+                                var res = meta.DoStacking(feel, 1);
+                                var bestRes = meta.FindBestFScorePrediction(res);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                                DPH.done["Stacking" + feel] = true;
+                                DPH.SaveProgress();
+                                meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+                                SaveConfiguration(meta.GetConfiguration());
+                            });
+                            tStack.Priority = threadPrio;
+                            Log.LogMessage("Doing Stacking");
+                            tStack.Start();
+                            while (tStack != null && tStack.IsAlive)
+                            {
+                                Thread.Sleep(500);
+                                prg_meta.Maximum = metaMax;
+                                prg_meta.Value = metaProg;
+                                prg_meta_txt.Text = "Stacking: " + metaProg + " / " + metaMax;
+                                Application.DoEvents();
+                            }
+                            eh.Save();
                         }
-                        eh.Save();
                     }
 
                     curDat++;
