@@ -441,6 +441,8 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
+                    this.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + item;
+
                     if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
@@ -703,7 +705,7 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-                    this.Text = curDat + "/" + maxDat + " -> " + item;
+                    this.Text = "META: " + curDat + "/" + maxDat + " -> " + item;
                     if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
