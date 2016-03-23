@@ -56,6 +56,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
             this.btn_metaAll = new System.Windows.Forms.Button();
+            this.threadBox = new System.Windows.Forms.ComboBox();
+            this.Label = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -338,11 +340,31 @@
             this.btn_metaAll.UseVisualStyleBackColor = true;
             this.btn_metaAll.Click += new System.EventHandler(this.btn_metaAll_Click);
             // 
+            // threadBox
+            // 
+            this.threadBox.FormattingEnabled = true;
+            this.threadBox.Location = new System.Drawing.Point(446, 70);
+            this.threadBox.Name = "threadBox";
+            this.threadBox.Size = new System.Drawing.Size(107, 21);
+            this.threadBox.TabIndex = 8;
+            this.threadBox.SelectedIndexChanged += new System.EventHandler(this.threadBox_SelectedIndexChanged);
+            // 
+            // Label
+            // 
+            this.Label.AutoSize = true;
+            this.Label.Location = new System.Drawing.Point(443, 54);
+            this.Label.Name = "Label";
+            this.Label.Size = new System.Drawing.Size(65, 13);
+            this.Label.TabIndex = 9;
+            this.Label.Text = "Thread Prio.";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 505);
+            this.Controls.Add(this.Label);
+            this.Controls.Add(this.threadBox);
             this.Controls.Add(this.btn_metaAll);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.label1);
@@ -392,6 +414,8 @@
         private System.Windows.Forms.Label GSR;
         private System.Windows.Forms.ProgressBar gsrBar;
         private System.Windows.Forms.Button btn_metaAll;
+        private System.Windows.Forms.ComboBox threadBox;
+        private System.Windows.Forms.Label Label;
     }
 }
 

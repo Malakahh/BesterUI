@@ -35,6 +35,8 @@ namespace Classification_App
             features = chklist_Features.Items;
 
             FeatureCreator.allFeatures.ForEach(x => features.Add(x, false));
+            threadBox.Items.AddRange(Enum.GetNames(typeof(ThreadPriority)));
+            threadBox.SelectedItem = ThreadPriority.Highest.ToString();
 
             Log.LogBox = richTextBox1;
             this.FormClosing += Form1_FormClosing;
@@ -392,6 +394,8 @@ namespace Classification_App
         private bool skipHR = false;
         private bool doMetas = false;
 
+        private ThreadPriority threadPrio = ThreadPriority.Normal;
+
         ExcelHandler eh;
         Thread gsrThread = null;
         Thread hrThread = null;
@@ -478,7 +482,7 @@ namespace Classification_App
                             shouldRun["GSR.dat"])
                         {
                             gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
-                            gsrThread.Priority = ThreadPriority.Highest;
+                            gsrThread.Priority = threadPrio;
                             gsrThread.Start();
                         }
                         else
@@ -492,7 +496,7 @@ namespace Classification_App
                                 (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                     ? FeatureCreator.HRValenceOptimizationFeatures : FeatureCreator.HRArousalOptimizationFeatures,
                                 feel, (cur, max) => { hrProg = cur; hrTot = max; });
-                            hrThread.Priority = ThreadPriority.Highest;
+                            hrThread.Priority = threadPrio;
                             hrThread.Start();
                         }
                         else
@@ -506,7 +510,7 @@ namespace Classification_App
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                     ? FeatureCreator.EEGValenceOptimizationFeatures : FeatureCreator.EEGArousalOptimizationFeatures,
                                  feel, (cur, max) => { eegProg = cur; eegTot = max; });
-                            eegThread.Priority = ThreadPriority.Highest;
+                            eegThread.Priority = threadPrio;
                             eegThread.Start();
                         }
                         else
@@ -520,7 +524,7 @@ namespace Classification_App
                                                              (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                                                 ? FeatureCreator.FACEValenceOptimizationFeatures : FeatureCreator.FACEArousalOptimizationFeatures,
                                                              feel, (cur, max) => { faceProg = cur; faceTot = max; });
-                            faceThread.Priority = ThreadPriority.Highest;
+                            faceThread.Priority = threadPrio;
                             faceThread.Start();
                         }
                         else
@@ -784,6 +788,11 @@ namespace Classification_App
             }
 
             btn_LoadData.Enabled = true;
+        }
+
+        private void threadBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            threadPrio = (ThreadPriority)Enum.Parse(typeof(ThreadPriority), threadBox.SelectedItem.ToString());
         }
     }
 }
