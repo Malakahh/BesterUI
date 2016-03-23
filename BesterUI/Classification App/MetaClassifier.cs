@@ -98,6 +98,10 @@ namespace Classification_App
                 List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat);
                 classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
             }
+            if (UpdateCallback != null)
+            {
+                UpdateCallback(standardClassifiers.Count, standardClassifiers.Count);
+            }
             int labelCount = SAMData.GetNumberOfLabels(feelingsmodel);
 
             //Full List of indicies
