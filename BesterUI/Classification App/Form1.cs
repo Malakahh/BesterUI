@@ -25,7 +25,7 @@ namespace Classification_App
         CheckedListBox.ObjectCollection svmConfs;
         CheckedListBox.ObjectCollection metaConfs;
         CheckedListBox.ObjectCollection features;
-        
+
 
         public Form1()
         {
@@ -84,7 +84,7 @@ namespace Classification_App
         {
             if (!svmConfs.Contains(conf))
             {
-                this.Invoke((MethodInvoker)delegate {svmConfs.Add(conf);});
+                this.Invoke((MethodInvoker)delegate { svmConfs.Add(conf); });
             }
 
             if (!Directory.Exists(currentPath + @"\STD"))
@@ -177,7 +177,7 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            shouldRun =  _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat"}, samData.startTime);
+            shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
@@ -430,7 +430,7 @@ namespace Classification_App
                 List<SVMParameter> parameters = GenerateSVMParameters();
 
                 //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
-                
+
 
                 int curDat = 1;
                 int maxDat = dataFolders.Length;
@@ -469,11 +469,11 @@ namespace Classification_App
                         bool hrWrite = false;
                         bool eegWrite = false;
                         bool faceWrite = false;
-                        
+
                         if (feel != SAMDataPoint.FeelingModel.Valence2High &&
                             feel != SAMDataPoint.FeelingModel.Valence2Low &&
                             feel != SAMDataPoint.FeelingModel.Valence3 &&
-                            !skipGSR&&
+                            !skipGSR &&
                             !DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] &&
                             shouldRun["GSR.dat"])
                         {
@@ -485,7 +485,7 @@ namespace Classification_App
                         {
                             Log.LogMessage("GSR skipping");
                         }
-                        
+
                         if (!DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipHR && shouldRun["HR.dat"])
                         {
                             hrThread = CreateMachineThread("HR", parameters,
@@ -499,8 +499,8 @@ namespace Classification_App
                         {
                             Log.LogMessage("HR skipping");
                         }
-                        
-                        if (!DPH.done["EEG"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipEEG && shouldRun["EEG.dat"])
+
+                        if (!DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipEEG && shouldRun["EEG.dat"])
                         {
                             eegThread = CreateMachineThread("EEG", parameters,
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
@@ -513,7 +513,7 @@ namespace Classification_App
                         {
                             Log.LogMessage("EEG skipping");
                         }
-                        
+
                         if (!DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipFace && shouldRun["KINECT.dat"])
                         {
                             faceThread = CreateMachineThread("FACE", parameters,
@@ -601,7 +601,7 @@ namespace Classification_App
                         }
 
                         Log.LogMessage("Done with single machine searching.");
-                        
+
                         foreach (var cnf in confs)
                         {
                             Log.LogMessage("Saving " + cnf.Name + "...");
@@ -661,5 +661,124 @@ namespace Classification_App
 
         #endregion
 
+        private void btn_metaAll_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                Log.LogMessage("Starting Stopwatch");
+                List<SAMDataPoint.FeelingModel> feelings = new List<SAMDataPoint.FeelingModel>()
+                {
+                    SAMDataPoint.FeelingModel.Arousal2High,
+                    SAMDataPoint.FeelingModel.Arousal2Low,
+                    SAMDataPoint.FeelingModel.Arousal3,
+                    SAMDataPoint.FeelingModel.Valence2Low,
+                    SAMDataPoint.FeelingModel.Valence2High,
+                    SAMDataPoint.FeelingModel.Valence3
+                };
+
+                eh = new ExcelHandler(fbd.SelectedPath);
+                if (!eh.BooksOpen)
+                {
+                    Log.LogMessage("Cannot open or write to books");
+                    return;
+                }
+
+                btn_LoadData.Enabled = false;
+                var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
+                List<SVMParameter> parameters = GenerateSVMParameters();
+
+                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+
+
+                int curDat = 1;
+                int maxDat = dataFolders.Length;
+
+                foreach (var item in dataFolders)
+                {
+                    if (item.Split('\\').Last() == "Stats")
+                    {
+                        Log.LogMessage("Stats folder skipping");
+                        continue;
+                    }
+                    DataProgressHandler DPH = new DataProgressHandler(item);
+                    if (DPH.MetaDone)
+                    {
+                        Log.LogMessage("Already did " + item + ", skipping..");
+                        curDat++;
+                        continue;
+                    }
+
+                    string personName = item.Split('\\').Last();
+                    eh.AddPersonToBooks(personName);
+
+                    LoadData(item);
+                    foreach (var feel in feelings)
+                    {
+                        List<SVMConfiguration> confs = new List<SVMConfiguration>();
+                        SVMConfiguration gsrConf;
+                        SVMConfiguration eegConf;
+                        SVMConfiguration hrConf;
+                        SVMConfiguration faceConf;
+
+                        gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
+                        hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                        eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                        faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
+
+                        if (gsrConf != null)
+                        {
+                            confs.Add(gsrConf);
+                        }
+
+                        if (eegConf != null)
+                        {
+                            confs.Add(eegConf);
+                        }
+
+                        if (hrConf != null)
+                        {
+                            confs.Add(hrConf);
+                        }
+
+                        if (faceConf != null)
+                        {
+                            confs.Add(faceConf);
+                        }
+
+                        Log.LogMessage("Creating meta machine..");
+                        Log.LogMessage("Doing Stacking");
+                        stackProg = 0;
+                        stackTot = 1;
+                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
+                        //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
+                        var res = meta.DoStacking(feel, 1);
+                        var bestRes = meta.FindBestFScorePrediction(res);
+
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+
+                        meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+
+                        SaveConfiguration(meta.GetConfiguration());
+
+                        Log.LogMessage("Doing voting");
+                        var voteRes = meta.DoVoting(feel, 1);
+                        eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                    }
+
+                    curDat++;
+                    eh.Save();
+                    Log.LogMessage("DonnoDK");
+                }
+                eh.CloseBooks();
+                Log.LogMessage("Closing books and saving");
+                Log.LogMessage("Done in: " + stopwatch.Elapsed);
+            }
+
+            btn_LoadData.Enabled = true;
+        }
     }
 }

@@ -11,13 +11,14 @@ namespace Classification_App
     {
         public Dictionary<string, bool> done = new Dictionary<string, bool>();
         public bool AllDone = false;
+        public bool MetaDone = false;
         private string Path = "";
 
         public DataProgressHandler(string path)
         {
             Path = path;
             string[] files = Directory.GetFiles(path);
-            if (!files.Contains(path+"\\progress.file"))
+            if (!files.Contains(path + "\\progress.file"))
             {
                 GenerateProgressFile(path);
             }
@@ -28,14 +29,27 @@ namespace Classification_App
 
                 if (fraction[0] != "AllDone")
                 {
-                    done.Add(fraction[0], bool.Parse(fraction[1]));
+                    if (fraction[0] != "MetaDone")
+                    {
+                        done.Add(fraction[0], bool.Parse(fraction[1]));
+                    }
+                    else
+                    {
+                        if (bool.Parse(fraction[1]))
+                        {
+                            MetaDone = true;
+                        }
+                        else
+                        {
+                            MetaDone = false;
+                        }
+                    }
                 }
                 else
                 {
                     if (bool.Parse(fraction[1]))
                     {
                         AllDone = true;
-                        break;
                     }
                     else
                     {
@@ -44,21 +58,28 @@ namespace Classification_App
                 }
             }
 
+            //if the file does not contain information about meta (ie. old save format)
+            if (done.Keys.Count(x => x.Contains("Voting")) == 0)
+            {
+                //convert to new type
+                AddMissingMeta();
+            }
         }
 
         private void GenerateProgressFile(string path)
         {
             List<string> lines = new List<string>();
             lines.Add("AllDone:false");
+            lines.Add("MetaDone:false");
             //GSR
-            lines.Add("GSR"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High)+ ":false");
+            lines.Add("GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High) + ":false");
             lines.Add("GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2Low) + ":false");
-            lines.Add("GSR"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3)+":false");
+            lines.Add("GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3) + ":false");
 
             //EEG
-            lines.Add("EEG"+Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High)+":false");
+            lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2High) + ":false");
             lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal2Low) + ":false");
-            lines.Add("EEG"+ Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3) + ":false");
+            lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Arousal3) + ":false");
             lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2High) + ":false");
             lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2Low) + ":false");
             lines.Add("EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence3) + ":false");
@@ -76,20 +97,27 @@ namespace Classification_App
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2High) + ":false");
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence2Low) + ":false");
             lines.Add("HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), SAMDataPoint.FeelingModel.Valence3) + ":false");
+
+            //meta
+            foreach (var item in Enum.GetNames(typeof(SAMDataPoint.FeelingModel)))
+            {
+                lines.Add("Voting" + item + ":false");
+            }
+
+            foreach (var item in Enum.GetNames(typeof(SAMDataPoint.FeelingModel)))
+            {
+                lines.Add("Stacking" + item + ":false");
+            }
+
             File.WriteAllLines(path + @"/progress.file", lines);
         }
 
         public void SaveProgress()
         {
             List<string> lines = new List<string>();
-            if (done.Values.All(x => x))
-            {
-                lines.Add("AllDone:true");
-            }
-            else
-            {
-                lines.Add("AllDone:false");
-            }
+
+            lines.Add("AllDone:" + AllDone);
+            lines.Add("MetaDone:" + MetaDone);
 
             foreach (string s in done.Keys)
             {
@@ -99,6 +127,19 @@ namespace Classification_App
             File.WriteAllLines(Path + @"/progress.file", lines);
 
         }
+
+        public void AddMissingMeta()
+        {
+            foreach (var item in Enum.GetNames(typeof(SAMDataPoint.FeelingModel)))
+            {
+                done.Add("Voting" + item, false);
+            }
+
+            foreach (var item in Enum.GetNames(typeof(SAMDataPoint.FeelingModel)))
+            {
+                done.Add("Stacking" + item, false);
+            }
+        }
     }
-    
+
 }

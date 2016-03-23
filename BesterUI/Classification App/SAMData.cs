@@ -82,12 +82,12 @@ namespace Classification_App
 
                 case SAMDataPoint.FeelingModel.Valence3:
                 case SAMDataPoint.FeelingModel.Arousal3:
-                case SAMDataPoint.FeelingModel.ValenceArousal3:
+                    //case SAMDataPoint.FeelingModel.ValenceArousal3:
                     return 3;
 
-                case SAMDataPoint.FeelingModel.Valence9:
-                case SAMDataPoint.FeelingModel.Arousal9:
-                    return 9;
+                //case SAMDataPoint.FeelingModel.Valence9:
+                //case SAMDataPoint.FeelingModel.Arousal9:
+                //    return 9;
 
                 default:
                     return 0;
@@ -128,28 +128,28 @@ namespace Classification_App
 
             switch (classType)
             {
-                case FeelingModel.Valence9:
-                    return valenceToUse;
+                //case FeelingModel.Valence9:
+                //    return valenceToUse;
                 case FeelingModel.Valence3:
                     return valenceToUse < 3 ? 0 : (valenceToUse < 4 ? 1 : 2);
                 case FeelingModel.Valence2Low:
                     return valenceToUse < 4 ? 0 : 1;
                 case FeelingModel.Valence2High:
                     return valenceToUse < 5 ? 0 : 1;
-                case FeelingModel.Arousal9:
-                    return arousalToUse;
+                //case FeelingModel.Arousal9:
+                //    return arousalToUse;
                 case FeelingModel.Arousal3:
                     return arousalToUse < 3 ? 0 : (arousalToUse < 6 ? 1 : 2);
                 case FeelingModel.Arousal2Low:
                     return arousalToUse < 4 ? 0 : 1;
                 case FeelingModel.Arousal2High:
                     return arousalToUse < 5 ? 0 : 1;
-                case FeelingModel.ValenceArousal9:
-                    return (valenceToUse) * 9 + arousalToUse;
-                case FeelingModel.ValenceArousal3:
-                    int val3 = valenceToUse < 3 ? 0 : (valenceToUse < 6 ? 1 : 2);
-                    int aro3 = arousalToUse < 3 ? 0 : (arousalToUse < 6 ? 1 : 2);
-                    return val3 * 3 + aro3;
+                //case FeelingModel.ValenceArousal9:
+                //    return (valenceToUse) * 9 + arousalToUse;
+                //case FeelingModel.ValenceArousal3:
+                //    int val3 = valenceToUse < 3 ? 0 : (valenceToUse < 6 ? 1 : 2);
+                //    int aro3 = arousalToUse < 3 ? 0 : (arousalToUse < 6 ? 1 : 2);
+                //    return val3 * 3 + aro3;
                 default:
                     {
                         return -1;
@@ -160,16 +160,12 @@ namespace Classification_App
 
         public enum FeelingModel
         {
-            Valence9,
             Valence3,
             Valence2Low,
             Valence2High,
-            Arousal9,
             Arousal3,
             Arousal2Low,
-            Arousal2High,
-            ValenceArousal9,
-            ValenceArousal3
+            Arousal2High
         }
     }
 
