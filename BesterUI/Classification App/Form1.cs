@@ -461,7 +461,7 @@ namespace Classification_App
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
-                        statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
+                        statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
 
                         gsrProg = 0;
                         gsrTot = 1;
@@ -725,7 +725,7 @@ namespace Classification_App
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
-                        statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
+                        statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
                         SVMConfiguration gsrConf;
                         SVMConfiguration eegConf;
@@ -783,6 +783,9 @@ namespace Classification_App
                             prg_meta_txt.Text = "Voting: " + metaProg + " / " + metaMax;
                             Application.DoEvents();
                         }
+                        eh.Save();
+
+
 
                         Thread tStack = new Thread(() =>
                         {
@@ -795,10 +798,8 @@ namespace Classification_App
                             SaveConfiguration(meta.GetConfiguration());
                         });
                         tStack.Priority = threadPrio;
-
                         Log.LogMessage("Doing Stacking");
                         tStack.Start();
-
                         while (tStack != null && tStack.IsAlive)
                         {
                             Thread.Sleep(500);
@@ -807,6 +808,7 @@ namespace Classification_App
                             prg_meta_txt.Text = "Stacking: " + metaProg + " / " + metaMax;
                             Application.DoEvents();
                         }
+                        eh.Save();
                     }
 
                     curDat++;
@@ -824,6 +826,11 @@ namespace Classification_App
         private void threadBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             threadPrio = (ThreadPriority)Enum.Parse(typeof(ThreadPriority), threadBox.SelectedItem.ToString());
+        }
+
+        private void prg_meta_Click(object sender, EventArgs e)
+        {
+            Log.LogMessage("Don't click the progress bar pls");
         }
     }
 }

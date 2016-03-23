@@ -362,19 +362,20 @@
             // 
             // prg_meta
             // 
-            this.prg_meta.Location = new System.Drawing.Point(292, 12);
+            this.prg_meta.Location = new System.Drawing.Point(292, 5);
             this.prg_meta.Name = "prg_meta";
-            this.prg_meta.Size = new System.Drawing.Size(261, 23);
+            this.prg_meta.Size = new System.Drawing.Size(261, 36);
             this.prg_meta.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.prg_meta.TabIndex = 14;
+            this.prg_meta.Click += new System.EventHandler(this.prg_meta_Click);
             // 
             // prg_meta_txt
             // 
-            this.prg_meta_txt.AutoSize = true;
-            this.prg_meta_txt.Location = new System.Drawing.Point(398, 18);
+            this.prg_meta_txt.Location = new System.Drawing.Point(304, 16);
             this.prg_meta_txt.Name = "prg_meta_txt";
-            this.prg_meta_txt.Size = new System.Drawing.Size(0, 13);
+            this.prg_meta_txt.Size = new System.Drawing.Size(244, 15);
             this.prg_meta_txt.TabIndex = 15;
+            this.prg_meta_txt.Text = "tralala";
             this.prg_meta_txt.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // Form1
