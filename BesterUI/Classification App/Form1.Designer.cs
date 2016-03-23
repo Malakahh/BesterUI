@@ -375,7 +375,6 @@
             this.prg_meta_txt.Name = "prg_meta_txt";
             this.prg_meta_txt.Size = new System.Drawing.Size(244, 15);
             this.prg_meta_txt.TabIndex = 15;
-            this.prg_meta_txt.Text = "tralala";
             this.prg_meta_txt.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // Form1
