@@ -441,7 +441,7 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-                    this.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + item;
+
 
                     if (item.Split('\\').Last() == "Stats")
                     {
@@ -462,6 +462,8 @@ namespace Classification_App
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
+                        this.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
+
                         gsrProg = 0;
                         gsrTot = 1;
                         hrProg = 0;
@@ -705,7 +707,6 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-                    this.Text = "META: " + curDat + "/" + maxDat + " -> " + item;
                     if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
@@ -725,6 +726,7 @@ namespace Classification_App
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
+                        this.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item;
                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
                         SVMConfiguration gsrConf;
                         SVMConfiguration eegConf;
