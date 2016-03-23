@@ -764,23 +764,34 @@ namespace Classification_App
                         stackTot = 1;
                         MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
                         //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
-                        var res = meta.DoStacking(feel, 1);
-                        var bestRes = meta.FindBestFScorePrediction(res);
-
-
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
-                        DPH.done["Stacking" + feel] = true;
-                        DPH.SaveProgress();
-
-                        meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
-
-                        SaveConfiguration(meta.GetConfiguration());
-
                         Log.LogMessage("Doing voting");
                         var voteRes = meta.DoVoting(feel, 1);
                         eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
                         DPH.done["Voting" + feel] = true;
                         DPH.SaveProgress();
+
+
+                        Thread tStack = new Thread(() =>
+                        {
+                            var res = meta.DoStacking(feel, 1);
+                            var bestRes = meta.FindBestFScorePrediction(res);
+                            eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                            DPH.done["Stacking" + feel] = true;
+                            DPH.SaveProgress();
+                            meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+                            SaveConfiguration(meta.GetConfiguration());
+                        });
+                        tStack.Priority = threadPrio;
+                        prg_meta.Minimum = 0;
+                        meta.UpdateCallback = (cur, max) => { prg_meta.Maximum = max; prg_meta.Value = cur; };
+
+                        tStack.Start();
+
+                        while (tStack != null && tStack.IsAlive)
+                        {
+                            Thread.Sleep(500);
+                            Application.DoEvents();
+                        }
                     }
 
                     curDat++;

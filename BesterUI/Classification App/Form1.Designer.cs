@@ -58,6 +58,7 @@
             this.btn_metaAll = new System.Windows.Forms.Button();
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
+            this.prg_meta = new System.Windows.Forms.ProgressBar();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -358,11 +359,20 @@
             this.Label.TabIndex = 9;
             this.Label.Text = "Thread Prio.";
             // 
+            // prg_meta
+            // 
+            this.prg_meta.Location = new System.Drawing.Point(292, 12);
+            this.prg_meta.Name = "prg_meta";
+            this.prg_meta.Size = new System.Drawing.Size(261, 23);
+            this.prg_meta.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.prg_meta.TabIndex = 14;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 505);
+            this.Controls.Add(this.prg_meta);
             this.Controls.Add(this.Label);
             this.Controls.Add(this.threadBox);
             this.Controls.Add(this.btn_metaAll);
@@ -416,6 +426,7 @@
         private System.Windows.Forms.Button btn_metaAll;
         private System.Windows.Forms.ComboBox threadBox;
         private System.Windows.Forms.Label Label;
+        private System.Windows.Forms.ProgressBar prg_meta;
     }
 }
 
