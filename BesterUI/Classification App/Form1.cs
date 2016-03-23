@@ -758,7 +758,10 @@ namespace Classification_App
                         var res = meta.DoStacking(feel, 1);
                         var bestRes = meta.FindBestFScorePrediction(res);
 
+
                         eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                        DPH.done["Stacking" + feel] = true;
+                        DPH.SaveProgress();
 
                         meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
 
@@ -767,6 +770,8 @@ namespace Classification_App
                         Log.LogMessage("Doing voting");
                         var voteRes = meta.DoVoting(feel, 1);
                         eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                        DPH.done["Voting" + feel] = true;
+                        DPH.SaveProgress();
                     }
 
                     curDat++;

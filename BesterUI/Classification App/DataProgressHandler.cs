@@ -116,6 +116,24 @@ namespace Classification_App
         {
             List<string> lines = new List<string>();
 
+            if (done.Count(x => !x.Value && !x.Key.Contains("Voting") && !x.Key.Contains("Stacking")) == 0)
+            {
+                AllDone = true;
+            }
+            else
+            {
+                AllDone = false;
+            }
+
+            if (done.Count(x => !x.Value && x.Key.Contains("Voting") || x.Key.Contains("Stacking")) == 0)
+            {
+                MetaDone = true;
+            }
+            else
+            {
+                MetaDone = false;
+            }
+
             lines.Add("AllDone:" + AllDone);
             lines.Add("MetaDone:" + MetaDone);
 
