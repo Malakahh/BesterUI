@@ -30,6 +30,9 @@
         {
             this.logTextBox = new System.Windows.Forms.RichTextBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.facePort = new System.Windows.Forms.Label();
+            this.faceReady = new System.Windows.Forms.Panel();
+            this.label4 = new System.Windows.Forms.Label();
             this.hrPort = new System.Windows.Forms.Label();
             this.gsrPort = new System.Windows.Forms.Label();
             this.eegPort = new System.Windows.Forms.Label();
@@ -44,19 +47,17 @@
             this.button2 = new System.Windows.Forms.Button();
             this.collectingDataPanel = new System.Windows.Forms.Panel();
             this.exportBtn = new System.Windows.Forms.Button();
-            this.faceReady = new System.Windows.Forms.Panel();
-            this.facePort = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.label3 = new System.Windows.Forms.Label();
-            this.rdyLookUp = new System.Windows.Forms.Panel();
-            this.label5 = new System.Windows.Forms.Label();
-            this.rdyLookForward = new System.Windows.Forms.Panel();
-            this.label6 = new System.Windows.Forms.Label();
-            this.rdyLookLeft = new System.Windows.Forms.Panel();
-            this.label7 = new System.Windows.Forms.Label();
             this.rdyLookRight = new System.Windows.Forms.Panel();
             this.label8 = new System.Windows.Forms.Label();
+            this.rdyLookLeft = new System.Windows.Forms.Panel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.rdyLookForward = new System.Windows.Forms.Panel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.rdyLookUp = new System.Windows.Forms.Panel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.runSecondTestChkBox = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -87,6 +88,32 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(102, 107);
             this.panel1.TabIndex = 3;
+            // 
+            // facePort
+            // 
+            this.facePort.AutoSize = true;
+            this.facePort.Location = new System.Drawing.Point(32, 79);
+            this.facePort.Name = "facePort";
+            this.facePort.Size = new System.Drawing.Size(40, 13);
+            this.facePort.TabIndex = 13;
+            this.facePort.Text = "- - - - - -";
+            // 
+            // faceReady
+            // 
+            this.faceReady.BackColor = System.Drawing.Color.Red;
+            this.faceReady.Location = new System.Drawing.Point(75, 77);
+            this.faceReady.Name = "faceReady";
+            this.faceReady.Size = new System.Drawing.Size(16, 16);
+            this.faceReady.TabIndex = 11;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(1, 79);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(34, 13);
+            this.label4.TabIndex = 12;
+            this.label4.Text = "FACE";
             // 
             // hrPort
             // 
@@ -187,9 +214,9 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(664, 12);
+            this.button2.Location = new System.Drawing.Point(664, 35);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(140, 157);
+            this.button2.Size = new System.Drawing.Size(140, 134);
             this.button2.TabIndex = 6;
             this.button2.Text = "START COLLECT";
             this.button2.UseVisualStyleBackColor = true;
@@ -213,32 +240,6 @@
             this.exportBtn.UseVisualStyleBackColor = true;
             this.exportBtn.Click += new System.EventHandler(this.exportBtn_Click);
             // 
-            // faceReady
-            // 
-            this.faceReady.BackColor = System.Drawing.Color.Red;
-            this.faceReady.Location = new System.Drawing.Point(75, 77);
-            this.faceReady.Name = "faceReady";
-            this.faceReady.Size = new System.Drawing.Size(16, 16);
-            this.faceReady.TabIndex = 11;
-            // 
-            // facePort
-            // 
-            this.facePort.AutoSize = true;
-            this.facePort.Location = new System.Drawing.Point(32, 79);
-            this.facePort.Name = "facePort";
-            this.facePort.Size = new System.Drawing.Size(40, 13);
-            this.facePort.TabIndex = 13;
-            this.facePort.Text = "- - - - - -";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(1, 79);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(34, 13);
-            this.label4.TabIndex = 12;
-            this.label4.Text = "FACE";
-            // 
             // panel2
             // 
             this.panel2.Controls.Add(this.rdyLookRight);
@@ -253,66 +254,6 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(113, 107);
             this.panel2.TabIndex = 9;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(208, 9);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(70, 13);
-            this.label3.TabIndex = 10;
-            this.label3.Text = "Kinect Status";
-            // 
-            // rdyLookUp
-            // 
-            this.rdyLookUp.BackColor = System.Drawing.Color.Red;
-            this.rdyLookUp.Location = new System.Drawing.Point(82, 81);
-            this.rdyLookUp.Name = "rdyLookUp";
-            this.rdyLookUp.Size = new System.Drawing.Size(16, 16);
-            this.rdyLookUp.TabIndex = 14;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(8, 83);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(48, 13);
-            this.label5.TabIndex = 15;
-            this.label5.Text = "Look Up";
-            // 
-            // rdyLookForward
-            // 
-            this.rdyLookForward.BackColor = System.Drawing.Color.Red;
-            this.rdyLookForward.Location = new System.Drawing.Point(82, 10);
-            this.rdyLookForward.Name = "rdyLookForward";
-            this.rdyLookForward.Size = new System.Drawing.Size(16, 16);
-            this.rdyLookForward.TabIndex = 16;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(8, 12);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(72, 13);
-            this.label6.TabIndex = 17;
-            this.label6.Text = "Look Forward";
-            // 
-            // rdyLookLeft
-            // 
-            this.rdyLookLeft.BackColor = System.Drawing.Color.Red;
-            this.rdyLookLeft.Location = new System.Drawing.Point(82, 35);
-            this.rdyLookLeft.Name = "rdyLookLeft";
-            this.rdyLookLeft.Size = new System.Drawing.Size(16, 16);
-            this.rdyLookLeft.TabIndex = 18;
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(8, 37);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(52, 13);
-            this.label7.TabIndex = 19;
-            this.label7.Text = "Look Left";
             // 
             // rdyLookRight
             // 
@@ -331,11 +272,82 @@
             this.label8.TabIndex = 21;
             this.label8.Text = "Look Right";
             // 
+            // rdyLookLeft
+            // 
+            this.rdyLookLeft.BackColor = System.Drawing.Color.Red;
+            this.rdyLookLeft.Location = new System.Drawing.Point(82, 35);
+            this.rdyLookLeft.Name = "rdyLookLeft";
+            this.rdyLookLeft.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookLeft.TabIndex = 18;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(8, 37);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(52, 13);
+            this.label7.TabIndex = 19;
+            this.label7.Text = "Look Left";
+            // 
+            // rdyLookForward
+            // 
+            this.rdyLookForward.BackColor = System.Drawing.Color.Red;
+            this.rdyLookForward.Location = new System.Drawing.Point(82, 10);
+            this.rdyLookForward.Name = "rdyLookForward";
+            this.rdyLookForward.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookForward.TabIndex = 16;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(8, 12);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(72, 13);
+            this.label6.TabIndex = 17;
+            this.label6.Text = "Look Forward";
+            // 
+            // rdyLookUp
+            // 
+            this.rdyLookUp.BackColor = System.Drawing.Color.Red;
+            this.rdyLookUp.Location = new System.Drawing.Point(82, 81);
+            this.rdyLookUp.Name = "rdyLookUp";
+            this.rdyLookUp.Size = new System.Drawing.Size(16, 16);
+            this.rdyLookUp.TabIndex = 14;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(8, 83);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(48, 13);
+            this.label5.TabIndex = 15;
+            this.label5.Text = "Look Up";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(208, 9);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(70, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "Kinect Status";
+            // 
+            // runSecondTestChkBox
+            // 
+            this.runSecondTestChkBox.AutoSize = true;
+            this.runSecondTestChkBox.Location = new System.Drawing.Point(680, 12);
+            this.runSecondTestChkBox.Name = "runSecondTestChkBox";
+            this.runSecondTestChkBox.Size = new System.Drawing.Size(110, 17);
+            this.runSecondTestChkBox.TabIndex = 11;
+            this.runSecondTestChkBox.Text = "Run Second Test";
+            this.runSecondTestChkBox.UseVisualStyleBackColor = true;
+            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(816, 311);
+            this.Controls.Add(this.runSecondTestChkBox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.exportBtn);
@@ -386,5 +398,6 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Panel rdyLookLeft;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox runSecondTestChkBox;
     }
 }

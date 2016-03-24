@@ -15,7 +15,7 @@ namespace BesterUI.Data
         public static DateTime? startTime = null;
         public const string dateFormat = "yyyy-MM-dd HH_mm_ss_fff";
         public const string oldDateFormat = "yyyy-MM-dd HH_mm_ss";
-        static Stopwatch stopWatch;
+        public static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
         public long timestamp;

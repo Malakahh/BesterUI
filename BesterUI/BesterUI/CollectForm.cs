@@ -12,6 +12,7 @@ using BesterUI.DataCollectors;
 using System.Threading;
 using BesterUI.Data;
 using System.IO;
+using SecondTest;
 
 namespace BesterUI
 {
@@ -157,33 +158,49 @@ namespace BesterUI
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (!collectingData)
+            //TODO: Hackfix, do this properly later!!!!!!!
+
+            //SecondTest should be run after we start collecting
+
+            if (runSecondTestChkBox.Checked)
             {
-                fusionData.Reset();
-                DataReading.ResetTimers();
+                for (int i = 0; i < 10; i++)
+                {
+                    Log.LogMessage("WARNING: This is running hackfix code. Do NOT use for the actual test. Fix this!");
+                }
 
-                StartTestFromCollector();
-                eegCollect.StartCollect();
-                gsrCollect.StartCollecting();
-                hrCollect.StartCollecting();
-                faceCollect.CollectData = true;
-                button2.Text = "STOP COLLECTING";
-                collectingData = true;
-                collectingDataPanel.BackColor = Color.Green;
-
+                SecondTestForm secondTest = new SecondTestForm(DataReading.stopWatch, DataReading.startTime, DataReading.dateFormat);
+                secondTest.Show();
             }
             else
             {
-                eegCollect.StopCollect();
-                gsrCollect.StopCollecting();
-                hrCollect.StopCollecting();
-                faceCollect.CollectData = false;
-                button2.Text = "START COLLECTING";
-                collectingData = true;
-                collectingDataPanel.BackColor = Color.Red;
-                DeleteStartFile();
-            }
+                if (!collectingData)
+                {
+                    fusionData.Reset();
+                    DataReading.ResetTimers();
 
+                    StartTestFromCollector();
+                    eegCollect.StartCollect();
+                    gsrCollect.StartCollecting();
+                    hrCollect.StartCollecting();
+                    faceCollect.CollectData = true;
+                    button2.Text = "STOP COLLECTING";
+                    collectingData = true;
+                    collectingDataPanel.BackColor = Color.Green;
+
+                }
+                else
+                {
+                    eegCollect.StopCollect();
+                    gsrCollect.StopCollecting();
+                    hrCollect.StopCollecting();
+                    faceCollect.CollectData = false;
+                    button2.Text = "START COLLECTING";
+                    collectingData = true;
+                    collectingDataPanel.BackColor = Color.Red;
+                    DeleteStartFile();
+                }
+            }
         }
 
         private void exportBtn_Click(object sender, EventArgs e)
