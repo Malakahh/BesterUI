@@ -736,7 +736,15 @@ namespace Classification_App
                                 continue;
                             }
 
-                            sheit.Copy(merged.Sheets["Last"]);
+                            //look away pls
+                            try
+                            {
+                                var existCheck = merged.Sheets[sheit.Name];
+                            }
+                            catch
+                            {
+                                sheit.Copy(merged.Sheets["Last"]);
+                            }
                         }
 
                         current.Close();
