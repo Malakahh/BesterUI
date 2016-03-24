@@ -14,6 +14,7 @@ using System.IO;
 using LibSVMsharp;
 using System.Threading;
 using System.Diagnostics;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Classification_App
 {
@@ -22,19 +23,14 @@ namespace Classification_App
         FusionData _fd = new FusionData();
         SAMData samData;
         string currentPath;
-        CheckedListBox.ObjectCollection svmConfs;
-        CheckedListBox.ObjectCollection metaConfs;
-        CheckedListBox.ObjectCollection features;
+        List<SVMConfiguration> svmConfs = new List<SVMConfiguration>();
+        List<MetaSVMConfiguration> metaConfs = new List<MetaSVMConfiguration>();
 
 
         public Form1()
         {
             InitializeComponent();
-            svmConfs = chklst_SvmConfigurations.Items;
-            metaConfs = chklst_meta.Items;
-            features = chklist_Features.Items;
 
-            FeatureCreator.allFeatures.ForEach(x => features.Add(x, false));
             threadBox.Items.AddRange(Enum.GetNames(typeof(ThreadPriority)));
             threadBox.SelectedItem = ThreadPriority.Highest.ToString();
 
@@ -139,12 +135,6 @@ namespace Classification_App
             return svmParams;
         }
 
-        private void AddStdClassifierToLists(StdClassifier standardClassifier)
-        {
-            chklst_SvmConfigurations.Items.Add(standardClassifier);
-            chklst_meta.Items.Add(standardClassifier);
-        }
-
         Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, SAMDataPoint.FeelingModel feels, Action<int, int> UpdateCallback, bool useControlSAM)
         {
             return new Thread(() =>
@@ -224,158 +214,6 @@ namespace Classification_App
         #endregion
 
         #region [Forms Events]
-        private void addMachineBtn_Click(object sender, EventArgs e)
-        {
-            List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
-
-            //TODO: Find a way to load the ccorrect parameters in
-            SVMParameter temp = new SVMParameter();
-
-            SVMConfiguration cfg = new SVMConfiguration(temp, feats);
-            StdClassifier theSVM = new StdClassifier(cfg, samData);
-            AddStdClassifierToLists(theSVM);
-
-        }
-
-
-        //TEMP!
-        private PredictionResult predicResults;
-
-        //Run normal classifier
-        private void btn_Run_Click(object sender, EventArgs e)
-        {
-            if (!chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
-            {
-                //nothing checked
-                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
-                SVMParameter temp = new SVMParameter();
-
-                SVMConfiguration cfg = new SVMConfiguration(temp, feats);
-                StdClassifier lol = new StdClassifier(cfg, samData);
-
-                Thread newThread = new Thread(() =>
-                {
-                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal3, 1);
-                    foreach (var resTemp in res)
-                    {
-                        predicResults = resTemp;
-                    }
-                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
-                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
-                });
-                newThread.Start();
-
-            }
-            else if (!chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
-            {
-                //param opt checked
-                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
-
-                Thread newThread = new Thread(() =>
-                {
-                    StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
-                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal3, 1);
-                    foreach (var resTemp in res)
-                    {
-                        predicResults = resTemp;
-                    }
-                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
-                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
-                });
-                newThread.Start();
-            }
-            else if (chk_FeatureOptimizationNormal.Checked && !chk_ParameterOptimizationNormal.Checked)
-            {
-
-                List<Feature> feats = chklist_Features.CheckedItems.OfType<Feature>().ToList();
-                SVMParameter temp = new SVMParameter();
-
-                SVMConfiguration cfg = new SVMConfiguration(temp, feats);
-
-                StdClassifier combinations = new StdClassifier(cfg, samData);
-                //Combination of features
-                Thread someThread = new Thread(() =>
-                {
-                    List<PredictionResult> res = new List<PredictionResult>();
-
-                    res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal3, 1);
-
-                    foreach (var resTemp in res)
-                    {
-                        Log.LogMessage("Score was: " + resTemp.GetAverageFScore());
-                    }
-                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
-                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
-                }
-                );
-                someThread.Start();
-            }
-            else if (chk_FeatureOptimizationNormal.Checked && chk_ParameterOptimizationNormal.Checked)
-            {//both checked
-
-            }
-            else
-            {
-                Log.LogMessage("Something went not right (nor left), just wrong");
-            }
-        }
-
-        private void btn_LoadData_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-
-            if (fbd.ShowDialog() == DialogResult.OK)
-            {
-                LoadData(fbd.SelectedPath);
-                DataLoaded();
-            }
-        }
-
-        private void metaRunBtn_Click(object sender, EventArgs e)
-        {
-            if (votingCB.Checked)
-            {
-                List<StdClassifier> classifiers = new List<StdClassifier>();
-                foreach (StdClassifier classifier in chklst_meta.CheckedItems)
-                {
-                    classifiers.Add(classifier);
-                }
-                MetaClassifier votingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
-                PredictionResult result = votingMeta.DoVoting(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage(result.GetAverageFScore());
-
-            }
-            if (stackingCB.Checked)
-            {
-                List<StdClassifier> classifiers = new List<StdClassifier>();
-                foreach (StdClassifier classifier in chklst_meta.CheckedItems)
-                {
-                    classifiers.Add(classifier);
-                }
-                MetaClassifier stackingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
-                List<PredictionResult> result = stackingMeta.DoStacking(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage(result[0].GetAverageFScore());
-            }
-            if (boostingCB.Checked)
-            {
-
-                List<StdClassifier> classifiers = new List<StdClassifier>();
-                foreach (StdClassifier classifier in chklst_meta.CheckedItems)
-                {
-                    classifiers.Add(classifier);
-                }
-                MetaClassifier boostingMeta = new MetaClassifier("Voting", new SVMParameter(), samData, classifiers);
-
-                for (int i = 0; i < chklst_meta.CheckedItems.Count; i++)
-                {
-                    boostingMeta.boostingOrder.Add(i);
-                }
-
-                PredictionResult result = boostingMeta.DoBoosting(SAMDataPoint.FeelingModel.Arousal2High, 1);
-                Log.LogMessage(result.GetAverageFScore());
-            }
-        }
-
         volatile int gsrProg = 0;
         volatile int gsrTot = 1;
         volatile int hrProg = 0;
@@ -429,7 +267,6 @@ namespace Classification_App
                     return;
                 }
 
-                btn_LoadData.Enabled = false;
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
 
@@ -630,8 +467,6 @@ namespace Classification_App
                 Log.LogMessage("Done in: " + stopwatch.Elapsed);
             }
 
-            btn_LoadData.Enabled = true;
-
         }
 
         List<StdClassifier> ConfigurationsToStds(List<SVMConfiguration> confs)
@@ -674,7 +509,7 @@ namespace Classification_App
                     return;
                 }
 
-                btn_LoadData.Enabled = false;
+
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
 
@@ -806,7 +641,6 @@ namespace Classification_App
                 Log.LogMessage("Done in: " + stopwatch.Elapsed);
             }
 
-            btn_LoadData.Enabled = true;
         }
 
         private void threadBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -818,5 +652,109 @@ namespace Classification_App
         {
             Log.LogMessage("Don't click the progress bar pls");
         }
+
+        #region MERGING SHIT
+        private void btn_excel_add_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fd = new OpenFileDialog();
+            fd.Multiselect = true;
+            fd.Filter = "xlsx|*.xlsx";
+
+            if (fd.ShowDialog() == DialogResult.OK)
+            {
+                foreach (var item in fd.FileNames)
+                {
+                    lst_excel_files.Items.Add(item);
+                }
+            }
+        }
+
+        private void lst_excel_files_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete && lst_excel_files.SelectedItems.Count > 0)
+            {
+                List<string> tmp = new List<string>(lst_excel_files.SelectedItems.Cast<string>().ToList());
+
+                foreach (var xlsx in tmp)
+                {
+                    lst_excel_files.Items.Remove(xlsx);
+                }
+            }
+        }
+
+        private void btn_excel_merge_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sd = new SaveFileDialog();
+            sd.Filter = "xlsx|*.xlsx";
+
+            if (sd.ShowDialog() == DialogResult.OK)
+            {
+                Excel.Application exc = new Excel.Application() { Visible = false };
+
+                //group excel files by name
+                Dictionary<string, List<string>> fileGroups = new Dictionary<string, List<string>>();
+                foreach (var file in lst_excel_files.Items.Cast<string>())
+                {
+                    string group = file.Split('\\').Last();
+
+                    if (!fileGroups.ContainsKey(group))
+                    {
+                        fileGroups.Add(group, new List<string>() { file });
+                    }
+                    else
+                    {
+                        fileGroups[group].Add(file);
+                    }
+                }
+
+                //merge each group
+                foreach (var item in fileGroups)
+                {
+                    Log.LogMessage("Merging " + item.Key);
+                    Excel.Workbook merged = exc.Workbooks.Add(ExcelHandler.missingValue);
+                    ExcelHandler.CreateStandardBookSetup(merged);
+
+                    foreach (var path in item.Value)
+                    {
+                        Excel.Workbook current = exc.Workbooks.Open(path, ExcelHandler.missingValue,
+                                                                false,
+                                                                ExcelHandler.missingValue,
+                                                                ExcelHandler.missingValue,
+                                                                ExcelHandler.missingValue,
+                                                                true,
+                                                                ExcelHandler.missingValue,
+                                                                ExcelHandler.missingValue,
+                                                                true,
+                                                                ExcelHandler.missingValue,
+                                                                ExcelHandler.missingValue,
+                                                                ExcelHandler.missingValue);
+
+                        foreach (Excel.Worksheet sheit in current.Sheets)
+                        {
+                            if (sheit.Name == "First" || sheit.Name == "Last" || sheit.Name == "Overview")
+                            {
+                                continue;
+                            }
+
+                            sheit.Copy(merged.Sheets["Last"]);
+                        }
+
+                        current.Close();
+                    }
+
+                    string savePath = sd.FileName;
+                    savePath = savePath.Replace(savePath.Split('\\').Last(), "");
+
+                    savePath += item.Key;
+
+                    merged.Sheets["Sheet1"].Delete();
+                    merged.SaveCopyAs(savePath);
+                    merged.Close(false);
+                }
+                exc.Quit();
+                Log.LogMessage("Closing Excel");
+            }
+        }
+        #endregion
     }
 }

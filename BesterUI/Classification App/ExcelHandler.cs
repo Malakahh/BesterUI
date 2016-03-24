@@ -16,7 +16,7 @@ namespace Classification_App
         public enum Book { GSR, EEG, HR, FACE, Stacking, Boosting, Voting };
         private static Excel.Application MyApp = null; //The Application
         private Dictionary<Book, Excel.Workbook> books = new Dictionary<Book, Excel.Workbook>(); //Dictionary of the different books
-        object missingValue = System.Reflection.Missing.Value; //Used for filler purpose
+        public static object missingValue = System.Reflection.Missing.Value; //Used for filler purpose
         public bool BooksOpen { get; private set; }
         private string statsFolderPath = null;
 
@@ -119,7 +119,7 @@ namespace Classification_App
                         {
                             if (sheet.Name == name)
                             {
-                                Log.LogMessage("Person already exist in excel book:"+ books[book].Name + ", skipping adding");
+                                Log.LogMessage("Person already exist in excel book:" + books[book].Name + ", skipping adding");
                                 shouldAddPerson = false;
                                 break;
                             }
@@ -416,7 +416,7 @@ namespace Classification_App
 
         }
 
-        private void CreateStandardBookSetup(Excel.Workbook workBook)
+        public static void CreateStandardBookSetup(Excel.Workbook workBook)
         {
             //Create frontpage
             Excel.Worksheet overview = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
@@ -434,7 +434,7 @@ namespace Classification_App
 
         }
 
-        private void WriteOverviewMeta(Excel.Worksheet workSheet)
+        private static void WriteOverviewMeta(Excel.Worksheet workSheet)
         {
             #region [Names]
             workSheet.Cells[1, 1] = "A2High";
@@ -448,7 +448,7 @@ namespace Classification_App
             #region [Average & standard deviation markers]
             //A2High
             workSheet.Cells[3, 1] = "AVG";
-            workSheet.Cells[4, 1] = "STD";            
+            workSheet.Cells[4, 1] = "STD";
             //A2Low
             workSheet.Cells[8, 1] = "AVG";
             workSheet.Cells[9, 1] = "STD";
@@ -516,7 +516,7 @@ namespace Classification_App
             {
                 workSheet.Cells[3, i + 2] = avgFormula + (i + A2HighStart) + endFormula;
                 workSheet.Cells[4, i + 2] = stdevFormula + (i + A2HighStart) + endFormula;
-            }            
+            }
             //A2Low AVG and Stdev
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
@@ -534,7 +534,7 @@ namespace Classification_App
             {
                 workSheet.Cells[18, i + 2] = avgFormula + (i + V2HighStart) + endFormula;
                 workSheet.Cells[19, i + 2] = stdevFormula + (i + V2HighStart) + endFormula;
-            }            
+            }
             //V2Low AVG and stdev
             for (int i = 0; i < scoring2Labels.Count; i++)
             {
