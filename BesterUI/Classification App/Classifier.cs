@@ -8,6 +8,7 @@ using LibSVMsharp.Helpers;
 using LibSVMsharp.Extensions;
 using LibSVMsharp;
 
+
 namespace Classification_App
 {
     abstract class Classifier
@@ -15,7 +16,7 @@ namespace Classification_App
         public string Name { get; private set; }
         public List<SVMParameter> Parameters { get; set; }
         public readonly SAMData samData;
-
+        
         public Classifier(string Name, List<SVMParameter> Parameters, SAMData samData)
         {
             this.Name = Name;

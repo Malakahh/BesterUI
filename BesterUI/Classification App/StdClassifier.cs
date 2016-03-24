@@ -9,11 +9,15 @@ using LibSVMsharp.Core;
 using LibSVMsharp.Helpers;
 using BesterUI.Helpers;
 using System.Threading;
+using System.Runtime.InteropServices;
+
 
 namespace Classification_App
 {
     class StdClassifier : Classifier
     {
+        private const string ONLY_ONE_CLASS = "Only one class is present in the full";
+        private const string ONLY_ONE_CLASS_IN_TRAINING = "Only one class is present in the trained set";
         public Action<int, int> UpdateCallback;
         public List<Feature> features = new List<Feature>();
 
@@ -125,15 +129,53 @@ namespace Classification_App
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
             int progressCounter = 0;
+            if(answers.Distinct().Count() <= 1)
+            {
+                int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+                //Calculate scoring results
+                double[,] confus = CalculateConfusion(answers.ToList().ConvertAll(x=>(double)x).ToArray(), answers, numberOfLabels);
+                List<double> pres = CalculatePrecision(confus, numberOfLabels);
+                List<double> recall = CalculateRecall(confus, numberOfLabels);
+                List<double> fscore = CalculateFScore(pres, recall);
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), features, answers.ToList(), answers.ToList().ConvertAll(x => (int)x));
+                predictedResults.Add(pR);
+                progressCounter++;
+                Log.LogMessage(ONLY_ONE_CLASS);
+                Log.LogMessage("");
+                return predictedResults;
+            }
             foreach (SVMParameter SVMpara in Parameters)
             {
-                PrintProgress(progressCounter, 1);
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(progressCounter, Parameters.Count);
+                }
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
-                foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                try
                 {
-                    SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
-                    guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
+                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                    {
+                        SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
+                        if (trainingModel.ClassCount <= 1)
+                        {
+                            Log.LogMessage(ONLY_ONE_CLASS_IN_TRAINING);
+                            Log.LogMessage("");
+                            guesses.AddRange(tupleProblem.Item1.Y.ToList().Take(tupleProblem.Item2.Y.Count()).ToList());
+                        }
+                        else
+                        {
+                            double[] d = tupleProblem.Item2.Predict(trainingModel);
+                            guesses.AddRange(d);
+                        }
+                    }
+                }
+                catch(Exception e)
+                {
+                    for (int i = 0; i < samData.dataPoints.Count; i++)
+                    {
+                        guesses.Add(-1);
+                    }
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results
@@ -144,8 +186,10 @@ namespace Classification_App
                 PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x => (int)x));
                 predictedResults.Add(pR);
                 progressCounter++;
-
-                PrintProgress(progressCounter, 1);
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(progressCounter, Parameters.Count);
+                }
             }
 
             return predictedResults;
@@ -221,12 +265,6 @@ namespace Classification_App
             }
             return temp;
         }
-
-        private void PrintProgress(int progress, int combinations)
-        {
-            Log.LogMessageSameLine("Done (" + progress + "/" + Parameters.Count * combinations + ")");
-        }
-
         public override string ToString()
         {
             return Name;

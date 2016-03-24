@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BesterUI.Data;
+using BesterUI.Helpers;
 
 namespace Classification_App
 {
@@ -34,10 +35,10 @@ namespace Classification_App
 
             if (!cachedResults.ContainsKey(sam))
             {
-                cachedResults.Add(sam, featureCalculator(dataReadings, sam));
-            }
+                    cachedResults.Add(sam, featureCalculator(dataReadings, sam));
 
-            return cachedResults[sam];
+            }
+                return cachedResults[sam];
         }
 
         public List<double> GetAllValues(SAMData samd)
@@ -50,7 +51,7 @@ namespace Classification_App
             List<double> values = new List<double>();
             foreach (SAMDataPoint sd in samd.dataPoints)
             {
-                values.Add(GetValue(sd));
+               values.Add(GetValue(sd));
             }
             return values;
         }

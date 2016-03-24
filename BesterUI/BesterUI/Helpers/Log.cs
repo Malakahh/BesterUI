@@ -20,8 +20,15 @@ namespace BesterUI.Helpers
 
             set
             {
-                logBox = value;
-                logBox.Text = "[" + DateTime.Now.ToString("HH:mm:ss") + "] LogBox initialized!";
+                if (value == null)
+                {
+                    logBox = null;
+                }
+                else
+                {
+                    logBox = value;
+                    logBox.Text = "[" + DateTime.Now.ToString("HH:mm:ss") + "] LogBox initialized!";
+                }
             }
         }
 
@@ -29,7 +36,12 @@ namespace BesterUI.Helpers
         {
             if (logBox != null)
             {
-                LogBox.Invoke((Action<object>)AddLogMessage, text);
+                try
+                {
+                    LogBox.Invoke((Action<object>)AddLogMessage, text);
+
+                }
+                catch { }
             }
             else
             {
@@ -41,7 +53,11 @@ namespace BesterUI.Helpers
         {
             if (logBox != null)
             {
-                LogBox.Invoke((Action<object>)AddLogMessageSameLine, text);
+                try
+                {
+                    LogBox.Invoke((Action<object>)AddLogMessageSameLine, text);
+                }
+                catch { }
             }
             else
             {

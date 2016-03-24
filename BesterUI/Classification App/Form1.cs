@@ -26,6 +26,7 @@ namespace Classification_App
         CheckedListBox.ObjectCollection metaConfs;
         CheckedListBox.ObjectCollection features;
 
+
         public Form1()
         {
             InitializeComponent();
@@ -34,10 +35,40 @@ namespace Classification_App
             features = chklist_Features.Items;
 
             FeatureCreator.allFeatures.ForEach(x => features.Add(x, false));
+            threadBox.Items.AddRange(Enum.GetNames(typeof(ThreadPriority)));
+            threadBox.SelectedItem = ThreadPriority.Highest.ToString();
 
             Log.LogBox = richTextBox1;
+            this.FormClosing += Form1_FormClosing;
         }
 
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (gsrThread != null)
+            {
+                gsrThread.Abort();
+            }
+
+            if (eegThread != null)
+            {
+                eegThread.Abort();
+            }
+
+            if (faceThread != null)
+            {
+                faceThread.Abort();
+            }
+            if (hrThread != null)
+            {
+                hrThread.Abort();
+            }
+            if (eh != null)
+            {
+                eh.Save();
+                eh.CloseBooks();
+            }
+            DataReading.kill = true;
+        }
 
         #region [Enable UI Steps]
         private void DataLoaded()
@@ -55,7 +86,7 @@ namespace Classification_App
         {
             if (!svmConfs.Contains(conf))
             {
-                svmConfs.Add(conf);
+                this.Invoke((MethodInvoker)delegate { svmConfs.Add(conf); });
             }
 
             if (!Directory.Exists(currentPath + @"\STD"))
@@ -114,13 +145,13 @@ namespace Classification_App
             chklst_meta.Items.Add(standardClassifier);
         }
 
-        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, SAMDataPoint.FeelingModel feels, Action<int, int> UpdateCallback)
+        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, SAMDataPoint.FeelingModel feels, Action<int, int> UpdateCallback, bool useControlSAM)
         {
             return new Thread(() =>
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.CrossValidateCombinations(feels, 1);
+                var res = mac.CrossValidate(feels, 1, useControlSAM);
                 SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
@@ -148,7 +179,7 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat" }, samData.startTime);
+            shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
@@ -156,6 +187,7 @@ namespace Classification_App
             FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
             FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
             FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
+            FeatureCreator.FACEFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
 
             Log.LogMessage("Looking for configurations...");
 
@@ -223,11 +255,13 @@ namespace Classification_App
 
                 Thread newThread = new Thread(() =>
                 {
-                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal3, 1);
                     foreach (var resTemp in res)
                     {
                         predicResults = resTemp;
                     }
+                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
+                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
                 });
                 newThread.Start();
 
@@ -240,11 +274,13 @@ namespace Classification_App
                 Thread newThread = new Thread(() =>
                 {
                     StdClassifier lol = new StdClassifier("bestClassifier", GenerateSVMParameters(), feats, samData);
-                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    var res = lol.CrossValidate(SAMDataPoint.FeelingModel.Arousal3, 1);
                     foreach (var resTemp in res)
                     {
                         predicResults = resTemp;
                     }
+                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
+                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
                 });
                 newThread.Start();
             }
@@ -262,12 +298,14 @@ namespace Classification_App
                 {
                     List<PredictionResult> res = new List<PredictionResult>();
 
-                    res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal2High, 1);
+                    res = combinations.CrossValidateCombinations(SAMDataPoint.FeelingModel.Arousal3, 1);
 
                     foreach (var resTemp in res)
                     {
                         Log.LogMessage("Score was: " + resTemp.GetAverageFScore());
                     }
+                    Log.LogMessage("Accuracy: " + predicResults.GetAccuracy());
+                    Log.LogMessage("F-Score: " + predicResults.GetAverageFScore());
                 }
                 );
                 someThread.Start();
@@ -346,26 +384,45 @@ namespace Classification_App
         volatile int eegTot = 1;
         volatile int faceProg = 0;
         volatile int faceTot = 1;
-        volatile int stackProg = 0;
-        volatile int stackTot = 1;
+
+
+        //Debug purposes
+        private bool skipGSR = false;
+        private bool skipEEG = false;
+        private bool skipFace = false;
+        private bool skipHR = false;
+        private bool doMetas = false;
+
+        private ThreadPriority threadPrio = ThreadPriority.Normal;
+
+        ExcelHandler eh;
+        Thread gsrThread = null;
+        Thread hrThread = null;
+        Thread eegThread = null;
+        Thread faceThread = null;
+        Dictionary<string, bool> shouldRun;
+
         private void btn_RunAll_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                chk_useControlValues.Enabled = false;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 Log.LogMessage("Starting Stopwatch");
                 List<SAMDataPoint.FeelingModel> feelings = new List<SAMDataPoint.FeelingModel>()
                 {
                     SAMDataPoint.FeelingModel.Arousal2High,
+                    SAMDataPoint.FeelingModel.Arousal2Low,
                     SAMDataPoint.FeelingModel.Arousal3,
                     SAMDataPoint.FeelingModel.Valence2Low,
+                    SAMDataPoint.FeelingModel.Valence2High,
                     SAMDataPoint.FeelingModel.Valence3
                 };
 
-                ExcelHandler eh = new ExcelHandler(fbd.SelectedPath);
+                eh = new ExcelHandler(fbd.SelectedPath);
                 if (!eh.BooksOpen)
                 {
                     Log.LogMessage("Cannot open or write to books");
@@ -376,27 +433,37 @@ namespace Classification_App
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
 
+                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+
+
                 int curDat = 1;
                 int maxDat = dataFolders.Length;
 
                 foreach (var item in dataFolders)
                 {
-                    if (File.Exists(item + @"\donno.dk"))
-                    {
-                        Log.LogMessage("Already did " + item + ", skipping..");
-                        continue;
-                    }
-                    else if (item.Split('\\').Last() == "Stats")
+
+
+                    if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
                         continue;
                     }
+                    DataProgressHandler DPH = new DataProgressHandler(item);
+                    if (DPH.AllDone)
+                    {
+                        Log.LogMessage("Already did " + item + ", skipping..");
+                        curDat++;
+                        continue;
+                    }
+
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
 
                     LoadData(item);
                     foreach (var feel in feelings)
                     {
+                        statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
+
                         gsrProg = 0;
                         gsrTot = 1;
                         hrProg = 0;
@@ -411,100 +478,64 @@ namespace Classification_App
                         bool eegWrite = false;
                         bool faceWrite = false;
 
-                        Thread gsrThread = null;
-                        if (!File.Exists(currentPath + @"\gsr" + feel + ".donnodk") ||
-                            feel == SAMDataPoint.FeelingModel.Valence2High ||
-                            feel == SAMDataPoint.FeelingModel.Valence2Low ||
-                            feel == SAMDataPoint.FeelingModel.Valence3)
+                        if (feel != SAMDataPoint.FeelingModel.Valence2High &&
+                            feel != SAMDataPoint.FeelingModel.Valence2Low &&
+                            feel != SAMDataPoint.FeelingModel.Valence3 &&
+                            !skipGSR &&
+                            !DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] &&
+                            shouldRun["GSR.dat"])
                         {
-                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
-                            gsrThread.Priority = ThreadPriority.Highest;
+                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; }, chk_useControlValues.Checked);
+                            gsrThread.Priority = threadPrio;
                             gsrThread.Start();
                         }
                         else
                         {
-                            Log.LogMessage("GSR done skipping (because it's already done or searching on valence");
+                            Log.LogMessage("GSR skipping");
                         }
 
-                        Thread hrThread = null;
-                        if (!File.Exists(currentPath + @"\hr" + feel + ".donnodk"))
+                        if (!DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipHR && shouldRun["HR.dat"])
                         {
                             hrThread = CreateMachineThread("HR", parameters,
                                 (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                     ? FeatureCreator.HRValenceOptimizationFeatures : FeatureCreator.HRArousalOptimizationFeatures,
-                                feel, (cur, max) => { hrProg = cur; hrTot = max; });
-                            hrThread.Priority = ThreadPriority.Highest;
+                                feel, (cur, max) => { hrProg = cur; hrTot = max; }, chk_useControlValues.Checked);
+                            hrThread.Priority = threadPrio;
                             hrThread.Start();
                         }
                         else
                         {
-                            Log.LogMessage("HR done already, skipping");
+                            Log.LogMessage("HR skipping");
                         }
 
-                        Thread eegThread = null;
-                        if (!File.Exists(currentPath + @"\eeg" + feel + ".donnodk"))
+                        if (!DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipEEG && shouldRun["EEG.dat"])
                         {
                             eegThread = CreateMachineThread("EEG", parameters,
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                     ? FeatureCreator.EEGValenceOptimizationFeatures : FeatureCreator.EEGArousalOptimizationFeatures,
-                                 feel, (cur, max) => { eegProg = cur; eegTot = max; });
-                            eegThread.Priority = ThreadPriority.Highest;
+                                 feel, (cur, max) => { eegProg = cur; eegTot = max; }, chk_useControlValues.Checked);
+                            eegThread.Priority = threadPrio;
                             eegThread.Start();
                         }
                         else
                         {
-                            Log.LogMessage("EEG done already, skipping");
+                            Log.LogMessage("EEG skipping");
                         }
 
-                        Thread faceThread = null;
-                        if (!File.Exists(currentPath + @"\face" + feel + ".donnodk"))
+                        if (!DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] && !skipFace && shouldRun["KINECT.dat"])
                         {
                             faceThread = CreateMachineThread("FACE", parameters,
                                                              (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                                                 ? FeatureCreator.FACEValenceOptimizationFeatures : FeatureCreator.FACEArousalOptimizationFeatures,
-                                                             feel, (cur, max) => { faceProg = cur; faceTot = max; });
-                            faceThread.Priority = ThreadPriority.Highest;
+                                                             feel, (cur, max) => { faceProg = cur; faceTot = max; }, chk_useControlValues.Checked);
+                            faceThread.Priority = threadPrio;
                             faceThread.Start();
                         }
                         else
                         {
-                            Log.LogMessage("FACE done already, skipping");
+                            Log.LogMessage("Face skipping");
                         }
 
-
-                        while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive) || (faceThread != null && faceThread.IsAlive))
-                        {
-                            Thread.Sleep(500);
-                            double pct = (double)(gsrProg + hrProg + eegProg + faceProg) * (double)100 / (double)(gsrTot + hrTot + eegTot + faceTot);
-                            Log.LogMessageSameLine(feel + " -> " + curDat + "/" + maxDat + " | Progress: " + pct.ToString("0.0") + "% - [GSR(" + gsrProg + "/" + gsrTot + ")] - [HR(" + hrProg + "/" + hrTot + ")] - [EEG(" + eegProg + "/" + eegTot + ")] - [FACE(" + faceProg + "/" + faceTot + ")]");
-                            Application.DoEvents();
-
-                            if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
-                            {
-                                gsrWrite = true;
-                                using (var temp = File.Create(currentPath + @"\gsr" + feel + ".donnodk")) { }
-                            }
-
-                            if (hrThread != null && !hrThread.IsAlive && !hrWrite)
-                            {
-                                hrWrite = true;
-                                using (var temp = File.Create(currentPath + @"\hr" + feel + ".donnodk")) { }
-                            }
-
-                            if (eegThread != null && !eegThread.IsAlive && !eegWrite)
-                            {
-                                eegWrite = true;
-                                using (var temp = File.Create(currentPath + @"\eeg" + feel + ".donnodk")) { }
-                            }
-
-                            if (faceThread != null && !faceThread.IsAlive && !faceWrite)
-                            {
-                                faceWrite = true;
-                                using (var temp = File.Create(currentPath + @"\face" + feel + ".donnodk")) { }
-                            }
-                        }
-
-                        Log.LogMessage("Done with single machine searching.");
 
 
                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
@@ -513,77 +544,85 @@ namespace Classification_App
                         SVMConfiguration hrConf;
                         SVMConfiguration faceConf;
 
-                        if (gsrWrite)
+                        while ((gsrThread != null && gsrThread.IsAlive) || (hrThread != null && hrThread.IsAlive) || (eegThread != null && eegThread.IsAlive) || (faceThread != null && faceThread.IsAlive))
                         {
-                            gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
-                            confs.Add(gsrConf);
-                        }
-                        if (eegWrite)
-                        {
-                            eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
-                            confs.Add(eegConf);
-                        }
-                        if (hrWrite)
-                        {
-                            hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
-                            confs.Add(hrConf);
-                        }
-                        if (faceWrite)
-                        {
-                            faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
-                            confs.Add(faceConf);
+                            Thread.Sleep(1000);
+                            eegBar.Value = (int)(((double)eegProg / eegTot) * 100);
+                            gsrBar.Value = (int)(((double)gsrProg / gsrTot) * 100);
+                            faceBar.Value = (int)(((double)faceProg / faceTot) * 100);
+                            hrBar.Value = (int)(((double)hrProg / hrTot) * 100);
+                            Application.DoEvents();
+
+                            if (gsrThread != null && !gsrThread.IsAlive && !gsrWrite)
+                            {
+                                gsrWrite = true;
+                                gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
+                                confs.Add(gsrConf);
+                                var gsrMac = new StdClassifier(gsrConf, samData);
+                                var gsrRes = gsrMac.CrossValidate(feel, 1);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
+                                DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
+                                DPH.SaveProgress();
+                                gsrThread = null;
+
+
+                            }
+
+                            if (hrThread != null && !hrThread.IsAlive && !hrWrite)
+                            {
+                                hrWrite = true;
+                                hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                                confs.Add(hrConf);
+                                var hrMac = new StdClassifier(hrConf, samData);
+                                var hrRes = hrMac.CrossValidate(feel, 1);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
+                                DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
+                                DPH.SaveProgress();
+                                hrThread = null;
+                            }
+
+                            if (eegThread != null && !eegThread.IsAlive && !eegWrite)
+                            {
+                                eegWrite = true;
+                                eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                                confs.Add(eegConf);
+                                var eegMac = new StdClassifier(eegConf, samData);
+                                var eegRes = eegMac.CrossValidate(feel, 1);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
+                                DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
+                                DPH.SaveProgress();
+                                eegThread = null;
+                            }
+
+                            if (faceThread != null && !faceThread.IsAlive && !faceWrite)
+                            {
+                                faceWrite = true;
+                                faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
+                                confs.Add(faceConf);
+                                var faceMac = new StdClassifier(faceConf, samData);
+                                var faceRes = faceMac.CrossValidate(feel, 1);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
+                                DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
+                                DPH.SaveProgress();
+                                faceThread = null;
+                            }
                         }
 
-                        Log.LogMessage("Creating meta machine..");
+                        Log.LogMessage("Done with single machine searching.");
+
                         foreach (var cnf in confs)
                         {
-                            Log.LogMessage("Using " + cnf.Name + "...");
+                            Log.LogMessage("Saving " + cnf.Name + "...");
                         }
-
                         //Write normal results
-                        var gsrMac = new StdClassifier(confs[0], samData);
-                        var gsrRes = gsrMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
-
-                        var hrMac = new StdClassifier(confs[1], samData);
-                        var hrRes = hrMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
-
-                        var eegMac = new StdClassifier(confs[2], samData);
-                        var eegRes = eegMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
-
-                        var faceMac = new StdClassifier(confs[2], samData);
-                        var faceRes = faceMac.CrossValidate(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
-
                         eh.Save();
-                        Log.LogMessage("Doing Stacking");
-                        stackProg = 0;
-                        stackTot = 1;
-                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
-                        //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
-                        var res = meta.DoStacking(feel, 1);
-                        var bestRes = meta.FindBestFScorePrediction(res);
+                        Log.LogMessage("Time for person " + curDat + " calculations was " + stopwatch.Elapsed);
 
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
 
-                        meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
-
-                        SaveConfiguration(meta.GetConfiguration());
-
-                        Log.LogMessage("Doing voting");
-                        var voteRes = meta.DoVoting(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
-                        Log.LogMessage("Doing boosting");
-                        meta.boostingOrder = new List<int>() { 0, 1, 2 };
-                        var boostRes = meta.DoBoosting(feel, 1);
-                        eh.AddDataToPerson(personName, ExcelHandler.Book.Boosting, boostRes, feel);
                     }
 
                     curDat++;
                     eh.Save();
-                    using (var temp = File.Create(currentPath + @"\donno.dk")) { }
                     Log.LogMessage("DonnoDK");
                 }
                 eh.CloseBooks();
@@ -606,5 +645,178 @@ namespace Classification_App
 
         #endregion
 
+        volatile int metaProg = 0;
+        volatile int metaMax = 1;
+        private void btn_metaAll_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                chk_useControlValues.Enabled = false;
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                Log.LogMessage("Starting Stopwatch");
+                List<SAMDataPoint.FeelingModel> feelings = new List<SAMDataPoint.FeelingModel>()
+                {
+                    SAMDataPoint.FeelingModel.Arousal2High,
+                    SAMDataPoint.FeelingModel.Arousal2Low,
+                    SAMDataPoint.FeelingModel.Arousal3,
+                    SAMDataPoint.FeelingModel.Valence2Low,
+                    SAMDataPoint.FeelingModel.Valence2High,
+                    SAMDataPoint.FeelingModel.Valence3
+                };
+
+                eh = new ExcelHandler(fbd.SelectedPath);
+                if (!eh.BooksOpen)
+                {
+                    Log.LogMessage("Cannot open or write to books");
+                    return;
+                }
+
+                btn_LoadData.Enabled = false;
+                var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
+                List<SVMParameter> parameters = GenerateSVMParameters();
+
+                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+
+
+                int curDat = 1;
+                int maxDat = dataFolders.Length;
+
+                foreach (var item in dataFolders)
+                {
+                    if (item.Split('\\').Last() == "Stats")
+                    {
+                        Log.LogMessage("Stats folder skipping");
+                        continue;
+                    }
+                    DataProgressHandler DPH = new DataProgressHandler(item);
+                    if (DPH.MetaDone)
+                    {
+                        Log.LogMessage("Already did " + item + ", skipping..");
+                        curDat++;
+                        continue;
+                    }
+
+                    string personName = item.Split('\\').Last();
+                    eh.AddPersonToBooks(personName);
+
+                    LoadData(item);
+                    foreach (var feel in feelings)
+                    {
+                        statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
+                        List<SVMConfiguration> confs = new List<SVMConfiguration>();
+                        SVMConfiguration gsrConf;
+                        SVMConfiguration eegConf;
+                        SVMConfiguration hrConf;
+                        SVMConfiguration faceConf;
+
+                        gsrConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
+                        hrConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                        eegConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                        faceConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
+
+                        if (gsrConf != null)
+                        {
+                            confs.Add(gsrConf);
+                        }
+
+                        if (eegConf != null)
+                        {
+                            confs.Add(eegConf);
+                        }
+
+                        if (hrConf != null)
+                        {
+                            confs.Add(hrConf);
+                        }
+
+                        if (faceConf != null)
+                        {
+                            confs.Add(faceConf);
+                        }
+
+                        Log.LogMessage("Creating meta machine..");
+
+
+                        MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
+                        prg_meta.Minimum = 0;
+
+
+                        meta.UpdateCallback = (cur, max) => { metaProg = cur; metaMax = max; };
+
+                        if (!DPH.done["Voting" + feel])
+                        {
+                            Thread tVote = new Thread(() =>
+                            {
+                                var voteRes = meta.DoVoting(feel, 1, chk_useControlValues.Checked);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                                DPH.done["Voting" + feel] = true;
+                                DPH.SaveProgress();
+                            });
+                            tVote.Priority = threadPrio;
+                            Log.LogMessage("Doing voting");
+                            tVote.Start();
+                            while (tVote != null && tVote.IsAlive)
+                            {
+                                Thread.Sleep(500);
+                                prg_meta.Maximum = metaMax;
+                                prg_meta.Value = metaProg;
+                                prg_meta_txt.Text = "Voting: " + metaProg + " / " + metaMax;
+                                Application.DoEvents();
+                            }
+                            eh.Save();
+                        }
+
+
+                        if (!DPH.done["Stacking" + feel])
+                        {
+                            Thread tStack = new Thread(() =>
+                            {
+                                var res = meta.DoStacking(feel, 1, chk_useControlValues.Checked);
+                                var bestRes = meta.FindBestFScorePrediction(res);
+                                eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                                DPH.done["Stacking" + feel] = true;
+                                DPH.SaveProgress();
+                                meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
+                                SaveConfiguration(meta.GetConfiguration());
+                            });
+                            tStack.Priority = threadPrio;
+                            Log.LogMessage("Doing Stacking");
+                            tStack.Start();
+                            while (tStack != null && tStack.IsAlive)
+                            {
+                                Thread.Sleep(500);
+                                prg_meta.Maximum = metaMax;
+                                prg_meta.Value = metaProg;
+                                prg_meta_txt.Text = "Stacking: " + metaProg + " / " + metaMax;
+                                Application.DoEvents();
+                            }
+                            eh.Save();
+                        }
+                    }
+
+                    curDat++;
+                    eh.Save();
+                    Log.LogMessage("DonnoDK");
+                }
+                eh.CloseBooks();
+                Log.LogMessage("Closing books and saving");
+                Log.LogMessage("Done in: " + stopwatch.Elapsed);
+            }
+
+            btn_LoadData.Enabled = true;
+        }
+
+        private void threadBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            threadPrio = (ThreadPriority)Enum.Parse(typeof(ThreadPriority), threadBox.SelectedItem.ToString());
+        }
+
+        private void prg_meta_Click(object sender, EventArgs e)
+        {
+            Log.LogMessage("Don't click the progress bar pls");
+        }
     }
 }

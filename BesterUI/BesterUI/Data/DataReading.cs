@@ -14,6 +14,7 @@ namespace BesterUI.Data
     {
         public static DateTime? startTime = null;
         public const string dateFormat = "yyyy-MM-dd HH_mm_ss_fff";
+        public const string oldDateFormat = "yyyy-MM-dd HH_mm_ss";
         static Stopwatch stopWatch;
         static Dictionary<string, StreamWriter> writers = new Dictionary<string, StreamWriter>();
 
@@ -77,6 +78,7 @@ namespace BesterUI.Data
         public abstract string Serialize();
 
         static volatile bool doneReading = true;
+        public static volatile bool kill = false;
         static volatile string fPath;
         static volatile System.Collections.Queue q;
         public static List<T> LoadFromFile<T>(string path, DateTime dT) where T : DataReading, new()
@@ -98,7 +100,7 @@ namespace BesterUI.Data
 
             Log.LogMessage("Loading " + typeof(T).Name + ": 0/" + size + " bytes.");
                 
-            while (!doneReading || q.Count > 0)
+            while ((!doneReading || q.Count > 0) && !kill)
             {
                 if (q.Count > 0)
                 {
@@ -108,8 +110,19 @@ namespace BesterUI.Data
                     {
                         progress += curLine.Length;
                         var bits = curLine.Split('|');
-                        startTime = DateTime.ParseExact(bits[1], dateFormat, System.Globalization.CultureInfo.InvariantCulture);
+                        try
+                        {
+                            startTime = DateTime.ParseExact(bits[1], dateFormat, System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        catch
+                        {
+
+                            startTime = DateTime.ParseExact(bits[1], oldDateFormat, System.Globalization.CultureInfo.InvariantCulture);
+                            startTime.Value.AddMilliseconds(500);
+                        }
+                        TimeSpan DifferenceOffset = new TimeSpan(1, 0, 180);
                         offset = startTime.Value.Subtract(dT);
+                        offset = offset.Add(DifferenceOffset);
                         first = false;
                     }
                     else
@@ -141,8 +154,16 @@ namespace BesterUI.Data
                 string curLine = dat.ReadLine();
                 while (!string.IsNullOrEmpty(curLine))
                 {
-                    q.Enqueue(curLine);
-                    curLine = dat.ReadLine();
+                    if (Log.LogBox != null)
+                    {
+                        q.Enqueue(curLine);
+                        curLine = dat.ReadLine();
+                    }
+                    else
+                    {
+                        kill = true;
+                        return;
+                    }
                 }
             }
 
