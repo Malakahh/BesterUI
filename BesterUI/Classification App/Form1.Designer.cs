@@ -60,6 +60,7 @@
             this.Label = new System.Windows.Forms.Label();
             this.prg_meta = new System.Windows.Forms.ProgressBar();
             this.prg_meta_txt = new System.Windows.Forms.Label();
+            this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -377,11 +378,22 @@
             this.prg_meta_txt.TabIndex = 15;
             this.prg_meta_txt.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
+            // chk_useControlValues
+            // 
+            this.chk_useControlValues.AutoSize = true;
+            this.chk_useControlValues.Location = new System.Drawing.Point(182, 54);
+            this.chk_useControlValues.Name = "chk_useControlValues";
+            this.chk_useControlValues.Size = new System.Drawing.Size(143, 17);
+            this.chk_useControlValues.TabIndex = 16;
+            this.chk_useControlValues.Text = "Use IAPS Control Values";
+            this.chk_useControlValues.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 505);
+            this.Controls.Add(this.chk_useControlValues);
             this.Controls.Add(this.prg_meta_txt);
             this.Controls.Add(this.prg_meta);
             this.Controls.Add(this.Label);
@@ -439,6 +451,7 @@
         private System.Windows.Forms.Label Label;
         private System.Windows.Forms.ProgressBar prg_meta;
         private System.Windows.Forms.Label prg_meta_txt;
+        private System.Windows.Forms.CheckBox chk_useControlValues;
     }
 }
 

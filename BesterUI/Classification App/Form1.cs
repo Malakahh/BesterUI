@@ -145,13 +145,13 @@ namespace Classification_App
             chklst_meta.Items.Add(standardClassifier);
         }
 
-        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, SAMDataPoint.FeelingModel feels, Action<int, int> UpdateCallback)
+        Thread CreateMachineThread(string name, List<SVMParameter> pars, List<Feature> feats, SAMDataPoint.FeelingModel feels, Action<int, int> UpdateCallback, bool useControlSAM)
         {
             return new Thread(() =>
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.CrossValidate(feels, 1);
+                var res = mac.CrossValidate(feels, 1, useControlSAM);
                 SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
@@ -408,6 +408,7 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                chk_useControlValues.Enabled = false;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 Log.LogMessage("Starting Stopwatch");
@@ -484,7 +485,7 @@ namespace Classification_App
                             !DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] &&
                             shouldRun["GSR.dat"])
                         {
-                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; });
+                            gsrThread = CreateMachineThread("GSR", parameters, FeatureCreator.GSRArousalOptimizationFeatures, feel, (cur, max) => { gsrProg = cur; gsrTot = max; }, chk_useControlValues.Checked);
                             gsrThread.Priority = threadPrio;
                             gsrThread.Start();
                         }
@@ -498,7 +499,7 @@ namespace Classification_App
                             hrThread = CreateMachineThread("HR", parameters,
                                 (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                     ? FeatureCreator.HRValenceOptimizationFeatures : FeatureCreator.HRArousalOptimizationFeatures,
-                                feel, (cur, max) => { hrProg = cur; hrTot = max; });
+                                feel, (cur, max) => { hrProg = cur; hrTot = max; }, chk_useControlValues.Checked);
                             hrThread.Priority = threadPrio;
                             hrThread.Start();
                         }
@@ -512,7 +513,7 @@ namespace Classification_App
                             eegThread = CreateMachineThread("EEG", parameters,
                                  (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                     ? FeatureCreator.EEGValenceOptimizationFeatures : FeatureCreator.EEGArousalOptimizationFeatures,
-                                 feel, (cur, max) => { eegProg = cur; eegTot = max; });
+                                 feel, (cur, max) => { eegProg = cur; eegTot = max; }, chk_useControlValues.Checked);
                             eegThread.Priority = threadPrio;
                             eegThread.Start();
                         }
@@ -526,7 +527,7 @@ namespace Classification_App
                             faceThread = CreateMachineThread("FACE", parameters,
                                                              (feel == SAMDataPoint.FeelingModel.Valence2High || feel == SAMDataPoint.FeelingModel.Valence2Low || feel == SAMDataPoint.FeelingModel.Valence3)
                                                                 ? FeatureCreator.FACEValenceOptimizationFeatures : FeatureCreator.FACEArousalOptimizationFeatures,
-                                                             feel, (cur, max) => { faceProg = cur; faceTot = max; });
+                                                             feel, (cur, max) => { faceProg = cur; faceTot = max; }, chk_useControlValues.Checked);
                             faceThread.Priority = threadPrio;
                             faceThread.Start();
                         }
@@ -617,29 +618,7 @@ namespace Classification_App
                         eh.Save();
                         Log.LogMessage("Time for person " + curDat + " calculations was " + stopwatch.Elapsed);
 
-                        if (doMetas)
-                        {
-                            Log.LogMessage("Creating meta machine..");
-                            Log.LogMessage("Doing Stacking");
-                            MetaClassifier meta = new MetaClassifier("Stacking", parameters, samData, ConfigurationsToStds(confs));
-                            //meta.UpdateCallback = (cur, max) => { stackProg = cur; stackTot = max; };
-                            var res = meta.DoStacking(feel, 1);
-                            var bestRes = meta.FindBestFScorePrediction(res);
 
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
-
-                            meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
-
-                            SaveConfiguration(meta.GetConfiguration());
-
-                            Log.LogMessage("Doing voting");
-                            var voteRes = meta.DoVoting(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
-                            Log.LogMessage("Doing boosting");
-                            meta.boostingOrder = new List<int>() { 0 }; //TODO: SET THE CORRECT ORDER!
-                            var boostRes = meta.DoBoosting(feel, 1);
-                            eh.AddDataToPerson(personName, ExcelHandler.Book.Boosting, boostRes, feel);
-                        }
                     }
 
                     curDat++;
@@ -674,6 +653,7 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                chk_useControlValues.Enabled = false;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 Log.LogMessage("Starting Stopwatch");
@@ -770,7 +750,7 @@ namespace Classification_App
                         {
                             Thread tVote = new Thread(() =>
                             {
-                                var voteRes = meta.DoVoting(feel, 1);
+                                var voteRes = meta.DoVoting(feel, 1, chk_useControlValues.Checked);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
                                 DPH.done["Voting" + feel] = true;
                                 DPH.SaveProgress();
@@ -794,7 +774,7 @@ namespace Classification_App
                         {
                             Thread tStack = new Thread(() =>
                             {
-                                var res = meta.DoStacking(feel, 1);
+                                var res = meta.DoStacking(feel, 1, chk_useControlValues.Checked);
                                 var bestRes = meta.FindBestFScorePrediction(res);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
                                 DPH.done["Stacking" + feel] = true;
