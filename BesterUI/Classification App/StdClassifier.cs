@@ -129,6 +129,7 @@ namespace Classification_App
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
             int progressCounter = 0;
+            bool postedOneClassError = false;
             if(answers.Distinct().Count() <= 1)
             {
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
@@ -159,8 +160,11 @@ namespace Classification_App
                         SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
                         if (trainingModel.ClassCount <= 1)
                         {
-                            Log.LogMessage(ONLY_ONE_CLASS_IN_TRAINING);
-                            Log.LogMessage("");
+                            if (!postedOneClassError)
+                            {
+                                Log.LogMessage(ONLY_ONE_CLASS_IN_TRAINING);
+                                postedOneClassError = true;
+                            }
                             guesses.AddRange(tupleProblem.Item1.Y.ToList().Take(tupleProblem.Item2.Y.Count()).ToList());
                         }
                         else
