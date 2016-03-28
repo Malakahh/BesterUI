@@ -125,7 +125,7 @@ namespace Classification_App
                 AllDone = false;
             }
 
-            if (done.Count(x => !x.Value && x.Key.Contains("Voting") || x.Key.Contains("Stacking")) == 0)
+            if (done.Count(x => !x.Value && (x.Key.Contains("Voting") || x.Key.Contains("Stacking"))) == 0)
             {
                 MetaDone = true;
             }

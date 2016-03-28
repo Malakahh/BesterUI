@@ -634,7 +634,7 @@ namespace Classification_App
 
                     curDat++;
                     eh.Save();
-                    Log.LogMessage("DonnoDK");
+                    DPH.SaveProgress();
                 }
                 eh.CloseBooks();
                 Log.LogMessage("Closing books and saving");
