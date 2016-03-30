@@ -133,6 +133,7 @@
             // 
             // btn_reply
             // 
+            this.btn_reply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btn_reply.Image = ((System.Drawing.Image)(resources.GetObject("btn_reply.Image")));
             this.btn_reply.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btn_reply.Location = new System.Drawing.Point(453, 236);
