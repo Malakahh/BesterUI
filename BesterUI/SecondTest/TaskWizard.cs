@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SecondTest
 {
-    public enum Task { None, Test }
+    public enum Task { None, Test, Test2 }
 
     public partial class TaskWizard : Form
     {
@@ -32,6 +32,7 @@ namespace SecondTest
             this.MinimizeBox = false;
 
             taskOrder = GetScrambledTaskOrder();
+
             currentTaskPage = GetTaskPage(Task.None);
             this.Controls.Add(currentTaskPage);
             currentTaskPage.Show();
@@ -95,6 +96,9 @@ namespace SecondTest
                 case Task.Test:
                     return new TaskPage.TaskPage_Test();
                     break;
+                case Task.Test2:
+                    return new TaskPage.TaskPage_Test();
+                    break;
             }
         }
 
@@ -109,5 +113,6 @@ namespace SecondTest
             EventLog.Write("TaskWizard - BtnIncompleteClicked");
             NextTask();
         }
+        
     }
 }
