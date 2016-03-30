@@ -25,6 +25,9 @@ namespace SecondTest
             EventLog.DateTimeFormat = dateTimeFormat;
 
             this.FormClosing += SecondTestForm_FormClosing;
+
+            TaskWizard taskWizard = new TaskWizard();
+            taskWizard.Show();
         }
 
         private void SecondTestForm_FormClosing(object sender, FormClosingEventArgs e)

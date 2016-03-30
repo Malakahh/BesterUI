@@ -169,6 +169,7 @@ namespace BesterUI
                     Log.LogMessage("WARNING: This is running hackfix code. Do NOT use for the actual test. Fix this!");
                 }
 
+                EEGDataReading dataReading = new EEGDataReading(true);
                 SecondTestForm secondTest = new SecondTestForm(DataReading.stopWatch, DataReading.startTime, DataReading.dateFormat);
                 secondTest.Show();
             }

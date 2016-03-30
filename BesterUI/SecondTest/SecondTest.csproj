@@ -50,6 +50,29 @@
     <Compile Include="SecondTestForm.Designer.cs">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_None.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_None.Designer.cs">
+      <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskWizard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TaskWizard.Designer.cs">
+      <DependentUpon>TaskWizard.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SecondTestForm.resx">
+      <DependentUpon>SecondTestForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
+      <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskWizard.resx">
+      <DependentUpon>TaskWizard.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
