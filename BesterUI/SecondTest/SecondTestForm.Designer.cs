@@ -36,6 +36,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.label_header = new System.Windows.Forms.Label();
             this.label_body = new System.Windows.Forms.Label();
+            this.btn_reply = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.emailList)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -98,6 +99,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel1.Controls.Add(this.btn_reply);
             this.panel1.Controls.Add(this.label_body);
             this.panel1.Controls.Add(this.label_header);
             this.panel1.Location = new System.Drawing.Point(198, 51);
@@ -129,6 +131,17 @@
             this.label_body.TabIndex = 6;
             this.label_body.Text = "BODY";
             // 
+            // btn_reply
+            // 
+            this.btn_reply.Image = ((System.Drawing.Image)(resources.GetObject("btn_reply.Image")));
+            this.btn_reply.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btn_reply.Location = new System.Drawing.Point(453, 236);
+            this.btn_reply.Name = "btn_reply";
+            this.btn_reply.Size = new System.Drawing.Size(75, 23);
+            this.btn_reply.TabIndex = 7;
+            this.btn_reply.Text = "Reply";
+            this.btn_reply.UseVisualStyleBackColor = true;
+            // 
             // SecondTestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -157,5 +170,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label_body;
         private System.Windows.Forms.Label label_header;
+        private System.Windows.Forms.Button btn_reply;
     }
 }
