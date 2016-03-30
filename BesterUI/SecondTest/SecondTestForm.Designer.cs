@@ -51,12 +51,13 @@
             this.emailList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.emailList.ColumnHeadersVisible = false;
             this.emailList.Location = new System.Drawing.Point(12, 51);
+            this.emailList.MultiSelect = false;
             this.emailList.Name = "emailList";
             this.emailList.ReadOnly = true;
             this.emailList.RowHeadersVisible = false;
             this.emailList.Size = new System.Drawing.Size(180, 266);
             this.emailList.TabIndex = 0;
-            this.emailList.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.emailList_CellContentClick);
+            this.emailList.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.emailList_CellMouseClick);
             // 
             // btn_inbox
             // 
@@ -68,6 +69,7 @@
             this.btn_inbox.TabIndex = 1;
             this.btn_inbox.Text = "Inbox";
             this.btn_inbox.UseVisualStyleBackColor = true;
+            this.btn_inbox.Click += new System.EventHandler(this.btn_inbox_Click);
             // 
             // btn_draft
             // 
@@ -77,6 +79,7 @@
             this.btn_draft.TabIndex = 2;
             this.btn_draft.Text = "Drafts";
             this.btn_draft.UseVisualStyleBackColor = true;
+            this.btn_draft.Click += new System.EventHandler(this.btn_draft_Click);
             // 
             // Contacts
             // 
