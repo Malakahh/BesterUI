@@ -117,11 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="label1.Text" xml:space="preserve">
-    <value>Here tasks you have to complete will be defined.
-
-Once you complete a task, click the "I have completed the task" button.
-If you get stuck or are otherwise unable to complete a task, click the "I was UNABLE to complete the task" button.
-</value>
-  </data>
 </root>

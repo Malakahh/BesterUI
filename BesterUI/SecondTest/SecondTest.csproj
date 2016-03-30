@@ -56,6 +56,12 @@
     <Compile Include="TaskPage\TaskPage_None.Designer.cs">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_Test.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Test.Designer.cs">
+      <DependentUpon>TaskPage_Test.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskWizard.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -69,6 +75,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_Test.resx">
+      <DependentUpon>TaskPage_Test.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskWizard.resx">
       <DependentUpon>TaskWizard.cs</DependentUpon>
