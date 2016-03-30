@@ -8,15 +8,17 @@ namespace SecondTest
 {
     class Email
     {
-        public string header;
+        public string title;
+        public string from;
         public string body;
 
-        public Email(string h, string b)
+        public Email(string f, string t, string b)
         {
-            this.header = h;
+            this.title = t;
+            this.from = f;
             this.body = b;
         }
 
-        public string Value { get { return this.header; } }
+        public string Value { get { return this.from + Environment.NewLine + Environment.NewLine + this.title; } }
     }
 }

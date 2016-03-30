@@ -37,11 +37,11 @@ namespace SecondTest
         List<Email> mails = new List<Email>();
         private void MakeEmails()
         {
-            mails.Add(new Email("EnLargeMe.com" + Environment.NewLine + Environment.NewLine + "New and improved penis enlargement pill - BUY NOW FOR CHEAPSIES!", "This body"));
-            mails.Add(new Email("AAU" + Environment.NewLine + Environment.NewLine + "You have been selected for an extra exam", "This Body"));
-            mails.Add(new Email("My Bestie" + Environment.NewLine + Environment.NewLine + "Hey are you comming over tonight for dinner?", "This Body"));
-            mails.Add(new Email("Microsoft" + Environment.NewLine + Environment.NewLine + "New email client for windows users!", "The body"));
-            mails.Add(new Email("Tinkov Bank" + Environment.NewLine + Environment.NewLine + "We like u join to our bankings operationalities", "The Body"));
+            mails.Add(new Email("EnLargeMe.com", "New and improved penis enlargement pill - BUY NOW FOR CHEAPSIES!", "This body"));
+            mails.Add(new Email("AAU", "You have been selected for an extra exam", "This Body"));
+            mails.Add(new Email("My Bestie", "Hey are you comming over tonight for dinner?", "This Body"));
+            mails.Add(new Email("Microsoft", "New email client for windows users!", "The body"));
+            mails.Add(new Email("Tinkov Bank", "We like u join to our bankings operationalities", "The Body"));
         }
 
         private void LoadEmails()
@@ -62,7 +62,7 @@ namespace SecondTest
         private void emailList_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             Email mail = mails[e.RowIndex];
-            label_header.Text = mail.header.Replace(Environment.NewLine, "");
+            label_header.Text = mail.from + " - " + mail.title;
             label_body.Text = mail.body;
         }
 
