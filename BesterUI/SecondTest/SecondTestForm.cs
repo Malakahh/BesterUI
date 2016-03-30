@@ -28,11 +28,42 @@ namespace SecondTest
 
             TaskWizard taskWizard = new TaskWizard();
             taskWizard.Show();
+
+            MakeEmails();
+            LoadEmails();
         }
+
+
+        List<Email> mails = new List<Email>();
+        private void MakeEmails()
+        {
+            mails.Add(new Email("EnLargeMe.com" + Environment.NewLine + Environment.NewLine + "New and improved penis enlargement pill - BUY NOW FOR CHEAPSIES!", "This body"));
+            mails.Add(new Email("AAU" + Environment.NewLine + Environment.NewLine + "You have been selected for an extra exam", "This Body"));
+            mails.Add(new Email("My Bestie" + Environment.NewLine + Environment.NewLine + "Hey are you comming over tonight for dinner?", "This Body"));
+            mails.Add(new Email("Microsoft" + Environment.NewLine + Environment.NewLine + "New email client for windows users!", "The body"));
+            mails.Add(new Email("Tinkov Bank" + Environment.NewLine + Environment.NewLine + "We like u join to our bankings operationalities", "The Body"));
+        }
+
+        private void LoadEmails()
+        {
+            emailList.RowTemplate.Height = 60;
+            emailList.DataSource = mails;
+            emailList.Invalidate();
+            emailList.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            emailList.Columns[0].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+        }
+
 
         private void SecondTestForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             EventLog.CloseWriter();
+        }
+
+        private void emailList_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            Email mail = mails[e.RowIndex];
+            label_header.Text = mail.header.Replace(Environment.NewLine, "");
+            label_body.Text = mail.body;
         }
     }
 }
