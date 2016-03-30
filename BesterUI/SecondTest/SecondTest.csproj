@@ -42,14 +42,66 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contact.cs" />
+    <Compile Include="ContactForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ContactForm.Designer.cs">
+      <DependentUpon>ContactForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Email.cs" />
     <Compile Include="EventLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SecondTestForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SecondTestForm.Designer.cs">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_None.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_None.Designer.cs">
+      <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Test.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Test.Designer.cs">
+      <DependentUpon>TaskPage_Test.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskWizard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TaskWizard.Designer.cs">
+      <DependentUpon>TaskWizard.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ContactForm.resx">
+      <DependentUpon>ContactForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SecondTestForm.resx">
+      <DependentUpon>SecondTestForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
+      <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_Test.resx">
+      <DependentUpon>TaskPage_Test.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskWizard.resx">
+      <DependentUpon>TaskWizard.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

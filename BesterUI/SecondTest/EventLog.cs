@@ -17,8 +17,13 @@ namespace SecondTest
         static string physDataPath = "PhysData";
         static StreamWriter writer;
 
-        public static void LogEvent(string eventName)
+        public static void Write(string eventName)
         {
+            if (writer == null)
+            {
+                OpenWriter();
+            }
+
             string data = Timer.ElapsedMilliseconds + "#" + eventName + "\n";
             writer.Write(data);
             writer.Flush();
