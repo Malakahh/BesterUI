@@ -68,8 +68,8 @@ namespace SecondTest
 
         private void Contacts_Click(object sender, EventArgs e)
         {
-            Contacts c = new SecondTest.Contacts();
-            c.Show();
+            ContactForm c = new ContactForm();
+            c.ShowDialog(this);
         }
     }
 }
