@@ -31,12 +31,12 @@ namespace Classification_App
 
         const int GSR_LATENCY = 2000;
         const int GSR_DURATION = 5000;
-        const int HR_LATENCY = 0;
-        const int HR_DURATION = 7000;
+        const int HR_LATENCY = 3000;
+        const int HR_DURATION = 6000;
         const int EEG_LATENCY = 0;
         const int EEG_DURATION = 7000;
-        const int FACE_LATENCY = 0;
-        const int FACE_DURATION = 7000;
+        const int FACE_LATENCY = 100;
+        const int FACE_DURATION = 1000;
 
         const char SEPARATOR = '|';
 
