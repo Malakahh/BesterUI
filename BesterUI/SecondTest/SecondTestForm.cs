@@ -65,5 +65,11 @@ namespace SecondTest
             label_header.Text = mail.header.Replace(Environment.NewLine, "");
             label_body.Text = mail.body;
         }
+
+        private void Contacts_Click(object sender, EventArgs e)
+        {
+            Contacts c = new SecondTest.Contacts();
+            c.Show();
+        }
     }
 }

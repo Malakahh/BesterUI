@@ -34,8 +34,8 @@
             this.btn_draft = new System.Windows.Forms.Button();
             this.Contacts = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label_header = new System.Windows.Forms.Label();
             this.label_body = new System.Windows.Forms.Label();
+            this.label_header = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.emailList)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -88,6 +88,7 @@
             this.Contacts.TabIndex = 3;
             this.Contacts.Text = "Contacts";
             this.Contacts.UseVisualStyleBackColor = true;
+            this.Contacts.Click += new System.EventHandler(this.Contacts_Click);
             // 
             // panel1
             // 
@@ -102,18 +103,6 @@
             this.panel1.Size = new System.Drawing.Size(543, 266);
             this.panel1.TabIndex = 4;
             // 
-            // label_header
-            // 
-            this.label_header.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label_header.AutoSize = true;
-            this.label_header.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_header.Location = new System.Drawing.Point(12, 9);
-            this.label_header.Name = "label_header";
-            this.label_header.Size = new System.Drawing.Size(155, 37);
-            this.label_header.TabIndex = 5;
-            this.label_header.Text = "HEADER";
-            // 
             // label_body
             // 
             this.label_body.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -125,6 +114,18 @@
             this.label_body.Size = new System.Drawing.Size(37, 13);
             this.label_body.TabIndex = 6;
             this.label_body.Text = "BODY";
+            // 
+            // label_header
+            // 
+            this.label_header.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label_header.AutoSize = true;
+            this.label_header.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_header.Location = new System.Drawing.Point(12, 9);
+            this.label_header.Name = "label_header";
+            this.label_header.Size = new System.Drawing.Size(155, 37);
+            this.label_header.TabIndex = 5;
+            this.label_header.Text = "HEADER";
             // 
             // SecondTestForm
             // 
