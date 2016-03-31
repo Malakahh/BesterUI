@@ -72,6 +72,7 @@ namespace SecondTest
                 ));
 
             UpdateLabels();
+            SetShownMail(mails.First());
 
         }
 
@@ -131,7 +132,7 @@ namespace SecondTest
 
         private void SetShownMail(Email mail)
         {
-            label_header.Text = mail.from + " - " + mail.title;
+            label_header.Text = mail.from.FirstName + " " + mail.from.LastName + "(" + mail.from.Email + ")" + " - " + mail.title;
             label_body.Text = mail.body;
         }
 
