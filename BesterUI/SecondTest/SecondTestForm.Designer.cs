@@ -31,13 +31,14 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SecondTestForm));
             this.emailList = new System.Windows.Forms.DataGridView();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.btn_reply = new System.Windows.Forms.Button();
             this.label_body = new System.Windows.Forms.Label();
             this.label_header = new System.Windows.Forms.Label();
             this.btn_sent = new System.Windows.Forms.Button();
-            this.btn_reply = new System.Windows.Forms.Button();
             this.Contacts = new System.Windows.Forms.Button();
             this.btn_draft = new System.Windows.Forms.Button();
             this.btn_inbox = new System.Windows.Forms.Button();
+            this.btn_new = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.emailList)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -75,6 +76,19 @@
             this.panel1.Size = new System.Drawing.Size(543, 266);
             this.panel1.TabIndex = 4;
             // 
+            // btn_reply
+            // 
+            this.btn_reply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_reply.Image = ((System.Drawing.Image)(resources.GetObject("btn_reply.Image")));
+            this.btn_reply.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btn_reply.Location = new System.Drawing.Point(453, 236);
+            this.btn_reply.Name = "btn_reply";
+            this.btn_reply.Size = new System.Drawing.Size(75, 23);
+            this.btn_reply.TabIndex = 7;
+            this.btn_reply.Text = "Reply";
+            this.btn_reply.UseVisualStyleBackColor = true;
+            this.btn_reply.Click += new System.EventHandler(this.btn_reply_Click);
+            // 
             // label_body
             // 
             this.label_body.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -110,19 +124,6 @@
             this.btn_sent.Text = "Sent";
             this.btn_sent.UseVisualStyleBackColor = true;
             this.btn_sent.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // btn_reply
-            // 
-            this.btn_reply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_reply.Image = ((System.Drawing.Image)(resources.GetObject("btn_reply.Image")));
-            this.btn_reply.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.btn_reply.Location = new System.Drawing.Point(453, 236);
-            this.btn_reply.Name = "btn_reply";
-            this.btn_reply.Size = new System.Drawing.Size(75, 23);
-            this.btn_reply.TabIndex = 7;
-            this.btn_reply.Text = "Reply";
-            this.btn_reply.UseVisualStyleBackColor = true;
-            this.btn_reply.Click += new System.EventHandler(this.btn_reply_Click);
             // 
             // Contacts
             // 
@@ -161,11 +162,22 @@
             this.btn_inbox.UseVisualStyleBackColor = true;
             this.btn_inbox.Click += new System.EventHandler(this.btn_inbox_Click);
             // 
+            // btn_new
+            // 
+            this.btn_new.Location = new System.Drawing.Point(309, 13);
+            this.btn_new.Name = "btn_new";
+            this.btn_new.Size = new System.Drawing.Size(75, 23);
+            this.btn_new.TabIndex = 6;
+            this.btn_new.Text = "New Mail";
+            this.btn_new.UseVisualStyleBackColor = true;
+            this.btn_new.Click += new System.EventHandler(this.btn_new_Click);
+            // 
             // SecondTestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(753, 329);
+            this.Controls.Add(this.btn_new);
             this.Controls.Add(this.btn_sent);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.Contacts);
@@ -192,5 +204,6 @@
         private System.Windows.Forms.Label label_header;
         private System.Windows.Forms.Button btn_reply;
         private System.Windows.Forms.Button btn_sent;
+        private System.Windows.Forms.Button btn_new;
     }
 }

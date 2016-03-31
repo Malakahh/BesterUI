@@ -10,6 +10,7 @@ namespace SecondTest
     {
         public static List<Contact> Contacts = new List<Contact>();
         public static Contact User;
+        public static Contact noContactYet; //for drafts
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -27,6 +28,7 @@ namespace SecondTest
         public static void GenerateDefaultContacts()
         {
             User = new Contact("Me", "", "", "");
+            noContactYet = new Contact("...", "", "", "");
 
             Contacts.Add(new Contact("Dad", "", "45645778", "christian@post8.tele.dk"));
             Contacts.Add(new Contact("Richard", "Johnson", "15648753", "r.j@gmail.com"));
@@ -36,6 +38,7 @@ namespace SecondTest
             Contacts.Add(new Contact("Nina", "Tyles", "78453256", "ntyles@tyles.com"));
             Contacts.Add(new Contact("Taxi", "", "33273377", ""));
             Contacts.Add(new Contact("Sister", "", "13659137", "anna@gmail.com"));
+            Contacts.Add(new Contact("Microsoft", "", "28371627", "help@microsoft.com"));
             Contacts.Add(new Contact("DripStat", "", "", "support@chrononsystems.com"));
             Contacts.Add(new Contact("MMM RSA Team", "", "", "rsa@info-3mglobal.com"));
             Contacts.Add(new Contact("VMware Danmark", "", "70106888", "vmwareteam@connect.vmware.com"));

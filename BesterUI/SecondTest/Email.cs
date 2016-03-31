@@ -9,16 +9,16 @@ namespace SecondTest
     public class Email
     {
         public string title;
-        public string from;
+        public Contact from;
         public string body;
-        public string to;
+        public List<Contact> receivers;
 
-        public Email(string from, string title, string body, string to = "")
+        public Email(Contact from, string title, string body, List<Contact> receivers)
         {
             this.title = title;
             this.from = from;
             this.body = body;
-            this.to = to;
+            this.receivers = receivers;
         }
 
         public string Value { get { return this.from + Environment.NewLine + Environment.NewLine + this.title; } }

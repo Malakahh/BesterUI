@@ -15,16 +15,25 @@ namespace SecondTest
 
         public event Action<Email> EmailSent;
         public event Action<Email> EmailSaved;
+        private List<Contact> receivers = new List<Contact>();
 
         public WriteMessageForm()
         {
             InitializeComponent();
         }
 
+        public WriteMessageForm(Email replyToMail)
+        {
+
+            InitializeComponent();
+            receivers.Add(replyToMail.from);
+            textbox_mail_to.Text += replyToMail.from.Email + ";";
+        }
+
         private void btn_mail_send_Click(object sender, EventArgs e)
         {
-            Email mail = new Email("Me", textbox_mail_title.Text, richtext_mail_body.Text, textbox_mail_to.Text);
 
+            Email mail = new Email(Contact.User, textbox_mail_title.Text, richtext_mail_body.Text, this.receivers);
             if (EmailSent != null)
                 EmailSent(mail);
 
@@ -35,13 +44,17 @@ namespace SecondTest
         private void btn_msg_contacts_Click(object sender, EventArgs e)
         {
             ContactForm cf = new ContactForm();
-            cf.ContactSelected += (Contact c) => { textbox_mail_to.Text += c.Email + ";"; };
+            cf.ContactSelected += (Contact c) =>
+            {
+                textbox_mail_to.Text += c.Email + ";";
+                receivers.Add(c);
+            };
             cf.ShowDialog(this);
         }
 
         private void btn_mail_save_Click(object sender, EventArgs e)
         {
-            Email mail = new Email("Me", textbox_mail_title.Text, richtext_mail_body.Text, textbox_mail_to.Text);
+            Email mail = new Email(Contact.User, textbox_mail_title.Text, richtext_mail_body.Text, this.receivers);
             if (EmailSaved != null)
                 EmailSaved(mail);
 
