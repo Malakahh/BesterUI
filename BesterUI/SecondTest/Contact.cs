@@ -8,6 +8,9 @@ namespace SecondTest
 {
     public class Contact
     {
+        public static List<Contact> Contacts = new List<Contact>();
+        public static Contact User;
+
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }
@@ -19,6 +22,16 @@ namespace SecondTest
             this.LastName = LastName;
             this.PhoneNumber = PhoneNumber;
             this.Email = Email;
+        }
+
+        public static void GenerateDefaultContacts()
+        {
+            User = new Contact("Me", "", "", "");
+
+            Contacts.Add(new Contact("Dad", "", "45645778", "christian@post8.tele.dk"));
+            Contacts.Add(new Contact("Richard", "Johnson", "15648753", "r.j@gmail.com"));
+            Contacts.Add(new Contact("Gertrude", "Wright", "65498561", "gertrude32@hotmail.com"));
+            Contacts.Add(new Contact("Pizza", "Hut", "98139055", ""));
         }
     }
 }

@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SecondTest
 {
-    public enum Task { None, Test, Test2 }
+    public enum Task { None, AddContact }
 
     public partial class TaskWizard : Form
     {
@@ -93,12 +93,10 @@ namespace SecondTest
                 case Task.None:
                     return new TaskPage.TaskPage_None();
                     break;
-                case Task.Test:
-                    return new TaskPage.TaskPage_Test();
+                case Task.AddContact:
+                    return new TaskPage.TaskPage_AddContact();
                     break;
-                case Task.Test2:
-                    return new TaskPage.TaskPage_Test();
-                    break;
+                
             }
         }
 

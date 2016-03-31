@@ -29,7 +29,7 @@ namespace SecondTest
 
         private void btn_mail_send_Click(object sender, EventArgs e)
         {
-            Email mail;
+            Email mail = new Email();
             if (EmailSent != null)
                 EmailSent(mail);
 

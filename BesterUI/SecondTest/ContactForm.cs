@@ -14,7 +14,7 @@ namespace SecondTest
     {
         public event Action<Contact> ContactSelected;
 
-        public static List<Contact> contacts = new List<Contact>();
+        
         BindingSource bs = new BindingSource();
 
         public ContactForm()
@@ -30,23 +30,28 @@ namespace SecondTest
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            if (contacts.Count == 0)
+            if (Contact.Contacts.Count == 0)
             {
                 GenerateDefaultContacts();
             }
 
-            bs.DataSource = contacts;
+            bs.DataSource = Contact.Contacts;
             dataGridViewContacts.DataSource = bs;
         }
 
         private void BtnRemoveContact_Click(object sender, EventArgs e)
         {
-            contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
+            Contact.Contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
             bs.ResetBindings(false);
         }
 
         private void BtnAddContact_Click(object sender, EventArgs e)
         {
+            if (SeededProblems.ContactForm.AddContactBtn())
+            {
+                return;
+            }
+
             bool shouldReturn = false;
 
             if (string.IsNullOrEmpty(txtBoxEmail.Text) || !IsValidEmail(txtBoxEmail.Text))
@@ -94,7 +99,7 @@ namespace SecondTest
                 return;
             }
 
-            contacts.Add(new Contact(
+            Contact.Contacts.Add(new Contact(
                 txtBoxFirstName.Text,
                 txtBoxLastName.Text,
                 txtBoxPhoneNumber.Text,
@@ -105,14 +110,6 @@ namespace SecondTest
             txtBoxFirstName.Clear();
             txtBoxLastName.Clear();
             txtBoxPhoneNumber.Clear();
-        }
-
-        private void GenerateDefaultContacts()
-        {
-            contacts.Add(new Contact("Dad", "", "45645778", "christian@post8.tele.dk"));
-            contacts.Add(new Contact("Richard", "Johnson", "15648753", "r.j@gmail.com"));
-            contacts.Add(new Contact("Gertrude", "Wright", "65498561", "gertrude32@hotmail.com"));
-            contacts.Add(new Contact("Pizza", "Hut", "98139055", ""));
         }
 
         bool IsValidEmail(string email)
@@ -140,7 +137,7 @@ namespace SecondTest
         {
             if (ContactSelected != null)
             {
-                ContactSelected(contacts[e.RowIndex]);
+                ContactSelected(Contact.Contacts[e.RowIndex]);
             }
         }
     }
