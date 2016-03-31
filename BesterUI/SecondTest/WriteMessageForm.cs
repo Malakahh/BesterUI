@@ -24,9 +24,10 @@ namespace SecondTest
 
         public WriteMessageForm(Email replyToMail)
         {
+
+            InitializeComponent();
             receivers.Add(replyToMail.from);
             textbox_mail_to.Text += replyToMail.from.Email + ";";
-            InitializeComponent();
         }
 
         private void btn_mail_send_Click(object sender, EventArgs e)

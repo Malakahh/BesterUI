@@ -57,9 +57,29 @@ namespace SecondTest
                 new List<Contact>() { Contact.User }
                 ));
 
-            btn_inbox.Text += " (" + mails.Count + ")";
-            btn_draft.Text += " (" + drafts.Count + ")";
-            btn_sent.Text += " (" + sentBox.Count + ")";
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "help@microsoft.com"),
+                "The new Windows is out!",
+                "Enjoy the new windows which has more features than ever. We have redesigned the start menu, added additional features for gamers and in house media centers. Become faster at your work with the new office 365 apps as well!",
+                new List<Contact>() { Contact.User }
+                ));
+
+            drafts.Add(new Email(
+                Contact.User,
+                "Re: Dinner on saturday",
+                "Hi Mom! I look forwa",
+                new List<Contact>() { Contact.noContactYet }
+                ));
+
+            UpdateLabels();
+
+        }
+
+        private void UpdateLabels()
+        {
+            btn_inbox.Text = "Inbox (" + mails.Count + ")";
+            btn_draft.Text = "Drafts (" + drafts.Count + ")";
+            btn_sent.Text = "Sent (" + sentBox.Count + ")";
         }
 
         private void LoadEmails()
@@ -159,15 +179,20 @@ namespace SecondTest
         private void ComposeEmail()
         {
             WriteMessageForm wmf = new WriteMessageForm();
-            wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); btn_sent.Text += " (" + this.sentBox.Count + ")"; };
-            wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); btn_draft.Text += " (" + this.drafts.Count + ")"; };
+            wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); UpdateLabels(); };
+            wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); UpdateLabels(); };
 
             wmf.ShowDialog(this);
         }
 
         private void ComposeEmail(Email replyTo)
         {
+            WriteMessageForm wmf = new WriteMessageForm(replyTo);
+            wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); UpdateLabels(); };
+            wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); UpdateLabels(); };
 
+
+            wmf.ShowDialog(this);
         }
     }
 }
