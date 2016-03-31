@@ -14,7 +14,7 @@ namespace SecondTest
     {
         public event Action<Contact> ContactSelected;
 
-        static List<Contact> contacts = new List<Contact>();
+        public static List<Contact> contacts = new List<Contact>();
         BindingSource bs = new BindingSource();
 
         public ContactForm()

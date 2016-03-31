@@ -41,12 +41,6 @@ namespace SecondTest
 
         private void MakeEmails()
         {
-            mails.Add(new Email("EnLargeMe.com", "New and improved penis enlargement pill - BUY NOW FOR CHEAPSIES!", "This body"));
-            mails.Add(new Email("AAU", "You have been selected for an extra exam", "This Body"));
-            mails.Add(new Email("My Bestie", "Hey are you comming over tonight for dinner?", "This Body"));
-            mails.Add(new Email("Microsoft", "New email client for windows users!", "The body"));
-            mails.Add(new Email("Tinkov Bank", "We like u join to our bankings operationalities", "The Body"));
-            drafts.Add(new Email("...", "Hi bestie!", "I would love to join for dinner, but can we do it on sun"));
 
             btn_inbox.Text += " (" + mails.Count + ")";
             btn_draft.Text += " (" + drafts.Count + ")";
@@ -106,11 +100,24 @@ namespace SecondTest
             label_body.Text = mail.body;
         }
 
+        Email currentMail;
         private void emailList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            Email mail = (emailList.DataSource == mails) ? mails[e.RowIndex] : drafts[e.RowIndex];
+            if (emailList.DataSource == mails)
+            {
+                currentMail = mails[e.RowIndex];
+            }
+            else if (emailList.DataSource == drafts)
+            {
+                currentMail = drafts[e.RowIndex];
+            }
+            else if (emailList.DataSource == sentBox)
+            {
+                currentMail = sentBox[e.RowIndex];
+            }
 
-            SetShownMail(mail);
+
+            SetShownMail(currentMail);
         }
 
         private void Contacts_Click(object sender, EventArgs e)
@@ -121,6 +128,21 @@ namespace SecondTest
 
         private void btn_reply_Click(object sender, EventArgs e)
         {
+            ComposeEmail(currentMail);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ChangeMailSource("sentBox");
+        }
+
+        private void btn_new_Click(object sender, EventArgs e)
+        {
+            ComposeEmail();
+        }
+
+        private void ComposeEmail()
+        {
             WriteMessageForm wmf = new WriteMessageForm();
             wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); btn_sent.Text += " (" + this.sentBox.Count + ")"; };
             wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); btn_draft.Text += " (" + this.drafts.Count + ")"; };
@@ -128,9 +150,9 @@ namespace SecondTest
             wmf.ShowDialog(this);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ComposeEmail(Email replyTo)
         {
-            ChangeMailSource("sentBox");
+
         }
     }
 }

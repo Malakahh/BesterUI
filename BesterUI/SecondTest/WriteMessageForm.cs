@@ -21,10 +21,15 @@ namespace SecondTest
             InitializeComponent();
         }
 
+        public WriteMessageForm(Email replyToMail)
+        {
+            textbox_mail_to.Text = replyToMail.to.Email;
+            InitializeComponent();
+        }
+
         private void btn_mail_send_Click(object sender, EventArgs e)
         {
-            Email mail = new Email("Me", textbox_mail_title.Text, richtext_mail_body.Text, textbox_mail_to.Text);
-
+            Email mail;
             if (EmailSent != null)
                 EmailSent(mail);
 
@@ -41,7 +46,7 @@ namespace SecondTest
 
         private void btn_mail_save_Click(object sender, EventArgs e)
         {
-            Email mail = new Email("Me", textbox_mail_title.Text, richtext_mail_body.Text, textbox_mail_to.Text);
+            Email mail;
             if (EmailSaved != null)
                 EmailSaved(mail);
 

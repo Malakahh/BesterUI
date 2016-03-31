@@ -9,11 +9,11 @@ namespace SecondTest
     public class Email
     {
         public string title;
-        public string from;
+        public Contact from;
         public string body;
-        public string to;
+        public Contact to;
 
-        public Email(string from, string title, string body, string to = "")
+        public Email(Contact from, string title, string body, Contact to)
         {
             this.title = title;
             this.from = from;
