@@ -88,6 +88,12 @@
     <Compile Include="TaskWizard.Designer.cs">
       <DependentUpon>TaskWizard.cs</DependentUpon>
     </Compile>
+    <Compile Include="WriteMessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WriteMessageForm.Designer.cs">
+      <DependentUpon>WriteMessageForm.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ContactForm.resx">
@@ -112,6 +118,21 @@
     <EmbeddedResource Include="TaskWizard.resx">
       <DependentUpon>TaskWizard.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="WriteMessageForm.resx">
+      <DependentUpon>WriteMessageForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\reply.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\saved.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sent1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
