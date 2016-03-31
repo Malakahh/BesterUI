@@ -30,7 +30,7 @@ namespace SecondTest
 
             this.FormClosing += SecondTestForm_FormClosing;
 
-
+            Contact.GenerateDefaultContacts();
             TaskWizard taskWizard = new TaskWizard();
             SeededProblems.Init(taskWizard);
             taskWizard.Show();
