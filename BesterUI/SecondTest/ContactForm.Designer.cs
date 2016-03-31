@@ -49,6 +49,7 @@
             this.dataGridViewContacts.AllowUserToResizeRows = false;
             this.dataGridViewContacts.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridViewContacts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewContacts.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridViewContacts.GridColor = System.Drawing.SystemColors.Window;
             this.dataGridViewContacts.Location = new System.Drawing.Point(12, 12);
             this.dataGridViewContacts.MultiSelect = false;

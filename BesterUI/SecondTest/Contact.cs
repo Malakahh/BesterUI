@@ -39,6 +39,10 @@ namespace SecondTest
             Contacts.Add(new Contact("Taxi", "", "33273377", ""));
             Contacts.Add(new Contact("Sister", "", "13659137", "anna@gmail.com"));
             Contacts.Add(new Contact("Microsoft", "", "28371627", "help@microsoft.com"));
+            Contacts.Add(new Contact("DripStat", "", "", "support@chrononsystems.com"));
+            Contacts.Add(new Contact("MMM RSA Team", "", "", "rsa@info-3mglobal.com"));
+            Contacts.Add(new Contact("VMware Danmark", "", "70106888", "vmwareteam@connect.vmware.com"));
+            Contacts.Add(new Contact("TravelBird", "", "89882630", "rejser@travelbirddanmark.dk"));
         }
     }
 }
