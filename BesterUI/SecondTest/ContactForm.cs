@@ -14,7 +14,7 @@ namespace SecondTest
     {
         public event Action<Contact> ContactSelected;
 
-        List<Contact> contacts = new List<Contact>();
+        static List<Contact> contacts = new List<Contact>();
         BindingSource bs = new BindingSource();
 
         public ContactForm()
@@ -30,7 +30,10 @@ namespace SecondTest
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            GenerateDefaultContacts();
+            if (contacts.Count == 0)
+            {
+                GenerateDefaultContacts();
+            }
 
             bs.DataSource = contacts;
             dataGridViewContacts.DataSource = bs;
@@ -38,7 +41,8 @@ namespace SecondTest
 
         private void BtnRemoveContact_Click(object sender, EventArgs e)
         {
-            
+            contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
+            bs.ResetBindings(false);
         }
 
         private void BtnAddContact_Click(object sender, EventArgs e)

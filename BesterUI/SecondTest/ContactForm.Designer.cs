@@ -128,7 +128,7 @@
             // 
             // btnRemoveContact
             // 
-            this.btnRemoveContact.Location = new System.Drawing.Point(417, 296);
+            this.btnRemoveContact.Location = new System.Drawing.Point(411, 296);
             this.btnRemoveContact.Name = "btnRemoveContact";
             this.btnRemoveContact.Size = new System.Drawing.Size(75, 60);
             this.btnRemoveContact.TabIndex = 9;
