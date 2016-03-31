@@ -76,6 +76,12 @@
     <Compile Include="TaskPage\TaskPage_None.Designer.cs">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_SendMailToContact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_SendMailToContact.Designer.cs">
+      <DependentUpon>TaskPage_SendMailToContact.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_Test.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -111,6 +117,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_SendMailToContact.resx">
+      <DependentUpon>TaskPage_SendMailToContact.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_Test.resx">
       <DependentUpon>TaskPage_Test.cs</DependentUpon>
