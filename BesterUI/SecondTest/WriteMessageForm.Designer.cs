@@ -83,6 +83,7 @@
             this.btn_mail_save.TabIndex = 4;
             this.btn_mail_save.Text = "Save";
             this.btn_mail_save.UseVisualStyleBackColor = true;
+            this.btn_mail_save.Click += new System.EventHandler(this.btn_mail_save_Click);
             // 
             // btn_msg_contacts
             // 
@@ -92,6 +93,7 @@
             this.btn_msg_contacts.Size = new System.Drawing.Size(23, 23);
             this.btn_msg_contacts.TabIndex = 5;
             this.btn_msg_contacts.UseVisualStyleBackColor = true;
+            this.btn_msg_contacts.Click += new System.EventHandler(this.btn_msg_contacts_Click);
             // 
             // label2
             // 

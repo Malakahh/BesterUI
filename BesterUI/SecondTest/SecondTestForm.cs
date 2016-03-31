@@ -16,7 +16,7 @@ namespace SecondTest
 
         private List<Email> mails = new List<Email>();
         private List<Email> drafts = new List<Email>();
-        private WriteMessageForm wmf;
+        private List<Email> sentBox = new List<Email>();
 
         public SecondTestForm(Stopwatch timer, DateTime? startTime, string dateTimeFormat)
         {
@@ -29,6 +29,7 @@ namespace SecondTest
             EventLog.DateTimeFormat = dateTimeFormat;
 
             this.FormClosing += SecondTestForm_FormClosing;
+
 
             TaskWizard taskWizard = new TaskWizard();
             taskWizard.Show();
@@ -46,6 +47,10 @@ namespace SecondTest
             mails.Add(new Email("Microsoft", "New email client for windows users!", "The body"));
             mails.Add(new Email("Tinkov Bank", "We like u join to our bankings operationalities", "The Body"));
             drafts.Add(new Email("...", "Hi bestie!", "I would love to join for dinner, but can we do it on sun"));
+
+            btn_inbox.Text += " (" + mails.Count + ")";
+            btn_draft.Text += " (" + drafts.Count + ")";
+            btn_sent.Text += " (" + sentBox.Count + ")";
         }
 
         private void LoadEmails()
@@ -80,12 +85,18 @@ namespace SecondTest
                 source = mails;
             else if (s == "drafts")
                 source = drafts;
+            else if (s == "sentBox")
+                source = sentBox;
 
             emailList.DataSource = source;
-            emailList.ClearSelection();
-            emailList.Rows[0].Selected = true;
-            SetShownMail(source.First());
-            emailList.Invalidate();
+            if (emailList.Rows.Count > 0)
+            {
+                emailList.ClearSelection();
+                emailList.Rows[0].Selected = true;
+                SetShownMail(source.First());
+                emailList.Invalidate();
+
+            }
         }
 
 
@@ -111,7 +122,15 @@ namespace SecondTest
         private void btn_reply_Click(object sender, EventArgs e)
         {
             WriteMessageForm wmf = new WriteMessageForm();
+            wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); btn_sent.Text += " (" + this.sentBox.Count + ")"; };
+            wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); btn_draft.Text += " (" + this.drafts.Count + ")"; };
+
             wmf.ShowDialog(this);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ChangeMailSource("sentBox");
         }
     }
 }

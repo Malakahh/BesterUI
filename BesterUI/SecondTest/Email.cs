@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SecondTest
 {
-    class Email
+    public class Email
     {
         public string title;
         public string from;
