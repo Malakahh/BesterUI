@@ -32,6 +32,8 @@ namespace SecondTest
             Contacts.Add(new Contact("Richard", "Johnson", "15648753", "r.j@gmail.com"));
             Contacts.Add(new Contact("Gertrude", "Wright", "65498561", "gertrude32@hotmail.com"));
             Contacts.Add(new Contact("Pizza", "Hut", "98139055", ""));
+            Contacts.Add(new Contact("Mom", "", "86862386", "julia@jubii.dk"));
+            Contacts.Add(new Contact("Nina", "Tyles", "78453256", "ntyles@tyles.com"));
         }
     }
 }

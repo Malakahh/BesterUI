@@ -30,11 +30,6 @@ namespace SecondTest
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            if (Contact.Contacts.Count == 0)
-            {
-                GenerateDefaultContacts();
-            }
-
             bs.DataSource = Contact.Contacts;
             dataGridViewContacts.DataSource = bs;
         }
