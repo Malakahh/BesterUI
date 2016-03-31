@@ -109,8 +109,6 @@ namespace SecondTest
 
         private void GenerateDefaultContacts()
         {
-
-
             contacts.Add(new Contact("Dad", "", "45645778", "christian@post8.tele.dk"));
             contacts.Add(new Contact("Richard", "Johnson", "15648753", "r.j@gmail.com"));
             contacts.Add(new Contact("Gertrude", "Wright", "65498561", "gertrude32@hotmail.com"));
