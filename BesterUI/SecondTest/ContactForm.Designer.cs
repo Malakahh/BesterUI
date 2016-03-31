@@ -51,6 +51,7 @@
             this.dataGridViewContacts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewContacts.GridColor = System.Drawing.SystemColors.Window;
             this.dataGridViewContacts.Location = new System.Drawing.Point(12, 12);
+            this.dataGridViewContacts.MultiSelect = false;
             this.dataGridViewContacts.Name = "dataGridViewContacts";
             this.dataGridViewContacts.RowHeadersVisible = false;
             this.dataGridViewContacts.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
