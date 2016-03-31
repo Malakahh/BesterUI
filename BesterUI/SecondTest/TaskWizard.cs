@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SecondTest
 {
-    public enum Task { None, AddContact, SendMailToContact }
+    public enum Task { None, Final, AddContact, SendMailToContact }
 
     public partial class TaskWizard : Form
     {
@@ -44,6 +44,7 @@ namespace SecondTest
             list = Enum.GetValues(typeof(Task)).Cast<Task>().ToList();
 
             list.Remove(Task.None);
+            list.Remove(Task.Final);
 
             //Scramble
             Random rng = new Random();
@@ -56,6 +57,8 @@ namespace SecondTest
                 list[k] = list[n];
                 list[n] = val;
             }
+
+            list.Add(Task.Final);
 
             return list;
         }
@@ -92,6 +95,9 @@ namespace SecondTest
                 default:
                 case Task.None:
                     return new TaskPage.TaskPage_None();
+                    break;
+                case Task.Final:
+                    return new TaskPage.TaskPage_Final();
                     break;
                 case Task.AddContact:
                     return new TaskPage.TaskPage_AddContact();

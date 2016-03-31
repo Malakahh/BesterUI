@@ -70,6 +70,12 @@
     <Compile Include="TaskPage\TaskPage_AddContact.Designer.cs">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_Final.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Final.Designer.cs">
+      <DependentUpon>TaskPage_Final.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_None.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -114,6 +120,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_AddContact.resx">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_Final.resx">
+      <DependentUpon>TaskPage_Final.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
