@@ -21,6 +21,6 @@ namespace SecondTest
             this.receivers = receivers;
         }
 
-        public string Value { get { return this.from + Environment.NewLine + Environment.NewLine + this.title; } }
+        public string Value { get { return this.from.FirstName + Environment.NewLine + Environment.NewLine + this.title; } }
     }
 }
