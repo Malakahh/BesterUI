@@ -17,6 +17,7 @@ namespace SecondTest
 
         public static class ContactForm
         {
+            static int addContactCount = 0;
             public static bool AddContactBtn()
             {
                 if (CurrentTask != Task.AddContact)
@@ -24,7 +25,16 @@ namespace SecondTest
                     return false;
                 }
 
-                throw new NotImplementedException();
+                if (addContactCount < 3)
+                {
+                    addContactCount++;
+                    EventLog.Write("Add Contact Button click: " + addContactCount);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }
