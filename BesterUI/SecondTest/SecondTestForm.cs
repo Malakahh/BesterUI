@@ -43,6 +43,20 @@ namespace SecondTest
         private void MakeEmails()
         {
 
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "julia@jubii.dk"),
+                "Dinner on saturday",
+                "Hi" + Environment.NewLine + "I would just like to say that we look forward to see you on saturday :)",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "ntyles@tyles.com"),
+                "Lets go out for a drink!",
+                "Hey you! Lets go for a drink soon, it would be totally awesome!",
+                new List<Contact>() { Contact.User }
+                ));
+
             btn_inbox.Text += " (" + mails.Count + ")";
             btn_draft.Text += " (" + drafts.Count + ")";
             btn_sent.Text += " (" + sentBox.Count + ")";

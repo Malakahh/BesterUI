@@ -11,14 +11,14 @@ namespace SecondTest
         public string title;
         public Contact from;
         public string body;
-        public Contact to;
+        public List<Contact> receivers;
 
-        public Email(Contact from, string title, string body, Contact to)
+        public Email(Contact from, string title, string body, List<Contact> receivers)
         {
             this.title = title;
             this.from = from;
             this.body = body;
-            this.to = to;
+            this.receivers = receivers;
         }
 
         public string Value { get { return this.from + Environment.NewLine + Environment.NewLine + this.title; } }
