@@ -84,6 +84,7 @@
             // 
             // Contacts
             // 
+            this.Contacts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.Contacts.Image = ((System.Drawing.Image)(resources.GetObject("Contacts.Image")));
             this.Contacts.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.Contacts.Location = new System.Drawing.Point(653, 13);
