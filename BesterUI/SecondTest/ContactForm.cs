@@ -41,7 +41,8 @@ namespace SecondTest
 
         private void BtnRemoveContact_Click(object sender, EventArgs e)
         {
-            
+            contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
+            bs.ResetBindings(false);
         }
 
         private void BtnAddContact_Click(object sender, EventArgs e)
