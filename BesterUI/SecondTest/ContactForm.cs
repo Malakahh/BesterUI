@@ -12,7 +12,10 @@ namespace SecondTest
 {
     public partial class ContactForm : Form
     {
+        public event Action<Contact> ContactSelected;
+
         List<Contact> contacts = new List<Contact>();
+        BindingSource bs = new BindingSource();
 
         public ContactForm()
         {
@@ -20,6 +23,7 @@ namespace SecondTest
 
             btnAddContact.Click += BtnAddContact_Click;
             btnRemoveContact.Click += BtnRemoveContact_Click;
+            txtBoxPhoneNumber.KeyPress += txtBoxPhoneNumber_KeyPress;
 
             //Disable resizing
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -28,7 +32,8 @@ namespace SecondTest
 
             GenerateDefaultContacts();
 
-            dataGridViewContacts.DataSource = contacts;
+            bs.DataSource = contacts;
+            dataGridViewContacts.DataSource = bs;
         }
 
         private void BtnRemoveContact_Click(object sender, EventArgs e)
@@ -38,15 +43,64 @@ namespace SecondTest
 
         private void BtnAddContact_Click(object sender, EventArgs e)
         {
-            if (!IsValidEmail(txtBoxEmail.Text))
+            bool shouldReturn = false;
+
+            if (string.IsNullOrEmpty(txtBoxEmail.Text) || !IsValidEmail(txtBoxEmail.Text))
             {
                 txtBoxEmail.BackColor = Color.Salmon;
-                return;
+                shouldReturn = true;
             }
             else
             {
                 txtBoxEmail.BackColor = Color.White;
             }
+
+            if (string.IsNullOrEmpty(txtBoxFirstName.Text))
+            {
+                txtBoxFirstName.BackColor = Color.Salmon;
+                shouldReturn = true;
+            }
+            else
+            {
+                txtBoxFirstName.BackColor = Color.White;
+            }
+
+            if (string.IsNullOrEmpty(txtBoxLastName.Text))
+            {
+                txtBoxLastName.BackColor = Color.Salmon;
+                shouldReturn = true;
+            }
+            else
+            {
+                txtBoxLastName.BackColor = Color.White;
+            }
+
+            if (string.IsNullOrEmpty(txtBoxPhoneNumber.Text))
+            {
+                txtBoxPhoneNumber.BackColor = Color.Salmon;
+                shouldReturn = true;
+            }
+            else
+            {
+                txtBoxPhoneNumber.BackColor = Color.White;
+            }
+
+            if (shouldReturn)
+            {
+                return;
+            }
+
+            contacts.Add(new Contact(
+                txtBoxFirstName.Text,
+                txtBoxLastName.Text,
+                txtBoxPhoneNumber.Text,
+                txtBoxEmail.Text));
+            bs.ResetBindings(false);
+
+            txtBoxEmail.Clear();
+            txtBoxFirstName.Clear();
+            txtBoxLastName.Clear();
+            txtBoxPhoneNumber.Clear();
         }
 
         private void GenerateDefaultContacts()
@@ -67,6 +121,22 @@ namespace SecondTest
             catch
             {
                 return false;
+            }
+        }
+
+        private void txtBoxPhoneNumber_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void dataGridViewContacts_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (ContactSelected != null)
+            {
+                ContactSelected(contacts[e.RowIndex]);
             }
         }
     }

@@ -51,11 +51,13 @@
             this.dataGridViewContacts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewContacts.GridColor = System.Drawing.SystemColors.Window;
             this.dataGridViewContacts.Location = new System.Drawing.Point(12, 12);
+            this.dataGridViewContacts.MultiSelect = false;
             this.dataGridViewContacts.Name = "dataGridViewContacts";
             this.dataGridViewContacts.RowHeadersVisible = false;
             this.dataGridViewContacts.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridViewContacts.Size = new System.Drawing.Size(390, 345);
             this.dataGridViewContacts.TabIndex = 0;
+            this.dataGridViewContacts.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridViewContacts_CellMouseDoubleClick);
             // 
             // txtBoxFirstName
             // 
@@ -92,6 +94,7 @@
             // txtBoxPhoneNumber
             // 
             this.txtBoxPhoneNumber.Location = new System.Drawing.Point(411, 140);
+            this.txtBoxPhoneNumber.MaxLength = 8;
             this.txtBoxPhoneNumber.Name = "txtBoxPhoneNumber";
             this.txtBoxPhoneNumber.Size = new System.Drawing.Size(162, 20);
             this.txtBoxPhoneNumber.TabIndex = 5;
