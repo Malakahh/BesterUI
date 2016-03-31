@@ -63,6 +63,13 @@
     <Compile Include="SecondTestForm.Designer.cs">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SeededProblems.cs" />
+    <Compile Include="TaskPage\TaskPage_AddContact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_AddContact.Designer.cs">
+      <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_None.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -92,6 +99,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SecondTestForm.resx">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_AddContact.resx">
+      <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>

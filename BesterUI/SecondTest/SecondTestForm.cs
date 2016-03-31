@@ -27,6 +27,7 @@ namespace SecondTest
             this.FormClosing += SecondTestForm_FormClosing;
 
             TaskWizard taskWizard = new TaskWizard();
+            SeededProblems.Init(taskWizard);
             taskWizard.Show();
 
             MakeEmails();

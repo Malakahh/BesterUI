@@ -47,6 +47,11 @@ namespace SecondTest
 
         private void BtnAddContact_Click(object sender, EventArgs e)
         {
+            if (SeededProblems.ContactForm.AddContactBtn())
+            {
+                return;
+            }
+
             bool shouldReturn = false;
 
             if (string.IsNullOrEmpty(txtBoxEmail.Text) || !IsValidEmail(txtBoxEmail.Text))
