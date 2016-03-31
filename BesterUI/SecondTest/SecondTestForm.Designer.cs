@@ -119,6 +119,7 @@
             this.btn_reply.TabIndex = 7;
             this.btn_reply.Text = "Reply";
             this.btn_reply.UseVisualStyleBackColor = true;
+            this.btn_reply.Click += new System.EventHandler(this.btn_reply_Click);
             // 
             // label_body
             // 

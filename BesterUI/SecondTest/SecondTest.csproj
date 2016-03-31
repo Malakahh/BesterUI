@@ -81,6 +81,12 @@
     <Compile Include="TaskWizard.Designer.cs">
       <DependentUpon>TaskWizard.cs</DependentUpon>
     </Compile>
+    <Compile Include="WriteMessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WriteMessageForm.Designer.cs">
+      <DependentUpon>WriteMessageForm.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ContactForm.resx">
@@ -101,6 +107,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskWizard.resx">
       <DependentUpon>TaskWizard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WriteMessageForm.resx">
+      <DependentUpon>WriteMessageForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

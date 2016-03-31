@@ -14,6 +14,10 @@ namespace SecondTest
     public partial class SecondTestForm : Form
     {
 
+        private List<Email> mails = new List<Email>();
+        private List<Email> drafts = new List<Email>();
+        private WriteMessageForm wmf;
+
         public SecondTestForm(Stopwatch timer, DateTime? startTime, string dateTimeFormat)
         {
             InitializeComponent();
@@ -34,8 +38,6 @@ namespace SecondTest
         }
 
 
-        List<Email> mails = new List<Email>();
-        List<Email> drafts = new List<Email>();
         private void MakeEmails()
         {
             mails.Add(new Email("EnLargeMe.com", "New and improved penis enlargement pill - BUY NOW FOR CHEAPSIES!", "This body"));
@@ -104,6 +106,12 @@ namespace SecondTest
         {
             ContactForm c = new ContactForm();
             c.ShowDialog(this);
+        }
+
+        private void btn_reply_Click(object sender, EventArgs e)
+        {
+            WriteMessageForm wmf = new WriteMessageForm();
+            wmf.ShowDialog(this);
         }
     }
 }
