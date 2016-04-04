@@ -173,6 +173,11 @@ namespace SecondTest
 
         private void btn_reply_Click(object sender, EventArgs e)
         {
+            if (btn_reply.Text == "Edit" && SeededProblems.SecondTestForm.SendDraft())
+            {
+                return;
+            }
+
             ComposeEmail(currentMail, btn_reply.Text == "Edit");
         }
 

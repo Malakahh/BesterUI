@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace SecondTest
 {
@@ -53,6 +54,20 @@ namespace SecondTest
 
                 EventLog.Write("AddContact complete");
                 return false;
+            }
+        }
+
+        public static class SecondTestForm
+        {
+            public static bool SendDraft()
+            {
+                if (CurrentTask != Task.SendDraft)
+                {
+                    return false;
+                }
+
+                MessageBox.Show("An unknown error has occoured.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return true;
             }
         }
     }
