@@ -112,11 +112,20 @@ namespace SecondTest
         {
             List<Email> source = new List<Email>();
             if (s == "inbox")
+            {
                 source = mails;
+                btn_reply.Text = "Reply";
+            }
             else if (s == "drafts")
+            {
                 source = drafts;
+                btn_reply.Text = "Edit";
+            }
             else if (s == "sentBox")
+            {
                 source = sentBox;
+                btn_reply.Text = "Reply";
+            }
 
             emailList.DataSource = source;
             if (emailList.Rows.Count > 0)
@@ -164,7 +173,7 @@ namespace SecondTest
 
         private void btn_reply_Click(object sender, EventArgs e)
         {
-            ComposeEmail(currentMail);
+            ComposeEmail(currentMail, btn_reply.Text == "Edit");
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -186,14 +195,41 @@ namespace SecondTest
             wmf.ShowDialog(this);
         }
 
-        private void ComposeEmail(Email replyTo)
+        private void ComposeEmail(Email replyTo, bool copyBody)
         {
-            WriteMessageForm wmf = new WriteMessageForm(replyTo);
+            WriteMessageForm wmf = new WriteMessageForm(replyTo, copyBody);
             wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); UpdateLabels(); };
             wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); UpdateLabels(); };
 
 
             wmf.ShowDialog(this);
+        }
+
+        private void emailList_DataSourceChanged(object sender, EventArgs e)
+        {
+            currentMail = null;
+
+            if (emailList.DataSource == mails && mails.Count > 0)
+            {
+                currentMail = mails[0];
+            }
+            else if (emailList.DataSource == drafts && drafts.Count > 0)
+            {
+                currentMail = drafts[0];
+            }
+            else if (emailList.DataSource == sentBox && sentBox.Count > 0)
+            {
+                currentMail = sentBox[0];
+            }
+
+            if (currentMail == null)
+            {
+                SetShownMail(Email.Empty);
+            }
+            else
+            {
+                SetShownMail(currentMail);
+            }
         }
     }
 }

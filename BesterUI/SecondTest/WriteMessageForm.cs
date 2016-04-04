@@ -22,12 +22,20 @@ namespace SecondTest
             InitializeComponent();
         }
 
-        public WriteMessageForm(Email replyToMail)
+        public WriteMessageForm(Email replyToMail) : this(replyToMail, false)
         {
+        }
 
+        public WriteMessageForm(Email replyToMail, bool copyBody)
+        {
             InitializeComponent();
             receivers.Add(replyToMail.from);
             textbox_mail_to.Text += replyToMail.from.Email + ";";
+
+            if (copyBody)
+            {
+                richtext_mail_body.Text = replyToMail.body;
+            }
         }
 
         private void btn_mail_send_Click(object sender, EventArgs e)

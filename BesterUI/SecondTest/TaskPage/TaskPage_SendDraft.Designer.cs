@@ -1,6 +1,6 @@
 ﻿namespace SecondTest.TaskPage
 {
-    partial class TaskPage_AddAttachment
+    partial class TaskPage_SendDraft
     {
         /// <summary> 
         /// Required designer variable.
@@ -34,19 +34,19 @@
             // label1
             // 
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(-3, 0);
+            this.label1.Location = new System.Drawing.Point(4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(385, 150);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Attach a picture to an email. Send the email to example@someplace.com";
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Send a draft.";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // TaskPage_AddAttachment
+            // TaskPage_SendDraft
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.label1);
-            this.Name = "TaskPage_AddAttachment";
+            this.Name = "TaskPage_SendDraft";
             this.Size = new System.Drawing.Size(392, 150);
             this.ResumeLayout(false);
 

@@ -8,6 +8,8 @@ namespace SecondTest
 {
     public class Email
     {
+        public static Email Empty = new Email(Contact.noContactYet, "", "", new List<Contact>());
+
         public string title;
         public Contact from;
         public string body;

@@ -60,6 +60,7 @@
             this.emailList.RowHeadersVisible = false;
             this.emailList.Size = new System.Drawing.Size(180, 266);
             this.emailList.TabIndex = 0;
+            this.emailList.DataSourceChanged += new System.EventHandler(this.emailList_DataSourceChanged);
             this.emailList.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.emailList_CellMouseClick);
             // 
             // panel1
