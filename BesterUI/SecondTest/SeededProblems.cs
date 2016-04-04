@@ -30,6 +30,7 @@ namespace SecondTest
 
                 }
 
+                EventLog.Write("AddAttachment complete");
                 return false;
             }
         }
@@ -49,10 +50,9 @@ namespace SecondTest
                     EventLog.Write("Add Contact Button click: " + addContactCount);
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
+
+                EventLog.Write("AddContact complete");
+                return false;
             }
         }
     }

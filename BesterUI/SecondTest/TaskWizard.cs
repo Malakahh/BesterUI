@@ -105,6 +105,9 @@ namespace SecondTest
                 case Task.SendMailToContact:
                     return new TaskPage.TaskPage_SendMailToContact();
                     break;
+                case Task.AddAttachment:
+                    return new TaskPage.TaskPage_AddAttachment();
+                    break;
 
             }
         }
