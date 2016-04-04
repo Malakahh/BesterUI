@@ -38,7 +38,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(385, 150);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Add a contact to the Contact Form";
+            this.label1.Text = "Add a contact to Contacts";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // TaskPage_AddContact
