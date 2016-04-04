@@ -42,6 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attachments.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Attachments.Designer.cs">
+      <DependentUpon>Attachments.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AttachmentUploadForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AttachmentUploadForm.Designer.cs">
+      <DependentUpon>AttachmentUploadForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Contact.cs" />
     <Compile Include="ContactForm.cs">
       <SubType>Form</SubType>
@@ -64,6 +76,12 @@
       <DependentUpon>SecondTestForm.cs</DependentUpon>
     </Compile>
     <Compile Include="SeededProblems.cs" />
+    <Compile Include="TaskPage\TaskPage_AddAttachment.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_AddAttachment.Designer.cs">
+      <DependentUpon>TaskPage_AddAttachment.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_AddContact.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -108,6 +126,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Attachments.resx">
+      <DependentUpon>Attachments.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AttachmentUploadForm.resx">
+      <DependentUpon>AttachmentUploadForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ContactForm.resx">
       <DependentUpon>ContactForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -117,6 +141,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SecondTestForm.resx">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_AddAttachment.resx">
+      <DependentUpon>TaskPage_AddAttachment.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_AddContact.resx">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
@@ -151,6 +178,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\sent1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ajax-loader.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

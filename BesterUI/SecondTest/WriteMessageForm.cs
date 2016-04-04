@@ -60,5 +60,15 @@ namespace SecondTest
 
             this.Close();
         }
+
+        private void btn_attach_Click(object sender, EventArgs e)
+        {
+            Attachments a = new Attachments();
+            a.ImageAttached += (string x) =>
+            {
+                attachmentLabel.Text = "[" + x + "]";
+            };
+            a.ShowDialog(this);
+        }
     }
 }

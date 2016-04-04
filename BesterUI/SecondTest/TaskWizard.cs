@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SecondTest
 {
-    public enum Task { None, Final, AddContact, SendMailToContact }
+    public enum Task { None, Final, AddContact, AddAttachment, SendMailToContact }
 
     public partial class TaskWizard : Form
     {
@@ -105,7 +105,7 @@ namespace SecondTest
                 case Task.SendMailToContact:
                     return new TaskPage.TaskPage_SendMailToContact();
                     break;
-                
+
             }
         }
 
@@ -120,6 +120,6 @@ namespace SecondTest
             EventLog.Write("TaskWizard - BtnIncompleteClicked");
             NextTask();
         }
-        
+
     }
 }

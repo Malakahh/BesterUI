@@ -37,13 +37,15 @@
             this.btn_msg_contacts = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.textbox_mail_title = new System.Windows.Forms.TextBox();
+            this.btn_attach = new System.Windows.Forms.Button();
+            this.attachmentLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // richtext_mail_body
             // 
-            this.richtext_mail_body.Location = new System.Drawing.Point(12, 54);
+            this.richtext_mail_body.Location = new System.Drawing.Point(12, 90);
             this.richtext_mail_body.Name = "richtext_mail_body";
-            this.richtext_mail_body.Size = new System.Drawing.Size(602, 244);
+            this.richtext_mail_body.Size = new System.Drawing.Size(602, 208);
             this.richtext_mail_body.TabIndex = 0;
             this.richtext_mail_body.Text = "";
             // 
@@ -111,11 +113,31 @@
             this.textbox_mail_title.Size = new System.Drawing.Size(199, 20);
             this.textbox_mail_title.TabIndex = 7;
             // 
+            // btn_attach
+            // 
+            this.btn_attach.Location = new System.Drawing.Point(12, 61);
+            this.btn_attach.Name = "btn_attach";
+            this.btn_attach.Size = new System.Drawing.Size(75, 23);
+            this.btn_attach.TabIndex = 8;
+            this.btn_attach.Text = "Attach File";
+            this.btn_attach.UseVisualStyleBackColor = true;
+            this.btn_attach.Click += new System.EventHandler(this.btn_attach_Click);
+            // 
+            // attachmentLabel
+            // 
+            this.attachmentLabel.AutoSize = true;
+            this.attachmentLabel.Location = new System.Drawing.Point(93, 66);
+            this.attachmentLabel.Name = "attachmentLabel";
+            this.attachmentLabel.Size = new System.Drawing.Size(0, 13);
+            this.attachmentLabel.TabIndex = 9;
+            // 
             // WriteMessageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(626, 310);
+            this.Controls.Add(this.attachmentLabel);
+            this.Controls.Add(this.btn_attach);
             this.Controls.Add(this.textbox_mail_title);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btn_msg_contacts);
@@ -141,5 +163,7 @@
         private System.Windows.Forms.Button btn_msg_contacts;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textbox_mail_title;
+        private System.Windows.Forms.Button btn_attach;
+        private System.Windows.Forms.Label attachmentLabel;
     }
 }

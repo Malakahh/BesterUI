@@ -73,7 +73,7 @@ namespace SecondTest
 
             UpdateLabels();
             SetShownMail(mails.First());
-
+            currentMail = mails.First();
         }
 
         private void UpdateLabels()
