@@ -48,6 +48,7 @@ namespace SecondTest
             {
                 textbox_mail_to.Text += c.Email + ";";
                 receivers.Add(c);
+                cf.Close();
             };
             cf.ShowDialog(this);
         }
