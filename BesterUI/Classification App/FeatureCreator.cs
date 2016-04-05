@@ -33,10 +33,10 @@ namespace Classification_App
         const int GSR_DURATION = 5000;
         const int HR_LATENCY = 3000;
         const int HR_DURATION = 6000;
-        const int EEG_LATENCY = 0;
-        const int EEG_DURATION = 7000;
+        const int EEG_LATENCY = 300;
+        const int EEG_DURATION = 800;
         const int FACE_LATENCY = 100;
-        const int FACE_DURATION = 1000;
+        const int FACE_DURATION = 9000;
 
         const char SEPARATOR = '|';
 
@@ -46,57 +46,6 @@ namespace Classification_App
             PopulateGSR();
             PopulateHR();
             PopulateFACE();
-
-            allFeatures.AddRange(GSRFeatures);
-            allFeatures.AddRange(HRFeatures);
-            allFeatures.AddRange(EEGFeatures);
-            allFeatures.AddRange(FACEFeatures);
-
-            //Arousal Features
-            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("stdev")));
-            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Mean")));
-            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Min")));
-            GSRArousalOptimizationFeatures.Add(GSRFeatures.Find(x => x.name.Contains("Max")));
-
-            //HR Features
-            HRValenceOptimizationFeatures.AddRange(HRFeatures);
-            HRArousalOptimizationFeatures.AddRange(HRFeatures);
-
-            //FACE FEatures
-
-            //Arousal
-            FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("11")));
-            FACEArousalOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("11")));
-
-            //Valence
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("5")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("13")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("Mean") && x.name.Contains("15")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("5")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("13")));
-            FACEValenceOptimizationFeatures.Add(FACEFeatures.Find(x => x.name.Contains("SD") && x.name.Contains("15")));
-
-            //EEG Arousal
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("High Beta")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Theta")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF3") && x.name.Contains("Gamma")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Mid Beta")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Gamma")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("P8") && x.name.Contains("Theta")));
-            EEGArousalOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("FC6") && x.name.Contains("Theta")));
-
-            //EEG Valence
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Theta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Full Beta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("T7") && x.name.Contains("Gamma")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Low Beta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F7") && x.name.Contains("Theta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("F8") && x.name.Contains("Gamma")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF3") && x.name.Contains("High Beta")));
-            EEGValenceOptimizationFeatures.Add(EEGFeatures.Find(x => x.name.Contains("AF4") && x.name.Contains("Low Alpha")));
-
-
         }
 
 
@@ -247,11 +196,18 @@ namespace Classification_App
             return ffts.Average(x => x.AbsoluteBandPower[BFD.Label]);
         }
 
-        #endregion
+        public static double DASM(List<DataReading> data, string band, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
+        {        
+            FFT fft1 = new FFT(data.Select(x => valueAccessor1(x)).ToList());        
+            FFT fft2 = new FFT(data.Select(x => valueAccessor2(x)).ToList());        
+            return fft1.AbsoluteBandPower[band] - fft2.AbsoluteBandPower[band];        
+        }
+
+    #endregion
 
 
 
-        #region DataSlicing
+    #region DataSlicing
         static List<DataReading> EEGDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
             return data.SkipWhile(x => x.timestamp < sam.timeOffset + EEG_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + EEG_LATENCY + EEG_DURATION).ToList();
@@ -318,8 +274,18 @@ namespace Classification_App
 
         static void PopulateHR()
         {
+            //Arousal
+            HRArousalOptimizationFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
+            HRArousalOptimizationFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
+
+
+            //Valence
+            HRValenceOptimizationFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
+            HRValenceOptimizationFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
+
+
             HRFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
+            
             HRFeatures.Add(new Feature("HR Mean HRV", (data, sam) => HRVMean(HRDataSlice(data, sam))));
             HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
             HRFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
@@ -330,13 +296,10 @@ namespace Classification_App
 
         static void PopulateGSR()
         {
-            GSRFeatures.Add(new Feature("GSR Mean", (data, sam) => Mean(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRFeatures.Add(new Feature("GSR Median", (data, sam) => Median(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRFeatures.Add(new Feature("GSR stdev", (data, sam) => StandardDeviation(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRFeatures.Add(new Feature("GSR Max", (data, sam) => Max(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRFeatures.Add(new Feature("GSR Min", (data, sam) => Min(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRFeatures.Add(new Feature("GSR Last", (data, sam) => Last(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRArousalOptimizationFeatures.Add(new Feature("GSR Mean", (data, sam) => Mean(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRArousalOptimizationFeatures.Add(new Feature("GSR stdev", (data, sam) => StandardDeviation(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRArousalOptimizationFeatures.Add(new Feature("GSR Max", (data, sam) => Max(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRArousalOptimizationFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
         }
         private static List<int> meanFaceLeftSide = new List<int> { 5, 13, 15, 11 };
         private static List<int> meanFaceRightSide = new List<int> { 6, 14, 16, 12 };

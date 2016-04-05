@@ -43,17 +43,17 @@
             this.btn_metaAll = new System.Windows.Forms.Button();
             this.prg_meta_txt = new System.Windows.Forms.Label();
             this.prg_meta = new System.Windows.Forms.ProgressBar();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.label2 = new System.Windows.Forms.Label();
+            this.lst_excel_files = new System.Windows.Forms.ListBox();
+            this.btn_excel_merge = new System.Windows.Forms.Button();
+            this.btn_excel_add = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.btn_excel_add = new System.Windows.Forms.Button();
-            this.btn_excel_merge = new System.Windows.Forms.Button();
-            this.lst_excel_files = new System.Windows.Forms.ListBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -208,6 +208,58 @@
             this.prg_meta.TabIndex = 14;
             this.prg_meta.Click += new System.EventHandler(this.prg_meta_Click);
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.label2);
+            this.tabPage3.Controls.Add(this.lst_excel_files);
+            this.tabPage3.Controls.Add(this.btn_excel_merge);
+            this.tabPage3.Controls.Add(this.btn_excel_add);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Size = new System.Drawing.Size(540, 292);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Excel Merger";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 61);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(72, 13);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Files to merge";
+            // 
+            // lst_excel_files
+            // 
+            this.lst_excel_files.FormattingEnabled = true;
+            this.lst_excel_files.Location = new System.Drawing.Point(3, 77);
+            this.lst_excel_files.Name = "lst_excel_files";
+            this.lst_excel_files.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.lst_excel_files.Size = new System.Drawing.Size(520, 212);
+            this.lst_excel_files.TabIndex = 2;
+            this.lst_excel_files.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lst_excel_files_KeyDown);
+            // 
+            // btn_excel_merge
+            // 
+            this.btn_excel_merge.Location = new System.Drawing.Point(84, 3);
+            this.btn_excel_merge.Name = "btn_excel_merge";
+            this.btn_excel_merge.Size = new System.Drawing.Size(75, 23);
+            this.btn_excel_merge.TabIndex = 1;
+            this.btn_excel_merge.Text = "Merge";
+            this.btn_excel_merge.UseVisualStyleBackColor = true;
+            this.btn_excel_merge.Click += new System.EventHandler(this.btn_excel_merge_Click);
+            // 
+            // btn_excel_add
+            // 
+            this.btn_excel_add.Location = new System.Drawing.Point(3, 3);
+            this.btn_excel_add.Name = "btn_excel_add";
+            this.btn_excel_add.Size = new System.Drawing.Size(75, 23);
+            this.btn_excel_add.TabIndex = 0;
+            this.btn_excel_add.Text = "Add xlsx";
+            this.btn_excel_add.UseVisualStyleBackColor = true;
+            this.btn_excel_add.Click += new System.EventHandler(this.btn_excel_add_Click);
+            // 
             // richTextBox1
             // 
             this.richTextBox1.Location = new System.Drawing.Point(12, 395);
@@ -262,58 +314,6 @@
             this.chk_useControlValues.Text = "Use IAPS Control Values";
             this.chk_useControlValues.UseVisualStyleBackColor = true;
             // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.label2);
-            this.tabPage3.Controls.Add(this.lst_excel_files);
-            this.tabPage3.Controls.Add(this.btn_excel_merge);
-            this.tabPage3.Controls.Add(this.btn_excel_add);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(540, 292);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Excel Merger";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // btn_excel_add
-            // 
-            this.btn_excel_add.Location = new System.Drawing.Point(3, 3);
-            this.btn_excel_add.Name = "btn_excel_add";
-            this.btn_excel_add.Size = new System.Drawing.Size(75, 23);
-            this.btn_excel_add.TabIndex = 0;
-            this.btn_excel_add.Text = "Add xlsx";
-            this.btn_excel_add.UseVisualStyleBackColor = true;
-            this.btn_excel_add.Click += new System.EventHandler(this.btn_excel_add_Click);
-            // 
-            // btn_excel_merge
-            // 
-            this.btn_excel_merge.Location = new System.Drawing.Point(84, 3);
-            this.btn_excel_merge.Name = "btn_excel_merge";
-            this.btn_excel_merge.Size = new System.Drawing.Size(75, 23);
-            this.btn_excel_merge.TabIndex = 1;
-            this.btn_excel_merge.Text = "Merge";
-            this.btn_excel_merge.UseVisualStyleBackColor = true;
-            this.btn_excel_merge.Click += new System.EventHandler(this.btn_excel_merge_Click);
-            // 
-            // lst_excel_files
-            // 
-            this.lst_excel_files.FormattingEnabled = true;
-            this.lst_excel_files.Location = new System.Drawing.Point(3, 77);
-            this.lst_excel_files.Name = "lst_excel_files";
-            this.lst_excel_files.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.lst_excel_files.Size = new System.Drawing.Size(520, 212);
-            this.lst_excel_files.TabIndex = 2;
-            this.lst_excel_files.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lst_excel_files_KeyDown);
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 61);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(72, 13);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Files to merge";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -326,6 +326,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.tabControl1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Form1";
             this.Text = "Form1";
             this.tabControl1.ResumeLayout(false);
