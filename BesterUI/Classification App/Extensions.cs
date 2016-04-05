@@ -79,6 +79,25 @@ namespace Classification_App
             return allSets;
         }
 
+        public static SVMProblem CreateCompleteProblem(this IEnumerable<List<double>> original, SAMData sam, SAMDataPoint.FeelingModel feelingModel)
+        {
+            SVMProblem completeProblem = new SVMProblem();
+            for(int i = 0; i < original.Count(); i++)
+            {
+                SVMNode[] nodeSet = new SVMNode[original.ElementAt(i).Count];
+                for (int j = 0; j < original.ElementAt(i).Count; j++)
+                {
+                    SVMNode currentNode = new SVMNode();
+                    currentNode.Index = j + 1;
+                    currentNode.Value = original.ElementAt(i)[j];
+                    nodeSet[j] = currentNode;
+                }
+                completeProblem.Add(nodeSet, sam.dataPoints[i].ToAVCoordinate(feelingModel));
+            }
+
+            return completeProblem;
+        }
+
         public static IEnumerable<List<double>> NormalizeFeatureList<T>(this IEnumerable<List<double>> original, Normalize nMethod)
         {
             double maxNormalize = 0;

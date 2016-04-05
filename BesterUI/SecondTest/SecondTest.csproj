@@ -42,6 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attachments.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Attachments.Designer.cs">
+      <DependentUpon>Attachments.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AttachmentUploadForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AttachmentUploadForm.Designer.cs">
+      <DependentUpon>AttachmentUploadForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Contact.cs" />
     <Compile Include="ContactForm.cs">
       <SubType>Form</SubType>
@@ -63,11 +75,42 @@
     <Compile Include="SecondTestForm.Designer.cs">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SeededProblems.cs" />
+    <Compile Include="TaskPage\TaskPage_AddAttachment.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_AddAttachment.Designer.cs">
+      <DependentUpon>TaskPage_AddAttachment.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_AddContact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_AddContact.Designer.cs">
+      <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Final.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Final.Designer.cs">
+      <DependentUpon>TaskPage_Final.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_None.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="TaskPage\TaskPage_None.Designer.cs">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_SendDraft.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_SendDraft.Designer.cs">
+      <DependentUpon>TaskPage_SendDraft.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_SendMailToContact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_SendMailToContact.Designer.cs">
+      <DependentUpon>TaskPage_SendMailToContact.cs</DependentUpon>
     </Compile>
     <Compile Include="TaskPage\TaskPage_Test.cs">
       <SubType>UserControl</SubType>
@@ -81,8 +124,20 @@
     <Compile Include="TaskWizard.Designer.cs">
       <DependentUpon>TaskWizard.cs</DependentUpon>
     </Compile>
+    <Compile Include="WriteMessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WriteMessageForm.Designer.cs">
+      <DependentUpon>WriteMessageForm.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Attachments.resx">
+      <DependentUpon>Attachments.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AttachmentUploadForm.resx">
+      <DependentUpon>AttachmentUploadForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ContactForm.resx">
       <DependentUpon>ContactForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -93,8 +148,23 @@
     <EmbeddedResource Include="SecondTestForm.resx">
       <DependentUpon>SecondTestForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_AddAttachment.resx">
+      <DependentUpon>TaskPage_AddAttachment.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_AddContact.resx">
+      <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_Final.resx">
+      <DependentUpon>TaskPage_Final.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_SendDraft.resx">
+      <DependentUpon>TaskPage_SendDraft.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_SendMailToContact.resx">
+      <DependentUpon>TaskPage_SendMailToContact.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_Test.resx">
       <DependentUpon>TaskPage_Test.cs</DependentUpon>
@@ -102,6 +172,24 @@
     <EmbeddedResource Include="TaskWizard.resx">
       <DependentUpon>TaskWizard.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="WriteMessageForm.resx">
+      <DependentUpon>WriteMessageForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\reply.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\saved.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sent1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ajax-loader.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

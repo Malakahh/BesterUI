@@ -34,7 +34,7 @@ namespace Classification_App
             //For each classifier run a crossvalidation and find the best params
             foreach (StdClassifier classifier in standardClassifiers)
             {
-                List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat);
+                List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, useIAPSratings, normalizeFormat);
                 classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
             }
 
@@ -95,7 +95,7 @@ namespace Classification_App
                 {
                     UpdateCallback(prg++, standardClassifiers.Count);
                 }
-                List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat);
+                List<PredictionResult> results = classifier.CrossValidate(feelingsmodel, useIAPSratings, normalizeFormat);
                 classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
             }
             if (UpdateCallback != null)
@@ -201,7 +201,7 @@ namespace Classification_App
             {
                 if (i == 0)
                 {
-                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidate(feelingsmodel, nFold, useIAPSratings, normalizeFormat));
+                    prevResult = FindBestFScorePrediction(standardClassifiers[boostingOrder[i]].CrossValidate(feelingsmodel, useIAPSratings, normalizeFormat));
                 }
                 else
                 {

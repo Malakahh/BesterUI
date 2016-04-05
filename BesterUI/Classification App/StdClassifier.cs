@@ -121,7 +121,7 @@ namespace Classification_App
         /// <param name="feelingsmodel"></param>
         /// <param name="nFold"></param>
         /// <param name="useIAPSratings"></param>
-        public List<PredictionResult> CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
+        public List<PredictionResult> OldCrossValidate(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();
             //Split into crossvalidation parts
@@ -188,6 +188,66 @@ namespace Classification_App
                 List<double> recall = CalculateRecall(confus, numberOfLabels);
                 List<double> fscore = CalculateFScore(pres, recall);
                 PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), guesses.ConvertAll(x => (int)x));
+                predictedResults.Add(pR);
+                progressCounter++;
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(progressCounter, Parameters.Count);
+                }
+            }
+
+            return predictedResults;
+        }
+
+        public List<PredictionResult> CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
+        {
+            List<PredictionResult> predictedResults = new List<PredictionResult>();
+            //Split into crossvalidation parts
+            SVMProblem problems = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).CreateCompleteProblem(samData, feelingsmodel);
+            //Get correct results
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            int progressCounter = 0;
+            if (answers.Distinct().Count() <= 1)
+            {
+                int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+                //Calculate scoring results
+                double[,] confus = CalculateConfusion(answers.ToList().ConvertAll(x => (double)x).ToArray(), answers, numberOfLabels);
+                List<double> pres = CalculatePrecision(confus, numberOfLabels);
+                List<double> recall = CalculateRecall(confus, numberOfLabels);
+                List<double> fscore = CalculateFScore(pres, recall);
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), features, answers.ToList(), answers.ToList().ConvertAll(x => (int)x));
+                predictedResults.Add(pR);
+                progressCounter++;
+                Log.LogMessage(ONLY_ONE_CLASS);
+                Log.LogMessage("");
+                return predictedResults;
+            }
+            foreach (SVMParameter SVMpara in Parameters)
+            {
+                if (UpdateCallback != null)
+                {
+                    UpdateCallback(progressCounter, Parameters.Count);
+                }
+                double[] guesses = new double[samData.dataPoints.Count];
+                //model and predict each nfold
+                try
+                {
+                    problems.CrossValidation(SVMpara, samData.dataPoints.Count, out guesses);
+                }
+                catch (Exception e)
+                {
+                    for (int i = 0; i < samData.dataPoints.Count; i++)
+                    {
+                        guesses[i] = -1;
+                    }
+                }
+                int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+                //Calculate scoring results
+                double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
+                List<double> pres = CalculatePrecision(confus, numberOfLabels);
+                List<double> recall = CalculateRecall(confus, numberOfLabels);
+                List<double> fscore = CalculateFScore(pres, recall);
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, SVMpara, features, answers.ToList(), Array.ConvertAll(guesses, (x=> (int)x)).ToList());
                 predictedResults.Add(pR);
                 progressCounter++;
                 if (UpdateCallback != null)

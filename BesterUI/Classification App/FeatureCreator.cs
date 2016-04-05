@@ -33,10 +33,10 @@ namespace Classification_App
         const int GSR_DURATION = 5000;
         const int HR_LATENCY = 3000;
         const int HR_DURATION = 6000;
-        const int EEG_LATENCY = 300;
+        const int EEG_LATENCY = 350;
         const int EEG_DURATION = 800;
         const int FACE_LATENCY = 100;
-        const int FACE_DURATION = 9000;
+        const int FACE_DURATION = 900;
 
         const char SEPARATOR = '|';
 
@@ -147,6 +147,7 @@ namespace Classification_App
                     if (lastBeat.IBI != null)
                     {
                         hrv.Add((int)d.IBI - (int)lastBeat.IBI);
+                        lastBeat = d;
                     }
                     else
                     {
@@ -155,6 +156,28 @@ namespace Classification_App
                 }
             }
             return hrv.Average(x => x);
+        }
+
+        public static double HRVRMSSD(List<DataReading> data)
+        {
+            List<double> sqauredHRV = new List<double>();
+            HRDataReading lastBeat = (HRDataReading)data.First();
+            foreach (HRDataReading d in data)
+            {
+                if (d.isBeat)
+                {
+                    if (lastBeat.IBI != null)
+                    {
+                        sqauredHRV.Add(Math.Pow((double)d.IBI - (double)lastBeat.IBI,2));
+                        lastBeat = d;
+                    }
+                    else
+                    {
+                        lastBeat = d;
+                    }
+                }
+            }
+            return Math.Sqrt(sqauredHRV.Average(x => x));
         }
 
         public static double HRVSD(List<DataReading> data)
@@ -290,6 +313,7 @@ namespace Classification_App
             HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
             HRFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
             HRFeatures.Add(new Feature("HR stdev HRV", (data, sam) => HRVSD(HRDataSlice(data, sam))));
+            HRFeatures.Add(new Feature("HR RMSSD HRV", (data, sam) => HRVRMSSD(HRDataSlice(data, sam))));
         }
 
 

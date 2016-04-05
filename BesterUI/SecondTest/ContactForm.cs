@@ -12,7 +12,10 @@ namespace SecondTest
 {
     public partial class ContactForm : Form
     {
-        List<Contact> contacts = new List<Contact>();
+        public event Action<Contact> ContactSelected;
+
+        
+        BindingSource bs = new BindingSource();
 
         public ContactForm()
         {
@@ -20,41 +23,88 @@ namespace SecondTest
 
             btnAddContact.Click += BtnAddContact_Click;
             btnRemoveContact.Click += BtnRemoveContact_Click;
+            txtBoxPhoneNumber.KeyPress += txtBoxPhoneNumber_KeyPress;
 
             //Disable resizing
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            GenerateDefaultContacts();
-
-            dataGridViewContacts.DataSource = contacts;
+            bs.DataSource = Contact.Contacts;
+            dataGridViewContacts.DataSource = bs;
         }
 
         private void BtnRemoveContact_Click(object sender, EventArgs e)
         {
-            
+            Contact.Contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
+            bs.ResetBindings(false);
         }
 
         private void BtnAddContact_Click(object sender, EventArgs e)
         {
-            if (!IsValidEmail(txtBoxEmail.Text))
+            if (SeededProblems.ContactForm.AddContactBtn())
+            {
+                return;
+            }
+
+            bool shouldReturn = false;
+
+            if (string.IsNullOrEmpty(txtBoxEmail.Text) || !IsValidEmail(txtBoxEmail.Text))
             {
                 txtBoxEmail.BackColor = Color.Salmon;
-                return;
+                shouldReturn = true;
             }
             else
             {
                 txtBoxEmail.BackColor = Color.White;
             }
-        }
 
-        private void GenerateDefaultContacts()
-        {
-            contacts.Add(new Contact("Dad", "", "45645778", "christian@post8.tele.dk"));
-            contacts.Add(new Contact("Richard", "Johnson", "15648753", "r.j@gmail.com"));
-            contacts.Add(new Contact("Gertrude", "Wright", "65498561", "gertrude32@hotmail.com"));
-            contacts.Add(new Contact("Pizza", "Hut", "98139055", ""));
+            if (string.IsNullOrEmpty(txtBoxFirstName.Text))
+            {
+                txtBoxFirstName.BackColor = Color.Salmon;
+                shouldReturn = true;
+            }
+            else
+            {
+                txtBoxFirstName.BackColor = Color.White;
+            }
+
+            if (string.IsNullOrEmpty(txtBoxLastName.Text))
+            {
+                txtBoxLastName.BackColor = Color.Salmon;
+                shouldReturn = true;
+            }
+            else
+            {
+                txtBoxLastName.BackColor = Color.White;
+            }
+
+            if (string.IsNullOrEmpty(txtBoxPhoneNumber.Text))
+            {
+                txtBoxPhoneNumber.BackColor = Color.Salmon;
+                shouldReturn = true;
+            }
+            else
+            {
+                txtBoxPhoneNumber.BackColor = Color.White;
+            }
+
+            if (shouldReturn)
+            {
+                return;
+            }
+
+            Contact.Contacts.Add(new Contact(
+                txtBoxFirstName.Text,
+                txtBoxLastName.Text,
+                txtBoxPhoneNumber.Text,
+                txtBoxEmail.Text));
+            bs.ResetBindings(false);
+
+            txtBoxEmail.Clear();
+            txtBoxFirstName.Clear();
+            txtBoxLastName.Clear();
+            txtBoxPhoneNumber.Clear();
         }
 
         bool IsValidEmail(string email)
@@ -67,6 +117,22 @@ namespace SecondTest
             catch
             {
                 return false;
+            }
+        }
+
+        private void txtBoxPhoneNumber_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void dataGridViewContacts_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (ContactSelected != null)
+            {
+                ContactSelected(Contact.Contacts[e.RowIndex]);
             }
         }
     }

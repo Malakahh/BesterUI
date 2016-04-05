@@ -6,19 +6,23 @@ using System.Threading.Tasks;
 
 namespace SecondTest
 {
-    class Email
+    public class Email
     {
-        public string title;
-        public string from;
-        public string body;
+        public static Email Empty = new Email(Contact.noContactYet, "", "", new List<Contact>());
 
-        public Email(string f, string t, string b)
+        public string title;
+        public Contact from;
+        public string body;
+        public List<Contact> receivers;
+
+        public Email(Contact from, string title, string body, List<Contact> receivers)
         {
-            this.title = t;
-            this.from = f;
-            this.body = b;
+            this.title = title;
+            this.from = from;
+            this.body = body;
+            this.receivers = receivers;
         }
 
-        public string Value { get { return this.from + Environment.NewLine + Environment.NewLine + this.title; } }
+        public string Value { get { return this.from.FirstName + Environment.NewLine + Environment.NewLine + this.title; } }
     }
 }

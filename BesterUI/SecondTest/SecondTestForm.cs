@@ -14,6 +14,10 @@ namespace SecondTest
     public partial class SecondTestForm : Form
     {
 
+        private List<Email> mails = new List<Email>();
+        private List<Email> drafts = new List<Email>();
+        private List<Email> sentBox = new List<Email>();
+
         public SecondTestForm(Stopwatch timer, DateTime? startTime, string dateTimeFormat)
         {
             InitializeComponent();
@@ -26,7 +30,9 @@ namespace SecondTest
 
             this.FormClosing += SecondTestForm_FormClosing;
 
+            Contact.GenerateDefaultContacts();
             TaskWizard taskWizard = new TaskWizard();
+            SeededProblems.Init(taskWizard);
             taskWizard.Show();
 
             MakeEmails();
@@ -34,16 +40,47 @@ namespace SecondTest
         }
 
 
-        List<Email> mails = new List<Email>();
-        List<Email> drafts = new List<Email>();
         private void MakeEmails()
         {
-            mails.Add(new Email("EnLargeMe.com", "New and improved penis enlargement pill - BUY NOW FOR CHEAPSIES!", "This body"));
-            mails.Add(new Email("AAU", "You have been selected for an extra exam", "This Body"));
-            mails.Add(new Email("My Bestie", "Hey are you comming over tonight for dinner?", "This Body"));
-            mails.Add(new Email("Microsoft", "New email client for windows users!", "The body"));
-            mails.Add(new Email("Tinkov Bank", "We like u join to our bankings operationalities", "The Body"));
-            drafts.Add(new Email("...", "Hi bestie!", "I would love to join for dinner, but can we do it on sun"));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "julia@jubii.dk"),
+                "Dinner on saturday",
+                "Hi" + Environment.NewLine + "I would just like to say that we look forward to see you on saturday :)",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "ntyles@tyles.com"),
+                "Lets go out for a drink!",
+                "Hey you! Lets go for a drink soon, it would be totally awesome!",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "help@microsoft.com"),
+                "The new Windows is out!",
+                "Enjoy the new windows which has more features than ever. We have redesigned the start menu, added additional features for gamers and in house media centers. Become faster at your work with the new office 365 apps as well!",
+                new List<Contact>() { Contact.User }
+                ));
+
+            drafts.Add(new Email(
+                Contact.User,
+                "Re: Dinner on saturday",
+                "Hi Mom! I look forwa",
+                new List<Contact>() { Contact.noContactYet }
+                ));
+
+            UpdateLabels();
+            SetShownMail(mails.First());
+            currentMail = mails.First();
+        }
+
+        private void UpdateLabels()
+        {
+            btn_inbox.Text = "Inbox (" + mails.Count + ")";
+            btn_draft.Text = "Drafts (" + drafts.Count + ")";
+            btn_sent.Text = "Sent (" + sentBox.Count + ")";
         }
 
         private void LoadEmails()
@@ -75,35 +112,129 @@ namespace SecondTest
         {
             List<Email> source = new List<Email>();
             if (s == "inbox")
+            {
                 source = mails;
+                btn_reply.Text = "Reply";
+            }
             else if (s == "drafts")
+            {
                 source = drafts;
+                btn_reply.Text = "Edit";
+            }
+            else if (s == "sentBox")
+            {
+                source = sentBox;
+                btn_reply.Text = "Reply";
+            }
 
             emailList.DataSource = source;
-            emailList.ClearSelection();
-            emailList.Rows[0].Selected = true;
-            SetShownMail(source.First());
-            emailList.Invalidate();
+            if (emailList.Rows.Count > 0)
+            {
+                emailList.ClearSelection();
+                emailList.Rows[0].Selected = true;
+                SetShownMail(source.First());
+                emailList.Invalidate();
+
+            }
         }
 
 
         private void SetShownMail(Email mail)
         {
-            label_header.Text = mail.from + " - " + mail.title;
+            label_header.Text = mail.from.FirstName + " " + mail.from.LastName + "(" + mail.from.Email + ")" + " - " + mail.title;
             label_body.Text = mail.body;
         }
 
+        Email currentMail;
         private void emailList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            Email mail = (emailList.DataSource == mails) ? mails[e.RowIndex] : drafts[e.RowIndex];
+            if (emailList.DataSource == mails)
+            {
+                currentMail = mails[e.RowIndex];
+            }
+            else if (emailList.DataSource == drafts)
+            {
+                currentMail = drafts[e.RowIndex];
+            }
+            else if (emailList.DataSource == sentBox)
+            {
+                currentMail = sentBox[e.RowIndex];
+            }
 
-            SetShownMail(mail);
+
+            SetShownMail(currentMail);
         }
 
         private void Contacts_Click(object sender, EventArgs e)
         {
             ContactForm c = new ContactForm();
             c.ShowDialog(this);
+        }
+
+        private void btn_reply_Click(object sender, EventArgs e)
+        {
+            if (btn_reply.Text == "Edit" && SeededProblems.SecondTestForm.SendDraft())
+            {
+                return;
+            }
+
+            ComposeEmail(currentMail, btn_reply.Text == "Edit");
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ChangeMailSource("sentBox");
+        }
+
+        private void btn_new_Click(object sender, EventArgs e)
+        {
+            ComposeEmail();
+        }
+
+        private void ComposeEmail()
+        {
+            WriteMessageForm wmf = new WriteMessageForm();
+            wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); UpdateLabels(); };
+            wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); UpdateLabels(); };
+
+            wmf.ShowDialog(this);
+        }
+
+        private void ComposeEmail(Email replyTo, bool copyBody)
+        {
+            WriteMessageForm wmf = new WriteMessageForm(replyTo, copyBody);
+            wmf.EmailSent += (Email mail) => { this.sentBox.Add(mail); UpdateLabels(); };
+            wmf.EmailSaved += (Email mail) => { this.drafts.Add(mail); UpdateLabels(); };
+
+
+            wmf.ShowDialog(this);
+        }
+
+        private void emailList_DataSourceChanged(object sender, EventArgs e)
+        {
+            currentMail = null;
+
+            if (emailList.DataSource == mails && mails.Count > 0)
+            {
+                currentMail = mails[0];
+            }
+            else if (emailList.DataSource == drafts && drafts.Count > 0)
+            {
+                currentMail = drafts[0];
+            }
+            else if (emailList.DataSource == sentBox && sentBox.Count > 0)
+            {
+                currentMail = sentBox[0];
+            }
+
+            if (currentMail == null)
+            {
+                SetShownMail(Email.Empty);
+            }
+            else
+            {
+                SetShownMail(currentMail);
+            }
         }
     }
 }
