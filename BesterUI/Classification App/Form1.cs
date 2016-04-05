@@ -229,9 +229,9 @@ namespace Classification_App
 
         //Debug purposes
         private bool skipGSR = false;
-        private bool skipEEG = true;
-        private bool skipFace = true;
-        private bool skipHR = true;
+        private bool skipEEG = false;
+        private bool skipFace = false;
+        private bool skipHR = false;
 
         private ThreadPriority threadPrio = ThreadPriority.Normal;
 
