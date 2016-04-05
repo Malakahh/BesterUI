@@ -35,7 +35,7 @@ namespace SecondTest
         }
         public static class AttachmentForm
         {
-            public static int addAttachmentCount = 0;
+            static int addAttachmentCount = 0;
             public static bool AttachFileBtn()
             {
                 if (CurrentTask != Task.AddAttachment)
@@ -73,6 +73,27 @@ namespace SecondTest
                 EventLog.Write("AddContact complete");
                 return false;
             }
+
+            static bool contactRemoved = false;
+            public static bool RemoveContactBtn(bool b)
+            {
+                if (CurrentTask != Task.RemoveContact)
+                {
+                    return false;
+                }
+
+                if (!b && !contactRemoved)
+                    return false;
+
+                if (!contactRemoved)
+                {
+                    EventLog.Write("RemoveContact clicked");
+                    contactRemoved = true;
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         public static class SecondTestForm
@@ -84,6 +105,7 @@ namespace SecondTest
                     return false;
                 }
 
+                EventLog.Write("SendDraft error shown");
                 MessageBox.Show("An unknown error has occoured.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return true;
             }
@@ -101,6 +123,7 @@ namespace SecondTest
 
                 origLang = InputLanguage.CurrentInputLanguage;
                 InputLanguage.CurrentInputLanguage = GetInputLanguageEnglish();
+                EventLog.Write("CreateDraft, language changed to: " + InputLanguage.CurrentInputLanguage.LayoutName);
                 CurrentTaskChanged += WriteMessageForm_CurrentTaskChanged;
                 return false;
             }
@@ -124,6 +147,17 @@ namespace SecondTest
             private static void WriteMessageForm_CurrentTaskChanged(Task obj)
             {
                 InputLanguage.CurrentInputLanguage = origLang;
+            }
+
+            public static bool BogusMessage()
+            {
+                if (CurrentTask != Task.BogusMessage)
+                {
+                    return false;
+                }
+
+                EventLog.Write("BogusMessage: Text Changed");
+                return true;
             }
         }
     }

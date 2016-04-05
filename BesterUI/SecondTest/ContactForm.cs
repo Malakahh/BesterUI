@@ -32,11 +32,30 @@ namespace SecondTest
 
             bs.DataSource = Contact.Contacts;
             dataGridViewContacts.DataSource = bs;
+
+            panelBlack.Hide();
         }
 
         private void BtnRemoveContact_Click(object sender, EventArgs e)
         {
-            Contact.Contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
+            bool b = false;
+
+            if (Contact.Contacts.Count > 0)
+            {
+                b = Contact.Contacts[dataGridViewContacts.SelectedRows[0].Index].FirstName == "DripStat";
+            }
+
+            if (SeededProblems.ContactForm.RemoveContactBtn(b))
+            {
+                panelBlack.Show();
+                return;
+            }
+
+            if (Contact.Contacts.Count > 0)
+            {
+                Contact.Contacts.RemoveAt(dataGridViewContacts.SelectedRows[0].Index);
+            }
+
             bs.ResetBindings(false);
         }
 

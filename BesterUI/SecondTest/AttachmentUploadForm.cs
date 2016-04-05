@@ -24,32 +24,52 @@ namespace SecondTest
 
             this.ControlBox = false;
 
-            button1.Enabled = false;
             DoWait();
         }
         private async void DoWait()
         {
+            button1.Text = "Waiting...";
+            button1.Enabled = false;
+            label1.Show();
+            pictureBox1.Show();
             button1.Enabled = await EnableButton();
         }
 
         private async Task<bool> EnableButton()
         {
             await Task<bool>.Delay(2000);
+
             label1.Hide();
             pictureBox1.Hide();
-            if (SeededProblems.AttachmentForm.addAttachmentCount < 3)
+
+            if (SeededProblems.AttachmentForm.AttachFileBtn())
+            {
+                label2.Text = "File could not be uploaded. \nPlease try again.";
+                label2.ForeColor = Color.Red;
+                label2.Show();
+                button1.Text = "Retry";
+                return true;
+            }
+            else
             {
                 label2.Text = "File attached successfully.";
                 label2.ForeColor = Color.Green;
+                label2.Show();
+                button1.Text = "Ok";
+                return true;
             }
 
-            label2.Show();
-            return true;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Close();
+            if (button1.Text == "Ok")
+                this.Close();
+            else
+            {
+                label2.Hide();
+                DoWait();
+            }
         }
     }
 }

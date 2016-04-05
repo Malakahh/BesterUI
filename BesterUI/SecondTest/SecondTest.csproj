@@ -88,6 +88,12 @@
     <Compile Include="TaskPage\TaskPage_AddContact.Designer.cs">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_BogusMessage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_BogusMessage.Designer.cs">
+      <DependentUpon>TaskPage_BogusMessage.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_CreateDraft.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -105,6 +111,12 @@
     </Compile>
     <Compile Include="TaskPage\TaskPage_None.Designer.cs">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_RemoveContact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_RemoveContact.Designer.cs">
+      <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
     </Compile>
     <Compile Include="TaskPage\TaskPage_SendDraft.cs">
       <SubType>UserControl</SubType>
@@ -160,6 +172,9 @@
     <EmbeddedResource Include="TaskPage\TaskPage_AddContact.resx">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_BogusMessage.resx">
+      <DependentUpon>TaskPage_BogusMessage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_CreateDraft.resx">
       <DependentUpon>TaskPage_CreateDraft.cs</DependentUpon>
     </EmbeddedResource>
@@ -168,6 +183,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_RemoveContact.resx">
+      <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_SendDraft.resx">
       <DependentUpon>TaskPage_SendDraft.cs</DependentUpon>

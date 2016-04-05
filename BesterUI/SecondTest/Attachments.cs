@@ -42,6 +42,7 @@ namespace SecondTest
                 tmpPictureBox.Parent = panelPictures;
                 tmpPictureBox.Click += (s, e) =>
                 {
+                    btn_attach_image.Text = "Attach";
                     foreach (PictureBox p in images)
                         p.BorderStyle = BorderStyle.None;
 
@@ -60,19 +61,26 @@ namespace SecondTest
         private void btn_attach_image_Click(object sender, EventArgs e)
         {
 
-            AttachmentUploadForm auf = new AttachmentUploadForm();
-            auf.ShowDialog(this);
-            if (SeededProblems.AttachmentForm.AttachFileBtn())
+            if (selectedPicture != null)
             {
-                return;
+                AttachmentUploadForm auf = new AttachmentUploadForm();
+                auf.ShowDialog(this);
+                if (SeededProblems.AttachmentForm.AttachFileBtn())
+                {
+                    return;
+                }
+                else
+                {
+                    if (ImageAttached != null)
+                        ImageAttached(selectedPicture);
+
+                    this.Close();
+
+                }
             }
             else
             {
-                if (ImageAttached != null)
-                    ImageAttached(selectedPicture);
-
                 this.Close();
-
             }
         }
     }

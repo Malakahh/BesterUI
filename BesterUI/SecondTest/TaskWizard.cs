@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SecondTest
 {
-    public enum Task { None, Final, AddContact, AddAttachment, SendMailToContact, SendDraft, CreateDraft }
+    public enum Task { None, Final, AddContact, AddAttachment, SendMailToContact, SendDraft, CreateDraft, BogusMessage, RemoveContact }
 
     public partial class TaskWizard : Form
     {
@@ -25,6 +25,8 @@ namespace SecondTest
             InitializeComponent();
             btnTaskComplete.Click += BtnTaskComplete_Click;
             btnTaskIncomplete.Click += BtnTaskIncomplete_Click;
+
+            this.ControlBox = false;
 
             //Disable resizing
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -113,6 +115,12 @@ namespace SecondTest
                     break;
                 case Task.CreateDraft:
                     return new TaskPage.TaskPage_CreateDraft();
+                    break;
+                case Task.BogusMessage:
+                    return new TaskPage.TaskPage_BogusMessage();
+                    break;
+                case Task.RemoveContact:
+                    return new TaskPage.TaskPage_RemoveContact();
                     break;
             }
         }
