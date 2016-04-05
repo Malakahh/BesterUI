@@ -17,6 +17,7 @@ namespace SecondTest
         private List<Email> mails = new List<Email>();
         private List<Email> drafts = new List<Email>();
         private List<Email> sentBox = new List<Email>();
+        List<Email> source;
 
         public SecondTestForm(Stopwatch timer, DateTime? startTime, string dateTimeFormat)
         {
@@ -37,6 +38,7 @@ namespace SecondTest
 
             MakeEmails();
             LoadEmails();
+
         }
 
 
@@ -73,6 +75,7 @@ namespace SecondTest
 
             UpdateLabels();
             SetShownMail(mails.First());
+            source = mails;
             currentMail = mails.First();
         }
 
@@ -88,8 +91,6 @@ namespace SecondTest
             emailList.RowTemplate.Height = 60;
             emailList.DataSource = mails;
             emailList.Invalidate();
-            emailList.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            emailList.Columns[0].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
         }
 
 
@@ -110,7 +111,6 @@ namespace SecondTest
 
         private void ChangeMailSource(string s)
         {
-            List<Email> source = new List<Email>();
             if (s == "inbox")
             {
                 source = mails;
@@ -137,12 +137,27 @@ namespace SecondTest
 
             }
         }
+        private void ChangeMailSource(List<Email> source)
+        {
+            emailList.DataSource = source;
+            if (emailList.Rows.Count > 0)
+            {
+                emailList.ClearSelection();
+                emailList.Rows[0].Selected = true;
+                SetShownMail(source.First());
+                emailList.Invalidate();
 
+            }
+        }
 
         private void SetShownMail(Email mail)
         {
             label_header.Text = mail.from.FirstName + " " + mail.from.LastName + "(" + mail.from.Email + ")" + " - " + mail.title;
             label_body.Text = mail.body;
+            currentMail = mail;
+            btn_reply.Visible = true;
+            btn_delete.Visible = true;
+
         }
 
         Email currentMail;
@@ -212,6 +227,7 @@ namespace SecondTest
 
         private void emailList_DataSourceChanged(object sender, EventArgs e)
         {
+            emailList.Invalidate();
             currentMail = null;
 
             if (emailList.DataSource == mails && mails.Count > 0)
@@ -235,6 +251,15 @@ namespace SecondTest
             {
                 SetShownMail(currentMail);
             }
+        }
+
+        private void btn_delete_Click(object sender, EventArgs e)
+        {
+            var tmpCur = currentMail; // Please keep this above the datasource = null line, else you will have sad dreams.
+            emailList.DataSource = null;
+            source.Remove(tmpCur);
+            ChangeMailSource(source);
+            UpdateLabels();
         }
     }
 }
