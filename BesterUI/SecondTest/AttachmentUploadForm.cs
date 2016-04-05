@@ -16,6 +16,12 @@ namespace SecondTest
         public AttachmentUploadForm()
         {
             InitializeComponent();
+
+            //Disable resizing
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+
             button1.Enabled = false;
             DoWait();
         }

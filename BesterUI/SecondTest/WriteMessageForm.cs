@@ -21,6 +21,11 @@ namespace SecondTest
         {
             InitializeComponent();
             SeededProblems.WriteMessageForm.CreateDraft();
+
+            //Disable resizing
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
         }
 
         public WriteMessageForm(Email replyToMail) : this(replyToMail, false)

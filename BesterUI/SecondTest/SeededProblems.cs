@@ -107,12 +107,18 @@ namespace SecondTest
 
             private static InputLanguage GetInputLanguageEnglish()
             {
-                foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+                InputLanguage l = InputLanguage.InstalledInputLanguages[0];
+
+                for (int i = 0; i < InputLanguage.InstalledInputLanguages.Count; i++)
                 {
-                    if (lang.LayoutName == "US")
-                        return lang;
+                    if (InputLanguage.InstalledInputLanguages[i].LayoutName == "US")
+                    {
+                        l = InputLanguage.InstalledInputLanguages[i];
+                        break;
+                    }
                 }
-                return null;
+
+                return l;
             }
 
             private static void WriteMessageForm_CurrentTaskChanged(Task obj)
