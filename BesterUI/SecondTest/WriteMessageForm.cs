@@ -51,6 +51,7 @@ namespace SecondTest
             if (EmailSent != null)
                 EmailSent(mail);
 
+
             this.Close();
 
         }
