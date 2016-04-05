@@ -39,6 +39,7 @@
             this.btn_draft = new System.Windows.Forms.Button();
             this.btn_inbox = new System.Windows.Forms.Button();
             this.btn_new = new System.Windows.Forms.Button();
+            this.btn_delete = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.emailList)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -51,6 +52,7 @@
             this.emailList.AllowUserToResizeRows = false;
             this.emailList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
+            this.emailList.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.emailList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.emailList.ColumnHeadersVisible = false;
             this.emailList.Location = new System.Drawing.Point(12, 51);
@@ -69,6 +71,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel1.Controls.Add(this.btn_delete);
             this.panel1.Controls.Add(this.btn_reply);
             this.panel1.Controls.Add(this.label_body);
             this.panel1.Controls.Add(this.label_header);
@@ -88,6 +91,7 @@
             this.btn_reply.TabIndex = 7;
             this.btn_reply.Text = "Reply";
             this.btn_reply.UseVisualStyleBackColor = true;
+            this.btn_reply.Visible = false;
             this.btn_reply.Click += new System.EventHandler(this.btn_reply_Click);
             // 
             // label_body
@@ -173,6 +177,18 @@
             this.btn_new.UseVisualStyleBackColor = true;
             this.btn_new.Click += new System.EventHandler(this.btn_new_Click);
             // 
+            // btn_delete
+            // 
+            this.btn_delete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_delete.Location = new System.Drawing.Point(372, 236);
+            this.btn_delete.Name = "btn_delete";
+            this.btn_delete.Size = new System.Drawing.Size(75, 23);
+            this.btn_delete.TabIndex = 8;
+            this.btn_delete.Text = "Delete";
+            this.btn_delete.UseVisualStyleBackColor = true;
+            this.btn_delete.Visible = false;
+            this.btn_delete.Click += new System.EventHandler(this.btn_delete_Click);
+            // 
             // SecondTestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -206,5 +222,6 @@
         private System.Windows.Forms.Button btn_reply;
         private System.Windows.Forms.Button btn_sent;
         private System.Windows.Forms.Button btn_new;
+        private System.Windows.Forms.Button btn_delete;
     }
 }
