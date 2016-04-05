@@ -22,6 +22,8 @@ namespace SecondTest
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
+            this.ControlBox = false;
+
             button1.Enabled = false;
             DoWait();
         }
