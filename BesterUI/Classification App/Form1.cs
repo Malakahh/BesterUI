@@ -174,11 +174,14 @@ namespace Classification_App
 
             Log.LogMessage("Applying data to features..");
 
-            FeatureCreator.GSRFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
-            FeatureCreator.HRFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-            FeatureCreator.EEGFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-            FeatureCreator.FACEFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
-
+            FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
+            FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
+            FeatureCreator.HRValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
+            FeatureCreator.EEGArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
+            FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
+            FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
+            FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
+            
             Log.LogMessage("Looking for configurations...");
 
             svmConfs.Clear();
@@ -226,10 +229,9 @@ namespace Classification_App
 
         //Debug purposes
         private bool skipGSR = false;
-        private bool skipEEG = false;
-        private bool skipFace = false;
-        private bool skipHR = false;
-        private bool doMetas = false;
+        private bool skipEEG = true;
+        private bool skipFace = true;
+        private bool skipHR = true;
 
         private ThreadPriority threadPrio = ThreadPriority.Normal;
 
@@ -268,9 +270,12 @@ namespace Classification_App
                 }
 
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
-                List<SVMParameter> parameters = GenerateSVMParameters();
+               // List<SVMParameter> parameters = GenerateSVMParameters();
 
-                //List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                parameters[0].C = 32;
+                parameters[0].Gamma = 0.25;
+                parameters[0].Kernel = SVMKernelType.SIGMOID;
 
 
                 int curDat = 1;
@@ -396,7 +401,8 @@ namespace Classification_App
                                 gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
                                 confs.Add(gsrConf);
                                 var gsrMac = new StdClassifier(gsrConf, samData);
-                                var gsrRes = gsrMac.CrossValidate(feel);
+                                var gsrRes = gsrMac.OldCrossValidate(feel, 1);
+                                var gsrRes2 = gsrMac.CrossValidate(feel);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -764,5 +770,6 @@ namespace Classification_App
             }
         }
         #endregion
+        
     }
 }

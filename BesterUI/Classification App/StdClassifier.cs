@@ -204,6 +204,7 @@ namespace Classification_App
             List<PredictionResult> predictedResults = new List<PredictionResult>();
             //Split into crossvalidation parts
             SVMProblem problems = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).CreateCompleteProblem(samData, feelingsmodel);
+
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
             int progressCounter = 0;
@@ -221,6 +222,11 @@ namespace Classification_App
                 Log.LogMessage(ONLY_ONE_CLASS);
                 Log.LogMessage("");
                 return predictedResults;
+            }
+            else if(problems.X.Count == 0)
+            {
+                Log.LogMessage("Empty problem in "+ Name);
+                return null;
             }
             foreach (SVMParameter SVMpara in Parameters)
             {
