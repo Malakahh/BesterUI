@@ -73,6 +73,27 @@ namespace SecondTest
                 EventLog.Write("AddContact complete");
                 return false;
             }
+
+            static bool contactRemoved = false;
+            public static bool RemoveContactBtn(bool b)
+            {
+                if (CurrentTask != Task.RemoveContact)
+                {
+                    return false;
+                }
+
+                if (!b && !contactRemoved)
+                    return false;
+
+                if (!contactRemoved)
+                {
+                    EventLog.Write("RemoveContact clicked");
+                    contactRemoved = true;
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         public static class SecondTestForm

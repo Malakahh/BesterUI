@@ -112,6 +112,12 @@
     <Compile Include="TaskPage\TaskPage_None.Designer.cs">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_RemoveContact.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_RemoveContact.Designer.cs">
+      <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_SendDraft.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -177,6 +183,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_RemoveContact.resx">
+      <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_SendDraft.resx">
       <DependentUpon>TaskPage_SendDraft.cs</DependentUpon>

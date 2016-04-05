@@ -39,6 +39,7 @@
             this.txtBoxEmail = new System.Windows.Forms.TextBox();
             this.btnRemoveContact = new System.Windows.Forms.Button();
             this.btnAddContact = new System.Windows.Forms.Button();
+            this.panelBlack = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewContacts)).BeginInit();
             this.SuspendLayout();
             // 
@@ -145,11 +146,20 @@
             this.btnAddContact.Text = "Add Contact";
             this.btnAddContact.UseVisualStyleBackColor = true;
             // 
+            // panelBlack
+            // 
+            this.panelBlack.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.panelBlack.Location = new System.Drawing.Point(12, 12);
+            this.panelBlack.Name = "panelBlack";
+            this.panelBlack.Size = new System.Drawing.Size(390, 345);
+            this.panelBlack.TabIndex = 11;
+            // 
             // ContactForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(586, 369);
+            this.Controls.Add(this.panelBlack);
             this.Controls.Add(this.btnAddContact);
             this.Controls.Add(this.btnRemoveContact);
             this.Controls.Add(this.txtBoxEmail);
@@ -182,5 +192,6 @@
         private System.Windows.Forms.TextBox txtBoxEmail;
         private System.Windows.Forms.Button btnRemoveContact;
         private System.Windows.Forms.Button btnAddContact;
+        private System.Windows.Forms.Panel panelBlack;
     }
 }
