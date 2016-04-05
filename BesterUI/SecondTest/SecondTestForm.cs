@@ -84,7 +84,16 @@ namespace SecondTest
             RefreshMailSource();
             btn_inbox.Text = "Inbox (" + mails.Count + ")";
             btn_draft.Text = "Drafts (" + drafts.Count + ")";
+            if (drafts.Count == 0)
+                btn_reply.Hide();
+            else
+                btn_reply.Show();
+
             btn_sent.Text = "Sent (" + sentBox.Count + ")";
+            if (sentBox.Count == 0)
+                btn_reply.Hide();
+            else
+                btn_reply.Show();
         }
 
         private void RefreshMailSource()
@@ -134,7 +143,7 @@ namespace SecondTest
                 source = sentBox;
                 btn_reply.Text = "Reply";
             }
-
+            UpdateLabels();
             emailList.DataSource = source;
             if (emailList.Rows.Count > 0)
             {
