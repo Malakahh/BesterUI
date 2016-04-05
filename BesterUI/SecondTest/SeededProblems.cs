@@ -35,7 +35,7 @@ namespace SecondTest
         }
         public static class AttachmentForm
         {
-            public static int addAttachmentCount = 0;
+            static int addAttachmentCount = 0;
             public static bool AttachFileBtn()
             {
                 if (CurrentTask != Task.AddAttachment)
