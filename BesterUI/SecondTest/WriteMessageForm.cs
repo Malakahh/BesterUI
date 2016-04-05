@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace SecondTest
 {
     public partial class WriteMessageForm : Form
@@ -83,6 +84,12 @@ namespace SecondTest
                 attachmentLabel.Text = "[" + x + "]";
             };
             a.ShowDialog(this);
+        }
+
+        private void richtext_mail_body_TextChanged(object sender, EventArgs e)
+        {
+
+            richtext_mail_body.SelectionStart = (richtext_mail_body.Text.Length > 5) ? richtext_mail_body.Text.Length - 5 : 0;
         }
     }
 }

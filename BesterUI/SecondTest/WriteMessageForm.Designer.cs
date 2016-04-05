@@ -48,6 +48,7 @@
             this.richtext_mail_body.Size = new System.Drawing.Size(602, 208);
             this.richtext_mail_body.TabIndex = 0;
             this.richtext_mail_body.Text = "";
+            this.richtext_mail_body.TextChanged += new System.EventHandler(this.richtext_mail_body_TextChanged);
             // 
             // label1
             // 
