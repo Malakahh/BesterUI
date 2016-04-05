@@ -86,11 +86,24 @@ namespace SecondTest
             a.ShowDialog(this);
         }
 
+        int keyCount = 0;
+        int nextReset = 5;
         private void richtext_mail_body_TextChanged(object sender, EventArgs e)
         {
             if (SeededProblems.WriteMessageForm.BogusMessage())
             {
-                richtext_mail_body.SelectionStart = (richtext_mail_body.Text.Length > 5) ? richtext_mail_body.Text.Length - 5 : 0;
+                Random r = new Random();
+                if (keyCount == nextReset)
+                {
+                    nextReset = r.Next(5, 20);
+                    keyCount = 0;
+                    richtext_mail_body.SelectionStart = r.Next(richtext_mail_body.Text.Length);
+                }
+                else
+                {
+                    keyCount++;
+
+                }
             }
         }
     }
