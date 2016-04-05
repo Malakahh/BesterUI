@@ -81,9 +81,26 @@ namespace SecondTest
 
         private void UpdateLabels()
         {
+            RefreshMailSource();
             btn_inbox.Text = "Inbox (" + mails.Count + ")";
             btn_draft.Text = "Drafts (" + drafts.Count + ")";
+            if (drafts.Count == 0)
+                btn_reply.Hide();
+            else
+                btn_reply.Show();
+
             btn_sent.Text = "Sent (" + sentBox.Count + ")";
+            if (sentBox.Count == 0)
+                btn_reply.Hide();
+            else
+                btn_reply.Show();
+        }
+
+        private void RefreshMailSource()
+        {
+            var s = emailList.DataSource;
+            emailList.DataSource = null;
+            emailList.DataSource = s;
         }
 
         private void LoadEmails()
@@ -126,19 +143,7 @@ namespace SecondTest
                 source = sentBox;
                 btn_reply.Text = "Reply";
             }
-
-            emailList.DataSource = source;
-            if (emailList.Rows.Count > 0)
-            {
-                emailList.ClearSelection();
-                emailList.Rows[0].Selected = true;
-                SetShownMail(source.First());
-                emailList.Invalidate();
-
-            }
-        }
-        private void ChangeMailSource(List<Email> source)
-        {
+            UpdateLabels();
             emailList.DataSource = source;
             if (emailList.Rows.Count > 0)
             {
@@ -255,10 +260,7 @@ namespace SecondTest
 
         private void btn_delete_Click(object sender, EventArgs e)
         {
-            var tmpCur = currentMail; // Please keep this above the datasource = null line, else you will have sad dreams.
-            emailList.DataSource = null;
-            source.Remove(tmpCur);
-            ChangeMailSource(source);
+            source.Remove(currentMail);
             UpdateLabels();
         }
     }
