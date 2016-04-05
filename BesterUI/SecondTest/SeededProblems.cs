@@ -135,7 +135,7 @@ namespace SecondTest
                     return false;
                 }
 
-                EventLog.Write("Text Changed");
+                EventLog.Write("BogusMessage: Text Changed");
                 return true;
             }
         }
