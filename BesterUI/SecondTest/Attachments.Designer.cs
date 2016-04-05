@@ -40,7 +40,7 @@
             this.btn_attach_image.Name = "btn_attach_image";
             this.btn_attach_image.Size = new System.Drawing.Size(75, 23);
             this.btn_attach_image.TabIndex = 1;
-            this.btn_attach_image.Text = "Attach";
+            this.btn_attach_image.Text = "Close";
             this.btn_attach_image.UseVisualStyleBackColor = true;
             this.btn_attach_image.Click += new System.EventHandler(this.btn_attach_image_Click);
             // 
