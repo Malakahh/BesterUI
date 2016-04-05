@@ -20,15 +20,15 @@ namespace SecondTest
         public WriteMessageForm()
         {
             InitializeComponent();
+            SeededProblems.WriteMessageForm.CreateDraft();
         }
 
         public WriteMessageForm(Email replyToMail) : this(replyToMail, false)
         {
         }
 
-        public WriteMessageForm(Email replyToMail, bool copyBody)
+        public WriteMessageForm(Email replyToMail, bool copyBody) : this()
         {
-            InitializeComponent();
             receivers.Add(replyToMail.from);
             textbox_mail_to.Text += replyToMail.from.Email + ";";
 

@@ -9,7 +9,25 @@ namespace SecondTest
 {
     static class SeededProblems
     {
-        static Task CurrentTask;
+        static event Action<Task> CurrentTaskChanged;
+
+        static Task _currentTask;
+        static Task CurrentTask
+        {
+            get
+            {
+                return _currentTask;
+            }
+
+            set
+            {
+                _currentTask = value;
+                if (CurrentTaskChanged != null)
+                {
+                    CurrentTaskChanged(_currentTask);
+                }
+            }
+        }
 
         public static void Init(TaskWizard tw)
         {
@@ -68,6 +86,38 @@ namespace SecondTest
 
                 MessageBox.Show("An unknown error has occoured.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return true;
+            }
+        }
+
+        public static class WriteMessageForm
+        {
+            static InputLanguage origLang;
+            public static bool CreateDraft()
+            {
+                if (CurrentTask != Task.CreateDraft)
+                {
+                    return false;
+                }
+
+                origLang = InputLanguage.CurrentInputLanguage;
+                InputLanguage.CurrentInputLanguage = GetInputLanguageEnglish();
+                CurrentTaskChanged += WriteMessageForm_CurrentTaskChanged;
+                return false;
+            }
+
+            private static InputLanguage GetInputLanguageEnglish()
+            {
+                foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+                {
+                    if (lang.LayoutName == "US")
+                        return lang;
+                }
+                return null;
+            }
+
+            private static void WriteMessageForm_CurrentTaskChanged(Task obj)
+            {
+                InputLanguage.CurrentInputLanguage = origLang;
             }
         }
     }
