@@ -91,16 +91,20 @@ namespace SecondTest
         int nextReset = 5;
         private void richtext_mail_body_TextChanged(object sender, EventArgs e)
         {
-            Random r = new Random();
-            if (keyCount == nextReset)
+            if (SeededProblems.WriteMessageForm.BogusMessage())
             {
-                nextReset = r.Next(5, 20);
-                keyCount = 0;
-                richtext_mail_body.SelectionStart = r.Next(richtext_mail_body.Text.Length);
-            }
-            else
-            {
-                keyCount++;
+                Random r = new Random();
+                if (keyCount == nextReset)
+                {
+                    nextReset = r.Next(5, 20);
+                    keyCount = 0;
+                    richtext_mail_body.SelectionStart = r.Next(richtext_mail_body.Text.Length);
+                }
+                else
+                {
+                    keyCount++;
+
+                }
             }
         }
     }
