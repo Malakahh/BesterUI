@@ -84,6 +84,7 @@ namespace SecondTest
                     return false;
                 }
 
+                EventLog.Write("SendDraft error shown");
                 MessageBox.Show("An unknown error has occoured.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return true;
             }
@@ -101,6 +102,7 @@ namespace SecondTest
 
                 origLang = InputLanguage.CurrentInputLanguage;
                 InputLanguage.CurrentInputLanguage = GetInputLanguageEnglish();
+                EventLog.Write("CreateDraft, language changed to: " + InputLanguage.CurrentInputLanguage.LayoutName);
                 CurrentTaskChanged += WriteMessageForm_CurrentTaskChanged;
                 return false;
             }

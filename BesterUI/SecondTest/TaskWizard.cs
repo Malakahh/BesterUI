@@ -26,6 +26,8 @@ namespace SecondTest
             btnTaskComplete.Click += BtnTaskComplete_Click;
             btnTaskIncomplete.Click += BtnTaskIncomplete_Click;
 
+            this.ControlBox = false;
+
             //Disable resizing
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
