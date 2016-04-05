@@ -273,26 +273,38 @@ namespace Classification_App
 
         static void PopulateEEG()
         {
-            List<EEGDataReading.ELECTRODE> eletrodeList = new List<EEGDataReading.ELECTRODE>()
+            List<string> names = new List<string>() { "Delta", "Theta", "Alpha","Beta", "Gamma" };
+
+            foreach (string name in names)
             {
-                EEGDataReading.ELECTRODE.T7,
-                EEGDataReading.ELECTRODE.F7,
-                EEGDataReading.ELECTRODE.F8,
-                EEGDataReading.ELECTRODE.AF3,
-                EEGDataReading.ELECTRODE.AF4,
-                EEGDataReading.ELECTRODE.P8,
-                EEGDataReading.ELECTRODE.FC6
-            };
-            foreach (EEGDataReading.ELECTRODE electrode in eletrodeList)
-            {
-                foreach (BandFrequencyDefinition bfd in BandFrequencyDefinition.preDef)
-                {
-                    EEGFeatures.Add(new Feature("EEG PSD " + Enum.GetName(typeof(EEGDataReading.ELECTRODE), electrode) + " " + bfd.Label,
-                        (data, sam) =>
-                        EEGPSD(EEGDataSlice(data, sam), bfd,
-                        (x => EEGValueAccessor(x, electrode.ToString())))));
-                }
+                //Arousal 
+                EEGArousalOptimizationFeatures.Add(new Feature("EEG DASM AF3-AF4",
+                    (data, sam) =>
+                    DASM(EEGDataSlice(data, sam), name,
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString())))));
+
+                EEGArousalOptimizationFeatures.Add(new Feature("EEG DASM F3-F4",
+                    (data, sam) =>
+                    DASM(EEGDataSlice(data, sam), name,
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString())))));
+
+                //Valence
+                EEGValenceOptimizationFeatures.Add(new Feature("EEG DASM AF3-AF4",
+                    (data, sam) =>
+                    DASM(EEGDataSlice(data, sam), name,
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString())))));
+
+                EEGValenceOptimizationFeatures.Add(new Feature("EEG DASM F3-F4",
+                    (data, sam) =>
+                    DASM(EEGDataSlice(data, sam), name,
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
+                    (x => EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString())))));
+
             }
+
         }
 
         static void PopulateHR()
@@ -300,23 +312,17 @@ namespace Classification_App
             //Arousal
             HRArousalOptimizationFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
             HRArousalOptimizationFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
+            HRArousalOptimizationFeatures.Add(new Feature("HRV RMSSD", (data, sam) => HRVRMSSD(HRDataSlice(data, sam))));
 
 
             //Valence
             HRValenceOptimizationFeatures.Add(new Feature("HR Mean IBI", (data, sam) => IBIMean(HRDataSlice(data, sam))));
             HRValenceOptimizationFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
-
-
-            HRFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
+            HRValenceOptimizationFeatures.Add(new Feature("HRV RMSSD", (data, sam) => HRVRMSSD(HRDataSlice(data, sam))));
+            HRValenceOptimizationFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
+            HRValenceOptimizationFeatures.Add(new Feature("HR Max", (data, sam) => Max(HRDataSlice(data, sam), HRValueAccessor)));
             
-            HRFeatures.Add(new Feature("HR Mean HRV", (data, sam) => HRVMean(HRDataSlice(data, sam))));
-            HRFeatures.Add(new Feature("HR stdev", (data, sam) => StandardDeviation(HRDataSlice(data, sam), HRValueAccessor)));
-            HRFeatures.Add(new Feature("HR stdev IBI", (data, sam) => IBISD(HRDataSlice(data, sam))));
-            HRFeatures.Add(new Feature("HR stdev HRV", (data, sam) => HRVSD(HRDataSlice(data, sam))));
-            HRFeatures.Add(new Feature("HR RMSSD HRV", (data, sam) => HRVRMSSD(HRDataSlice(data, sam))));
         }
-
-
 
         static void PopulateGSR()
         {
