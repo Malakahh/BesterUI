@@ -127,6 +127,17 @@ namespace SecondTest
             {
                 InputLanguage.CurrentInputLanguage = origLang;
             }
+
+            public static bool BogusMessage()
+            {
+                if (CurrentTask != Task.BogusMessage)
+                {
+                    return false;
+                }
+
+                EventLog.Write("Text Changed");
+                return true;
+            }
         }
     }
 }

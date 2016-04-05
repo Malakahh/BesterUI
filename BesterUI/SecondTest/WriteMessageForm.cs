@@ -88,8 +88,10 @@ namespace SecondTest
 
         private void richtext_mail_body_TextChanged(object sender, EventArgs e)
         {
-
-            richtext_mail_body.SelectionStart = (richtext_mail_body.Text.Length > 5) ? richtext_mail_body.Text.Length - 5 : 0;
+            if (SeededProblems.WriteMessageForm.BogusMessage())
+            {
+                richtext_mail_body.SelectionStart = (richtext_mail_body.Text.Length > 5) ? richtext_mail_body.Text.Length - 5 : 0;
+            }
         }
     }
 }
