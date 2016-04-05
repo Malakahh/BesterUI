@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SecondTest
 {
-    public enum Task { None, Final, AddContact, AddAttachment, SendMailToContact, SendDraft }
+    public enum Task { None, Final, AddContact, AddAttachment, SendMailToContact, SendDraft, CreateDraft }
 
     public partial class TaskWizard : Form
     {
@@ -110,6 +110,9 @@ namespace SecondTest
                     break;
                 case Task.SendDraft:
                     return new TaskPage.TaskPage_SendDraft();
+                    break;
+                case Task.CreateDraft:
+                    return new TaskPage.TaskPage_CreateDraft();
                     break;
             }
         }

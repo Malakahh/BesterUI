@@ -19,6 +19,11 @@ namespace SecondTest
         {
             InitializeComponent();
             PopulateAttachments();
+
+            //Disable resizing
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
         }
 
 
