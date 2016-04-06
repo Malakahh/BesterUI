@@ -192,6 +192,10 @@ namespace Classification_App
                 Log.LogMessage("Threw away a sam data point");
                 samData.dataPoints.Remove(throwaway[i]);
             }
+            if (throwaway.Count > 0 && samData.ShouldSkip())
+            {
+                return false;
+            }
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
