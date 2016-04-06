@@ -34,9 +34,9 @@ namespace Classification_App
         const int HR_LATENCY = 3000;
         const int HR_DURATION = 6000;
         const int EEG_LATENCY = 350;
-        const int EEG_DURATION = 800;
-        const int FACE_LATENCY = 100;
-        const int FACE_DURATION = 900;
+        const int EEG_DURATION = 710;
+        const int FACE_LATENCY = 500;
+        const int FACE_DURATION = 500;
 
         const char SEPARATOR = '|';
 
@@ -46,6 +46,14 @@ namespace Classification_App
             PopulateGSR();
             PopulateHR();
             PopulateFACE();
+
+            allFeatures.AddRange(GSRArousalOptimizationFeatures);
+            allFeatures.AddRange(HRArousalOptimizationFeatures);
+            allFeatures.AddRange(HRValenceOptimizationFeatures);
+            allFeatures.AddRange(EEGArousalOptimizationFeatures);
+            allFeatures.AddRange(EEGValenceOptimizationFeatures);
+            allFeatures.AddRange(FACEArousalOptimizationFeatures);
+            allFeatures.AddRange(FACEValenceOptimizationFeatures);
         }
 
 
@@ -326,34 +334,47 @@ namespace Classification_App
 
         static void PopulateGSR()
         {
+            //Arousal
             GSRArousalOptimizationFeatures.Add(new Feature("GSR Mean", (data, sam) => Mean(GSRDataSlice(data, sam), GSRValueAccessor)));
             GSRArousalOptimizationFeatures.Add(new Feature("GSR stdev", (data, sam) => StandardDeviation(GSRDataSlice(data, sam), GSRValueAccessor)));
+            GSRArousalOptimizationFeatures.Add(new Feature("GSR Min", (data, sam) => Min(GSRDataSlice(data, sam), GSRValueAccessor)));
             GSRArousalOptimizationFeatures.Add(new Feature("GSR Max", (data, sam) => Max(GSRDataSlice(data, sam), GSRValueAccessor)));
-            GSRArousalOptimizationFeatures.Add(new Feature("GSR First", (data, sam) => First(GSRDataSlice(data, sam), GSRValueAccessor)));
         }
-        private static List<int> meanFaceLeftSide = new List<int> { 5, 13, 15, 11 };
-        private static List<int> meanFaceRightSide = new List<int> { 6, 14, 16, 12 };
+        private static List<int> meanFaceLeftSide = new List<int> { 5, 13, 15 };
+        private static List<int> meanFaceRightSide = new List<int> { 6, 14, 16 };
 
-        private static List<int> sdFaceLeftSide = new List<int> { 5, 13, 15, 11 };
-        private static List<int> sdFaceRightSide = new List<int> { 6, 14, 16, 12 };
+        private static List<int> sdFaceLeftSide = new List<int> { 5, 13, 15 };
+        private static List<int> sdFaceRightSide = new List<int> { 6, 14, 16 };
 
         static void PopulateFACE()
         {
+            //Valence
             for (int i = 0; i < meanFaceLeftSide.Count; i++)
             {
                 int l = i;
-                FACEFeatures.Add(new Feature("Face Mean " + meanFaceLeftSide[l] + " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
+                FACEValenceOptimizationFeatures.Add(new Feature("Face Mean " + meanFaceLeftSide[l] + " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
                       (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[l])),
                       (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[l])))));
             }
             for (int j = 0; j < sdFaceLeftSide.Count; j++)
             {
                 int k = j;
-                FACEFeatures.Add(new Feature("Face SD " + sdFaceLeftSide[k] + " & " + sdFaceRightSide[k],
+                FACEValenceOptimizationFeatures.Add(new Feature("Face SD " + sdFaceLeftSide[k] + " & " + sdFaceRightSide[k],
                     (data, sam) => FaceStandardDeviation(FaceDataSlice(data, sam),
                     (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceLeftSide.ElementAt(k))),
                     (x => KinectValueAccessor(x, (FaceShapeAnimations)sdFaceRightSide.ElementAt(k))))));
             }
+
+            //Arousal
+            FACEArousalOptimizationFeatures.Add(new Feature("Face Mean 11 & 12 ", (data, sam) => FaceMean(FaceDataSlice(data, sam),
+                (x => KinectValueAccessor(x, (FaceShapeAnimations)11)),
+                (x => KinectValueAccessor(x, (FaceShapeAnimations)12)))));
+            
+            FACEArousalOptimizationFeatures.Add(new Feature("Face SD 11 & 12 ",
+                (data, sam) => FaceStandardDeviation(FaceDataSlice(data, sam),
+                (x => KinectValueAccessor(x, (FaceShapeAnimations)11)),
+                (x => KinectValueAccessor(x, (FaceShapeAnimations)12)))));
+
         }
     }
 }
