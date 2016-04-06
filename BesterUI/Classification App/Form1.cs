@@ -174,10 +174,29 @@ namespace Classification_App
                 return false;
             }
             shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
+            //Slicing
+            List<SAMDataPoint> throwaway = new List<SAMDataPoint>();
+            foreach (SAMDataPoint samD in samData.dataPoints)
+            {
+                if (FeatureCreator.EEGDataSlice(_fd.eegData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.GSRDataSlice(_fd.gsrData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.HRDataSlice(_fd.hrData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.FaceDataSlice(_fd.faceData.ToList<DataReading>(), samD).Count == 0)
+                {
+                    throwaway.Add(samD);
+                }
+            }
+
+            for (int i = 0; i < throwaway.Count; i++)
+            {
+                Log.LogMessage("Threw away a sam data point");
+                samData.dataPoints.Remove(throwaway[i]);
+            }
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
 
+            
             FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
             FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
             FeatureCreator.HRValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
