@@ -90,6 +90,11 @@ namespace SecondTest
 
         private void NextTask()
         {
+            if (currentTaskIndex >= taskOrder.Count)
+            {
+                return;
+            }
+
             this.Controls.Remove(currentTaskPage);
             currentTaskPage = GetTaskPage(taskOrder[currentTaskIndex]);
             this.Controls.Add(currentTaskPage);
