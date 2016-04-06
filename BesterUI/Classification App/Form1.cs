@@ -141,7 +141,7 @@ namespace Classification_App
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.CrossValidate(feels, useControlSAM);
+                var res = mac.OldCrossValidate(feels,1, useControlSAM);
                 SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
@@ -411,7 +411,6 @@ namespace Classification_App
                                 confs.Add(gsrConf);
                                 var gsrMac = new StdClassifier(gsrConf, samData);
                                 var gsrRes = gsrMac.OldCrossValidate(feel, 1);
-                                var gsrRes2 = gsrMac.CrossValidate(feel);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -426,7 +425,7 @@ namespace Classification_App
                                 hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
                                 confs.Add(hrConf);
                                 var hrMac = new StdClassifier(hrConf, samData);
-                                var hrRes = hrMac.CrossValidate(feel);
+                                var hrRes = hrMac.OldCrossValidate(feel,1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
                                 DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -439,7 +438,7 @@ namespace Classification_App
                                 eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
                                 confs.Add(eegConf);
                                 var eegMac = new StdClassifier(eegConf, samData);
-                                var eegRes = eegMac.CrossValidate(feel);
+                                var eegRes = eegMac.OldCrossValidate(feel,1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
                                 DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -452,7 +451,7 @@ namespace Classification_App
                                 faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
                                 confs.Add(faceConf);
                                 var faceMac = new StdClassifier(faceConf, samData);
-                                var faceRes = faceMac.CrossValidate(feel);
+                                var faceRes = faceMac.OldCrossValidate(feel,1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
                                 DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
