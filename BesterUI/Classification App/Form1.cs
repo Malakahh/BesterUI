@@ -411,6 +411,8 @@ namespace Classification_App
                                 confs.Add(gsrConf);
                                 var gsrMac = new StdClassifier(gsrConf, samData);
                                 var gsrRes = gsrMac.OldCrossValidate(feel, 1);
+                                Log.LogMessage("Best result for person " + curDat + " GSR " + feel + " is " + gsrRes[0].GetAccuracy());
+
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -426,6 +428,8 @@ namespace Classification_App
                                 confs.Add(hrConf);
                                 var hrMac = new StdClassifier(hrConf, samData);
                                 var hrRes = hrMac.OldCrossValidate(feel,1);
+                                Log.LogMessage("Best result for person " + curDat + " HR " + feel + " is " + hrRes[0].GetAccuracy());
+                                
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
                                 DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -439,6 +443,8 @@ namespace Classification_App
                                 confs.Add(eegConf);
                                 var eegMac = new StdClassifier(eegConf, samData);
                                 var eegRes = eegMac.OldCrossValidate(feel,1);
+                                Log.LogMessage("Best result for person " + curDat + " EEG " + feel + " is " + eegRes[0].GetAccuracy());
+
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
                                 DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -452,6 +458,8 @@ namespace Classification_App
                                 confs.Add(faceConf);
                                 var faceMac = new StdClassifier(faceConf, samData);
                                 var faceRes = faceMac.OldCrossValidate(feel,1);
+                                Log.LogMessage("Best result for person " + curDat + " Face " + feel + " is " + faceRes[0].GetAccuracy());
+
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
                                 DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
