@@ -163,12 +163,16 @@ namespace Classification_App
             }
         }
 
-        void LoadData(string path)
+        bool LoadData(string path)
         {
             currentPath = path;
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
+            if (samData.ShouldSkip())
+            {
+                return false;
+            }
             shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
@@ -211,6 +215,7 @@ namespace Classification_App
             {
                 Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
             }
+            return true;
         }
 
 
@@ -270,12 +275,13 @@ namespace Classification_App
                 }
 
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
-               // List<SVMParameter> parameters = GenerateSVMParameters();
+                List<SVMParameter> parameters = GenerateSVMParameters();
 
-                List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                //Debug param
+               /* List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
                 parameters[0].C = 32;
                 parameters[0].Gamma = 0.25;
-                parameters[0].Kernel = SVMKernelType.SIGMOID;
+                parameters[0].Kernel = SVMKernelType.SIGMOID;*/
 
 
                 int curDat = 1;
@@ -283,7 +289,11 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-
+                    if (!LoadData(item))
+                    {
+                        Log.LogMessage(item.Split('-').Last() +" is not classifiable");
+                        continue;
+                    }
 
                     if (item.Split('\\').Last() == "Stats")
                     {
@@ -300,8 +310,7 @@ namespace Classification_App
 
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
-
-                    LoadData(item);
+                    
                     foreach (var feel in feelings)
                     {
                         statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
