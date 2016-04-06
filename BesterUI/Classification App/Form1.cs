@@ -141,7 +141,7 @@ namespace Classification_App
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.CrossValidate(feels, useControlSAM);
+                var res = mac.OldCrossValidate(feels,1, useControlSAM);
                 SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
@@ -163,12 +163,16 @@ namespace Classification_App
             }
         }
 
-        void LoadData(string path)
+        bool LoadData(string path)
         {
             currentPath = path;
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
+            if (samData.ShouldSkip())
+            {
+                return false;
+            }
             shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
             Log.LogMessage("Fusion Data loaded!");
 
@@ -211,6 +215,7 @@ namespace Classification_App
             {
                 Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
             }
+            return true;
         }
 
 
@@ -270,12 +275,13 @@ namespace Classification_App
                 }
 
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
-               // List<SVMParameter> parameters = GenerateSVMParameters();
+                List<SVMParameter> parameters = GenerateSVMParameters();
 
-                List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                //Debug param
+               /* List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
                 parameters[0].C = 32;
                 parameters[0].Gamma = 0.25;
-                parameters[0].Kernel = SVMKernelType.SIGMOID;
+                parameters[0].Kernel = SVMKernelType.SIGMOID;*/
 
 
                 int curDat = 1;
@@ -283,7 +289,11 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-
+                    if (!LoadData(item))
+                    {
+                        Log.LogMessage(item.Split('-').Last() +" is not classifiable");
+                        continue;
+                    }
 
                     if (item.Split('\\').Last() == "Stats")
                     {
@@ -300,8 +310,7 @@ namespace Classification_App
 
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
-
-                    LoadData(item);
+                    
                     foreach (var feel in feelings)
                     {
                         statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
@@ -402,7 +411,6 @@ namespace Classification_App
                                 confs.Add(gsrConf);
                                 var gsrMac = new StdClassifier(gsrConf, samData);
                                 var gsrRes = gsrMac.OldCrossValidate(feel, 1);
-                                var gsrRes2 = gsrMac.CrossValidate(feel);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.GSR, gsrRes.First(), feel);
                                 DPH.done["GSR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -417,7 +425,7 @@ namespace Classification_App
                                 hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
                                 confs.Add(hrConf);
                                 var hrMac = new StdClassifier(hrConf, samData);
-                                var hrRes = hrMac.CrossValidate(feel);
+                                var hrRes = hrMac.OldCrossValidate(feel,1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
                                 DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -430,7 +438,7 @@ namespace Classification_App
                                 eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
                                 confs.Add(eegConf);
                                 var eegMac = new StdClassifier(eegConf, samData);
-                                var eegRes = eegMac.CrossValidate(feel);
+                                var eegRes = eegMac.OldCrossValidate(feel,1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
                                 DPH.done["EEG" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -443,7 +451,7 @@ namespace Classification_App
                                 faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
                                 confs.Add(faceConf);
                                 var faceMac = new StdClassifier(faceConf, samData);
-                                var faceRes = faceMac.CrossValidate(feel);
+                                var faceRes = faceMac.OldCrossValidate(feel,1);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
                                 DPH.done["Face" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -459,7 +467,7 @@ namespace Classification_App
                         }
                         //Write normal results
                         eh.Save();
-                        Log.LogMessage("Time for person " + curDat + " calculations was " + stopwatch.Elapsed);
+                        Log.LogMessage("Total time: " + stopwatch.Elapsed+ " Current person: " + curDat + " and model " + feel.ToString());
 
 
                     }

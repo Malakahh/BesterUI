@@ -60,8 +60,30 @@ namespace Classification_App
             {
                 //Log.LogMessage("[ERROR] SAM data is corrupt!" + "\n" + e.Message);
             }
-
             return data;
+        }
+        
+        public bool ShouldSkip()
+        {
+            foreach (SAMDataPoint.FeelingModel fm in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+            {
+                List<int> distinctList = dataPoints.Select(x => x.ToAVCoordinate(fm)).Distinct().ToList();
+                if (dataPoints.Select(x => x.ToAVCoordinate(fm)).Distinct().Count() == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    foreach (int index in distinctList)
+                    {
+                        if (dataPoints.Where(x => x.ToAVCoordinate(fm) == index).Count() == 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         public static DateTime DateTimeFromUnixTime(long unixTime)

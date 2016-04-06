@@ -114,7 +114,15 @@ namespace BesterUI
             foreach (string file in filesToLoad)
             {
                 string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                double size = new FileInfo(file).Length / 1024;
+                double size;
+                try
+                {
+                    size = new FileInfo(file).Length / 1024;
+                }
+                catch
+                {
+                    size = 0;
+                }
                 switch (s)
                 {
                     case "GSR.dat":
