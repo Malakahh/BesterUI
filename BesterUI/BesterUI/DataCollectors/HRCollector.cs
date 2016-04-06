@@ -88,8 +88,8 @@ namespace BesterUI.DataCollectors
                 {
                     var data = msg.Split('|');
                     bool disBeat = data[0].Split(':')[1] == "Y";
-                    int dIBI = int.Parse(data[1].Split(':')[1]);
-                    int dBPM = int.Parse(data[2].Split(':')[1]);
+                    int dBPM = int.Parse(data[1].Split(':')[1]);
+                    int dIBI = int.Parse(data[2].Split(':')[1]);
                     int dSignal = int.Parse(data[3].Split(':')[1]);
 
                     return new HRDataReading(true) { isBeat = disBeat, signal = dSignal, IBI = dIBI, BPM = dBPM };

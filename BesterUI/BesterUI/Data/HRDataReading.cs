@@ -28,7 +28,7 @@ namespace BesterUI.Data
 
         public override string Serialize()
         {
-            return signal + "|" + IBI + "|" + BPM + "|" + isBeat;
+            return signal + "|" + BPM + "|" + IBI + "|" + isBeat;
         }
 
         protected override DataReading Deserialize(string line)
@@ -36,8 +36,8 @@ namespace BesterUI.Data
             var bits = line.Split('|');
 
             signal = int.Parse(bits[0]);
-            IBI = int.Parse(bits[1]);
-            BPM = int.Parse(bits[2]);
+            BPM = int.Parse(bits[1]);
+            IBI = int.Parse(bits[2]);
             isBeat = bool.Parse(bits[3]);
 
             return this;
