@@ -153,7 +153,7 @@ namespace Classification_App
                 //case FeelingModel.Valence9:
                 //    return valenceToUse;
                 case FeelingModel.Valence3:
-                    return valenceToUse < 3 ? 0 : (valenceToUse < 4 ? 1 : 2);
+                    return valenceToUse < 3 ? 0 : (valenceToUse < 6 ? 1 : 2);
                 case FeelingModel.Valence2Low:
                     return valenceToUse < 4 ? 0 : 1;
                 case FeelingModel.Valence2High:

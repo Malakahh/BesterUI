@@ -289,12 +289,6 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-                    if (!LoadData(item))
-                    {
-                        Log.LogMessage(item.Split('-').Last() +" is not classifiable");
-                        continue;
-                    }
-
                     if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
@@ -307,6 +301,12 @@ namespace Classification_App
                         curDat++;
                         continue;
                     }
+                    if (!LoadData(item))
+                    {
+                        Log.LogMessage(item.Split('-').Last() + " is not classifiable");
+                        continue;
+                    }
+
 
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
