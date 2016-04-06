@@ -34,6 +34,15 @@ namespace SecondTest
             Contact.GenerateDefaultContacts();
             TaskWizard taskWizard = new TaskWizard();
             SeededProblems.Init(taskWizard);
+
+            var myScreen = Screen.FromControl(this);
+            var otherScreen = Screen.AllScreens.FirstOrDefault(s => !s.Equals(myScreen))
+                           ?? myScreen;
+
+            taskWizard.StartPosition = FormStartPosition.Manual;
+            taskWizard.Left = otherScreen.WorkingArea.Left + 120;
+            taskWizard.Top = otherScreen.WorkingArea.Top + 120;
+
             taskWizard.Show();
 
             MakeEmails();

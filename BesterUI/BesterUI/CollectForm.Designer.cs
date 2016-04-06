@@ -335,6 +335,8 @@
             // runSecondTestChkBox
             // 
             this.runSecondTestChkBox.AutoSize = true;
+            this.runSecondTestChkBox.Checked = true;
+            this.runSecondTestChkBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.runSecondTestChkBox.Location = new System.Drawing.Point(680, 12);
             this.runSecondTestChkBox.Name = "runSecondTestChkBox";
             this.runSecondTestChkBox.Size = new System.Drawing.Size(110, 17);
