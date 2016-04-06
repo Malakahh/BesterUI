@@ -468,7 +468,7 @@ namespace Classification_App
                         }
                         //Write normal results
                         eh.Save();
-                        Log.LogMessage("Total time: " + stopwatch.Elapsed+ " Current person: " + curDat + " and model " + feel.ToString() + " calculations was " + );
+                        Log.LogMessage("Total time: " + stopwatch.Elapsed+ " Current person: " + curDat + " and model " + feel.ToString());
 
 
                     }
