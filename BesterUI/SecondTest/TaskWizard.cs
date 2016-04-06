@@ -45,9 +45,11 @@ namespace SecondTest
             this.ControlBox = false;
 
             //Disable resizing
+            /*
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            */
 
             taskOrder = GetScrambledTaskOrder();
 
@@ -90,11 +92,6 @@ namespace SecondTest
 
         private void NextTask()
         {
-            if (currentTaskIndex >= taskOrder.Count)
-            {
-                return;
-            }
-
             this.Controls.Remove(currentTaskPage);
             currentTaskPage = GetTaskPage(taskOrder[currentTaskIndex]);
             this.Controls.Add(currentTaskPage);
@@ -149,19 +146,28 @@ namespace SecondTest
 
         private void BtnTaskComplete_Click(object sender, EventArgs e)
         {
+            if (currentTaskIndex >= taskOrder.Count)
+            {
+                return;
+            }
+
             EventLog.Write("TaskWizard - BtnCompleteClicked");
             NextTask();
         }
 
         private void BtnTaskIncomplete_Click(object sender, EventArgs e)
         {
+            if (currentTaskIndex >= taskOrder.Count)
+            {
+                return;
+            }
+
             EventLog.Write("TaskWizard - BtnIncompleteClicked");
             NextTask();
         }
 
 
         private static IntPtr SetHook(LowLevelKeyboardProc proc)
-
         {
 
             using (Process curProcess = Process.GetCurrentProcess())
@@ -190,11 +196,11 @@ namespace SecondTest
             {
 
                 int vkCode = Marshal.ReadInt32(lParam);
-                if ((Keys)vkCode == Keys.F1)
+                if ((Keys)vkCode == Keys.End)
                 {
                     Me.BtnTaskComplete_Click(Me, null);
                 }
-                else if ((Keys)vkCode == Keys.F12)
+                else if ((Keys)vkCode == Keys.PageDown)
                 {
                     Me.BtnTaskIncomplete_Click(Me, null);
                 }

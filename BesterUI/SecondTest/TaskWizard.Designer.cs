@@ -34,21 +34,25 @@
             // 
             // btnTaskComplete
             // 
+            this.btnTaskComplete.BackColor = System.Drawing.Color.ForestGreen;
+            this.btnTaskComplete.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnTaskComplete.Location = new System.Drawing.Point(191, 178);
             this.btnTaskComplete.Name = "btnTaskComplete";
             this.btnTaskComplete.Size = new System.Drawing.Size(172, 71);
             this.btnTaskComplete.TabIndex = 0;
             this.btnTaskComplete.Text = "I completed the task";
-            this.btnTaskComplete.UseVisualStyleBackColor = true;
+            this.btnTaskComplete.UseVisualStyleBackColor = false;
             // 
             // btnTaskIncomplete
             // 
+            this.btnTaskIncomplete.BackColor = System.Drawing.Color.Red;
+            this.btnTaskIncomplete.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnTaskIncomplete.Location = new System.Drawing.Point(12, 178);
             this.btnTaskIncomplete.Name = "btnTaskIncomplete";
             this.btnTaskIncomplete.Size = new System.Drawing.Size(173, 71);
             this.btnTaskIncomplete.TabIndex = 1;
             this.btnTaskIncomplete.Text = "I was UNABLE to complete the task";
-            this.btnTaskIncomplete.UseVisualStyleBackColor = true;
+            this.btnTaskIncomplete.UseVisualStyleBackColor = false;
             // 
             // TaskWizard
             // 
