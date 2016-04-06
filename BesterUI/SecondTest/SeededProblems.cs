@@ -41,6 +41,8 @@ namespace SecondTest
                 if (CurrentTask != Task.AddAttachment)
                     return false;
 
+                EventLog.Write("Task: AddAttachment");
+
                 if (addAttachmentCount < 3)
                 {
                     addAttachmentCount++;
@@ -49,7 +51,6 @@ namespace SecondTest
 
                 }
 
-                EventLog.Write("AddAttachment complete");
                 return false;
             }
         }
@@ -63,6 +64,8 @@ namespace SecondTest
                     return false;
                 }
 
+                EventLog.Write("Task: AddContact");
+
                 if (addContactCount < 3)
                 {
                     addContactCount++;
@@ -70,7 +73,6 @@ namespace SecondTest
                     return true;
                 }
 
-                EventLog.Write("AddContact complete");
                 return false;
             }
 
@@ -81,6 +83,8 @@ namespace SecondTest
                 {
                     return false;
                 }
+
+                EventLog.Write("Task: RemoveContact");
 
                 if (!b && !contactRemoved)
                     return false;
@@ -105,6 +109,8 @@ namespace SecondTest
                     return false;
                 }
 
+                EventLog.Write("Task: SendDraft");
+
                 EventLog.Write("SendDraft error shown");
                 MessageBox.Show("An unknown error has occoured.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return true;
@@ -120,6 +126,8 @@ namespace SecondTest
                 {
                     return false;
                 }
+
+                EventLog.Write("Task: CreateDraft");
 
                 origLang = InputLanguage.CurrentInputLanguage;
                 InputLanguage.CurrentInputLanguage = GetInputLanguageEnglish();
@@ -149,11 +157,18 @@ namespace SecondTest
                 InputLanguage.CurrentInputLanguage = origLang;
             }
 
+            private static bool bogusMessagefirst = true;
             public static bool BogusMessage()
             {
                 if (CurrentTask != Task.BogusMessage)
                 {
                     return false;
+                }
+
+                if (bogusMessagefirst)
+                {
+                    EventLog.Write("Task: BogusMessage");
+                    bogusMessagefirst = false;
                 }
 
                 EventLog.Write("BogusMessage: Text Changed");
