@@ -273,11 +273,12 @@ namespace BesterUI
 
         public void ExportGRF(string inpath = "")
         {
-            string path = DataReading.GetWritePath() + @"\GSR.grf";
-            if (inpath != "") path = inpath + @"\GSR.grf";
+            if (inpath == "") inpath = DataReading.GetWritePath();
+            var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
+            string path = inpath + @"\Graph.grf";
 
             int TextLabelCount = 0;
-            int FuncCount = 0;
+            int FuncCount = 1;
             int PointSeriesCount = 0;
             int ShadeCount = 0;
             int RelationCount = 0;
@@ -293,57 +294,96 @@ namespace BesterUI
                 return "0x00" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
             };
 
+            Func<string, Color, int, int, string> AddShade = (label, color, from, to) =>
+            {
+                ShadeCount++;
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine(@"[Shade" + ShadeCount + "]");
+                sb.AppendLine(@"LegendText = " + label);
+                sb.AppendLine(@"ShadeStyle = 1");
+                sb.AppendLine(@"BrushStyle = 0");
+                sb.AppendLine(@"Color = " + c2s(color));
+                sb.AppendLine(@"FuncNo = 1");
+                sb.AppendLine(@"sMin = " + from);
+                sb.AppendLine(@"sMax = " + to);
+                sb.AppendLine(@"sMin2 = " + from);
+                sb.AppendLine(@"sMax2 = " + to);
+                sb.AppendLine(@"MarkBorder = 0");
+                sb.AppendLine();
+
+                return sb.ToString();
+            };
+
+            Func<string, Color, List<double>, List<double>, string> AddPointSeries = (label, color, xs, ys) =>
+            {
+                StringBuilder sb = new StringBuilder();
+                PointSeriesCount++;
+                sb.AppendLine(@"[PointSeries" + PointSeriesCount + "]");
+                sb.AppendLine(@"FillColor = " + c2s(color));
+                sb.AppendLine(@"LineColor = " + c2s(color));
+                sb.AppendLine(@"Size = 0");
+                sb.AppendLine(@"Style = 0");
+                sb.AppendLine(@"LineStyle = 0");
+                sb.AppendLine(@"LabelPosition = 1");
+                sb.AppendLine(@"PointCount = " + xs.Count);
+
+                sb.Append("Points = ");
+                for (int pointId = 0; pointId < xs.Count; pointId++)
+                {
+                    sb.Append(xs[pointId] + "," + ys[pointId] + ";");
+                }
+                sb.AppendLine();
+                sb.AppendLine(@"LegendText = " + label);
+                sb.AppendLine();
+
+                xMin = Math.Min(xMin, xs.Min());
+                xMax = Math.Max(xMax, xs.Max());
+                yMin = Math.Min(yMin, ys.Min());
+                yMax = Math.Max(yMax, ys.Max());
+
+                return sb.ToString();
+            };
+
             if (!Directory.Exists(DataReading.GetWritePath()))
             {
                 Directory.CreateDirectory(DataReading.GetWritePath());
             }
 
+            List<string> shades = new List<string>();
+            for (int eventId = 0; eventId < events.Length - 2; eventId++)
+            {
+                string[] evnt = events[eventId].Split('#');
+                if (evnt[1].Contains("Bogus")) continue;
+
+                shades.Add(AddShade(evnt[1], e2c(evnt[1]), int.Parse(evnt[0]), int.Parse(events[eventId + 1].Split('#')[0])));
+            }
+
+
+            //actual data
+            List<string> pointSeries = new List<string>();
+            List<double> x = new List<double>();
+            List<double> y = new List<double>();
+            #region GSR
+            //gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
+            #endregion
+            #region HR
+            hrData = hrData.Where(dat => dat.signal < 2000).ToList();
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            #endregion
+            #region EEG
+            //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });
+            //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.F3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.F4.ToString()]); });
+            #endregion
+            #region Kinect
+            //nothing to see here, move along
+            #endregion
+
+            pointSeries.Add(AddPointSeries("Data", Color.Black, x, y));
+
             using (var f = File.CreateText(path))
             {
-                Log.LogMessage(path);
-                Action<string, Color, int, int> AddShade = (label, color, from, to) =>
-                {
-                    ShadeCount++;
-                    f.WriteLine(@"[Shade" + ShadeCount + "]");
-                    f.WriteLine(@"LegendText = " + label);
-                    f.WriteLine(@"ShadeStyle = 2");
-                    f.WriteLine(@"BrushStyle = 0");
-                    f.WriteLine(@"Color = " + c2s(color));
-                    f.WriteLine(@"FuncNo = 1");
-                    f.WriteLine(@"sMin = " + from);
-                    f.WriteLine(@"sMax = " + to);
-                    f.WriteLine(@"sMin2 = " + from);
-                    f.WriteLine(@"sMax2 = " + to);
-                    f.WriteLine(@"MarkBorder = 0");
-                };
-
-                Action<string, Color, List<double>, List<double>> AddPointSeries = (label, color, xs, ys) =>
-                {
-                    PointSeriesCount++;
-                    f.WriteLine(@"[PointSeries" + PointSeriesCount + "]");
-                    f.WriteLine(@"FillColor = " + c2s(color));
-                    f.WriteLine(@"LineColor = " + c2s(color));
-                    f.WriteLine(@"Size = 1");
-                    f.WriteLine(@"Style = 0");
-                    f.WriteLine(@"LineStyle = 0");
-                    f.WriteLine(@"LabelPosition = 1");
-                    f.WriteLine(@"PointCount = " + xs.Count);
-
-                    StringBuilder sb = new StringBuilder("Points = ");
-                    for (int pointId = 0; pointId < xs.Count; pointId++)
-                    {
-                        sb.Append(xs[pointId] + "," + ys[pointId] + ";");
-                    }
-                    f.WriteLine(sb.ToString());
-
-                    f.WriteLine(@"LegendText = " + label);
-
-                    xMin = Math.Min(xMin, xs.Min());
-                    xMax = Math.Max(xMax, xs.Max());
-                    yMin = Math.Min(yMin, ys.Min());
-                    yMax = Math.Max(yMax, ys.Max());
-                };
-
                 f.WriteLine(@"[Graph]");
                 f.WriteLine(@"Version = 4.4.2.543");
                 f.WriteLine(@"MinVersion = 2.5");
@@ -352,19 +392,24 @@ namespace BesterUI
 
                 f.WriteLine(@"[Func1]");
                 f.WriteLine(@"FuncType = 0");
-                f.WriteLine(@"y = 10");
+                f.WriteLine(@"y = " + yMax);
                 f.WriteLine(@"Color = clNone");
-                f.WriteLine(@"Size = 3");
+                f.WriteLine(@"Size = 0");
+
+                f.WriteLine();
 
                 //shades go here
-
+                foreach (var shade in shades)
+                {
+                    f.Write(shade);
+                }
                 //end shades
 
                 //data series go here
-                List<double> x = new List<double>();
-                List<double> y = new List<double>();
-                gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
-                AddPointSeries("GSR", Color.OrangeRed, x, y);
+                foreach (var ps in pointSeries)
+                {
+                    f.Write(ps);
+                }
                 //end data series
 
                 f.WriteLine(@"[Axes]");
@@ -384,6 +429,8 @@ namespace BesterUI
                 f.WriteLine(@"LegendPlacement = 0");
                 f.WriteLine(@"LegendPos = 0,0");
 
+                f.WriteLine();
+
                 f.WriteLine(@"[Data]");
                 f.WriteLine(@"TextLabelCount = " + TextLabelCount);
                 f.WriteLine(@"FuncCount = " + FuncCount);
@@ -394,6 +441,26 @@ namespace BesterUI
             }
 
             Log.LogMessage("DonnoDK");
+        }
+
+        //event 2 color
+        Color e2c(string evnt)
+        {
+            if (evnt == "TaskWizard - BtnCompleteClicked") return Color.Green;
+            if (evnt == "TaskWizard - BtnIncompleteClicked") return Color.Red;
+            if (evnt == "SendDraft error shown") return Color.Purple;
+            if (evnt == "CreateDraft, language changed to: US") return Color.Purple;
+            if (evnt == "AddAttachmentButtonClick: 1") return Color.Turquoise;
+            if (evnt == "AddAttachmentButtonClick: 2") return Color.Teal;
+            if (evnt == "AddAttachmentButtonClick: 3") return Color.Blue;
+            if (evnt == "AddAttachment complete") return Color.BlueViolet;
+            if (evnt == "Add Contact Button click: 1") return Color.PaleVioletRed;
+            if (evnt == "Add Contact Button click: 2") return Color.MediumVioletRed;
+            if (evnt == "Add Contact Button click: 3") return Color.IndianRed;
+            if (evnt == "AddContact complete") return Color.HotPink;
+            if (evnt == "RemoveContact clicked") return Color.GreenYellow;
+
+            return Color.Black;
         }
     }
 }
