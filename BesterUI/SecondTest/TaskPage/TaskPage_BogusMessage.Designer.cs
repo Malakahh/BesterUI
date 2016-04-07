@@ -38,8 +38,8 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(385, 150);
             this.label1.TabIndex = 3;
-            this.label1.Text = "Write a mail with the following text.\r\n\r\nHi, my name is __________, and I\'m curre" +
-    "ntly\r\ntaking a Usability Test.";
+            this.label1.Text = "Write a mail with the following text, and \r\nsave it as a draft.\r\n\r\nHi, my name is" +
+    " __________, and I\'m currently\r\ntaking a Usability Test.";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // TaskPage_BogusMessage

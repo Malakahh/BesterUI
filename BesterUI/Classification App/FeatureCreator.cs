@@ -239,24 +239,29 @@ namespace Classification_App
 
 
     #region DataSlicing
-        static List<DataReading> EEGDataSlice(List<DataReading> data, SAMDataPoint sam)
+        public static List<DataReading> EEGDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
             return data.SkipWhile(x => x.timestamp < sam.timeOffset + EEG_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + EEG_LATENCY + EEG_DURATION).ToList();
         }
 
-        static List<DataReading> GSRDataSlice(List<DataReading> data, SAMDataPoint sam)
+        public static List<DataReading> GSRDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
             return data.SkipWhile(x => x.timestamp < sam.timeOffset + GSR_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + GSR_LATENCY + GSR_DURATION).ToList();
         }
 
-        static List<DataReading> HRDataSlice(List<DataReading> data, SAMDataPoint sam)
+        public static List<DataReading> HRDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
             return data.SkipWhile(x => x.timestamp < sam.timeOffset + HR_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + HR_LATENCY + HR_DURATION).ToList();
         }
 
-        static List<DataReading> FaceDataSlice(List<DataReading> data, SAMDataPoint sam)
+        public static List<DataReading> FaceDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
-            return data.SkipWhile(x => x.timestamp < sam.timeOffset + FACE_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + FACE_LATENCY + FACE_DURATION).ToList();
+            var d = data.SkipWhile(x => x.timestamp < sam.timeOffset + FACE_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + FACE_LATENCY + FACE_DURATION).ToList();
+            if (d.Count == 0)
+            {
+                int j = 0;
+            }
+            return d;
         }
         #endregion
 
