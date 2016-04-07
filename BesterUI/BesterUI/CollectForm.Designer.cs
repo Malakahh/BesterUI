@@ -46,7 +46,7 @@
             this.btnVerifySensors = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.collectingDataPanel = new System.Windows.Forms.Panel();
-            this.exportBtn = new System.Windows.Forms.Button();
+            this.btn_test = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.rdyLookRight = new System.Windows.Forms.Panel();
             this.label8 = new System.Windows.Forms.Label();
@@ -230,15 +230,15 @@
             this.collectingDataPanel.Size = new System.Drawing.Size(160, 157);
             this.collectingDataPanel.TabIndex = 7;
             // 
-            // exportBtn
+            // btn_test
             // 
-            this.exportBtn.Location = new System.Drawing.Point(408, 110);
-            this.exportBtn.Name = "exportBtn";
-            this.exportBtn.Size = new System.Drawing.Size(84, 62);
-            this.exportBtn.TabIndex = 8;
-            this.exportBtn.Text = "Export";
-            this.exportBtn.UseVisualStyleBackColor = true;
-            this.exportBtn.Click += new System.EventHandler(this.exportBtn_Click);
+            this.btn_test.Location = new System.Drawing.Point(408, 110);
+            this.btn_test.Name = "btn_test";
+            this.btn_test.Size = new System.Drawing.Size(84, 62);
+            this.btn_test.TabIndex = 8;
+            this.btn_test.Text = "Test";
+            this.btn_test.UseVisualStyleBackColor = true;
+            this.btn_test.Click += new System.EventHandler(this.exportBtn_Click);
             // 
             // panel2
             // 
@@ -352,7 +352,7 @@
             this.Controls.Add(this.runSecondTestChkBox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.panel2);
-            this.Controls.Add(this.exportBtn);
+            this.Controls.Add(this.btn_test);
             this.Controls.Add(this.collectingDataPanel);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.btnVerifySensors);
@@ -386,7 +386,7 @@
         private System.Windows.Forms.Label gsrPort;
         private System.Windows.Forms.Label eegPort;
         private System.Windows.Forms.Panel collectingDataPanel;
-        private System.Windows.Forms.Button exportBtn;
+        private System.Windows.Forms.Button btn_test;
         private System.Windows.Forms.Label facePort;
         private System.Windows.Forms.Panel faceReady;
         private System.Windows.Forms.Label label4;

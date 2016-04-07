@@ -7,6 +7,7 @@ using BesterUI.Data;
 using System.Windows.Forms;
 using System.IO;
 using BesterUI.Helpers;
+using System.Drawing;
 
 namespace BesterUI
 {
@@ -16,7 +17,7 @@ namespace BesterUI
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<FaceDataReading> faceData = new List<FaceDataReading>();
-        
+
         public FusionData()
         {
 
@@ -108,7 +109,7 @@ namespace BesterUI
         private const int MINIMUM_EEG_FILE_SIZE = 45000;
         private const int EEG_FILTER_MIN_VALUE = 700;
 
-        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT)
+        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT, bool checkSize = true)
         {
             Dictionary<string, bool> shouldRun = new Dictionary<string, bool>();
             foreach (string file in filesToLoad)
@@ -126,7 +127,7 @@ namespace BesterUI
                 switch (s)
                 {
                     case "GSR.dat":
-                        if (size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading GSR data");
                             gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 15);
@@ -139,7 +140,7 @@ namespace BesterUI
                         }
                         break;
                     case "EEG.dat":
-                        if (size > MINIMUM_EEG_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_EEG_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading EEG data");
                             eegData = EEGFilter(DataReading.LoadFromFile<EEGDataReading>(file, dT), EEG_FILTER_MIN_VALUE);
@@ -153,7 +154,7 @@ namespace BesterUI
                         break;
 
                     case "HR.dat":
-                        if (size > MINIMUM_HR_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_HR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
@@ -166,7 +167,7 @@ namespace BesterUI
                         }
                         break;
                     case "KINECT.dat":
-                        if (size > MINIMUM_FACE_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_FACE_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading Face data");
                             faceData = DataReading.LoadFromFile<FaceDataReading>(file, dT);
@@ -188,7 +189,7 @@ namespace BesterUI
         public static List<EEGDataReading> EEGFilter(List<EEGDataReading> data, double lowerLimit)
         {
             Log.LogMessage("Removing artifacts from EEG data");
-           return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
+            return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
         }
 
 
@@ -201,7 +202,7 @@ namespace BesterUI
             {
                 List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).ToList();
                 tempValues = tempValues.OrderBy(x => x.resistance).ToList();
-                if (LastValue != null|| tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
+                if (LastValue != null || tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
                 {
                     newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
                     LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
@@ -268,6 +269,131 @@ namespace BesterUI
             hrData.Add(band1);
 
 
+        }
+
+        public void ExportGRF(string inpath = "")
+        {
+            string path = DataReading.GetWritePath() + @"\GSR.grf";
+            if (inpath != "") path = inpath + @"\GSR.grf";
+
+            int TextLabelCount = 0;
+            int FuncCount = 0;
+            int PointSeriesCount = 0;
+            int ShadeCount = 0;
+            int RelationCount = 0;
+            int OleObjectCount = 0;
+
+            double xMin = double.MaxValue;
+            double xMax = double.MinValue;
+            double yMin = double.MaxValue;
+            double yMax = double.MinValue;
+
+            Func<Color, string> c2s = (color) =>
+            {
+                return "0x00" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
+            };
+
+            if (!Directory.Exists(DataReading.GetWritePath()))
+            {
+                Directory.CreateDirectory(DataReading.GetWritePath());
+            }
+
+            using (var f = File.CreateText(path))
+            {
+                Log.LogMessage(path);
+                Action<string, Color, int, int> AddShade = (label, color, from, to) =>
+                {
+                    ShadeCount++;
+                    f.WriteLine(@"[Shade" + ShadeCount + "]");
+                    f.WriteLine(@"LegendText = " + label);
+                    f.WriteLine(@"ShadeStyle = 2");
+                    f.WriteLine(@"BrushStyle = 0");
+                    f.WriteLine(@"Color = " + c2s(color));
+                    f.WriteLine(@"FuncNo = 1");
+                    f.WriteLine(@"sMin = " + from);
+                    f.WriteLine(@"sMax = " + to);
+                    f.WriteLine(@"sMin2 = " + from);
+                    f.WriteLine(@"sMax2 = " + to);
+                    f.WriteLine(@"MarkBorder = 0");
+                };
+
+                Action<string, Color, List<double>, List<double>> AddPointSeries = (label, color, xs, ys) =>
+                {
+                    PointSeriesCount++;
+                    f.WriteLine(@"[PointSeries" + PointSeriesCount + "]");
+                    f.WriteLine(@"FillColor = " + c2s(color));
+                    f.WriteLine(@"LineColor = " + c2s(color));
+                    f.WriteLine(@"Size = 1");
+                    f.WriteLine(@"Style = 0");
+                    f.WriteLine(@"LineStyle = 0");
+                    f.WriteLine(@"LabelPosition = 1");
+                    f.WriteLine(@"PointCount = " + xs.Count);
+
+                    StringBuilder sb = new StringBuilder("Points = ");
+                    for (int pointId = 0; pointId < xs.Count; pointId++)
+                    {
+                        sb.Append(xs[pointId] + "," + ys[pointId] + ";");
+                    }
+                    f.WriteLine(sb.ToString());
+
+                    f.WriteLine(@"LegendText = " + label);
+
+                    xMin = Math.Min(xMin, xs.Min());
+                    xMax = Math.Max(xMax, xs.Max());
+                    yMin = Math.Min(yMin, ys.Min());
+                    yMax = Math.Max(yMax, ys.Max());
+                };
+
+                f.WriteLine(@"[Graph]");
+                f.WriteLine(@"Version = 4.4.2.543");
+                f.WriteLine(@"MinVersion = 2.5");
+                f.WriteLine(@"OS = Windows NT 6.2");
+                f.WriteLine();
+
+                f.WriteLine(@"[Func1]");
+                f.WriteLine(@"FuncType = 0");
+                f.WriteLine(@"y = 10");
+                f.WriteLine(@"Color = clNone");
+                f.WriteLine(@"Size = 3");
+
+                //shades go here
+
+                //end shades
+
+                //data series go here
+                List<double> x = new List<double>();
+                List<double> y = new List<double>();
+                gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
+                AddPointSeries("GSR", Color.OrangeRed, x, y);
+                //end data series
+
+                f.WriteLine(@"[Axes]");
+                f.WriteLine(@"xMin = " + xMin);
+                f.WriteLine(@"xMax = " + xMax);
+                f.WriteLine(@"xTickUnit = 1");
+                f.WriteLine(@"xGridUnit = 1");
+                f.WriteLine(@"xAxisCross = " + yMin);
+                f.WriteLine(@"yMin = " + yMin);
+                f.WriteLine(@"yMax = " + yMax);
+                f.WriteLine(@"yTickUnit = 2");
+                f.WriteLine(@"yGridUnit = 2");
+                f.WriteLine(@"AxesColor = clBlack");
+                f.WriteLine(@"GridColor = 0x00FF9999");
+                f.WriteLine(@"ShowLegend = 0");
+                f.WriteLine(@"Radian = 1");
+                f.WriteLine(@"LegendPlacement = 0");
+                f.WriteLine(@"LegendPos = 0,0");
+
+                f.WriteLine(@"[Data]");
+                f.WriteLine(@"TextLabelCount = " + TextLabelCount);
+                f.WriteLine(@"FuncCount = " + FuncCount);
+                f.WriteLine(@"PointSeriesCount = " + PointSeriesCount);
+                f.WriteLine(@"ShadeCount = " + ShadeCount);
+                f.WriteLine(@"RelationCount = " + RelationCount);
+                f.WriteLine(@"OleObjectCount = " + OleObjectCount);
+            }
+
+            Log.LogMessage("DonnoDK");
         }
     }
 }
