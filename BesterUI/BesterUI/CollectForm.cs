@@ -157,6 +157,14 @@ namespace BesterUI
 
         private void button2_Click(object sender, EventArgs e)
         {
+            if (runSecondTestChkBox.Checked)
+            {
+                EEGDataReading r = new EEGDataReading(true);
+                RestingForm rf = new RestingForm();
+                rf.Show();
+                return;
+            }
+
             if (!collectingData)
             {
                 fusionData.Reset();

@@ -88,6 +88,12 @@
     <Compile Include="TaskPage\TaskPage_AddContact.Designer.cs">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_AddTwoContacts.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_AddTwoContacts.Designer.cs">
+      <DependentUpon>TaskPage_AddTwoContacts.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_BogusMessage.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -118,6 +124,12 @@
     <Compile Include="TaskPage\TaskPage_RemoveContact.Designer.cs">
       <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_Reply.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_Reply.Designer.cs">
+      <DependentUpon>TaskPage_Reply.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_SendDraft.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -135,6 +147,12 @@
     </Compile>
     <Compile Include="TaskPage\TaskPage_Test.Designer.cs">
       <DependentUpon>TaskPage_Test.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_WriteDraftDelete.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_WriteDraftDelete.Designer.cs">
+      <DependentUpon>TaskPage_WriteDraftDelete.cs</DependentUpon>
     </Compile>
     <Compile Include="TaskWizard.cs">
       <SubType>Form</SubType>
@@ -172,6 +190,9 @@
     <EmbeddedResource Include="TaskPage\TaskPage_AddContact.resx">
       <DependentUpon>TaskPage_AddContact.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_AddTwoContacts.resx">
+      <DependentUpon>TaskPage_AddTwoContacts.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_BogusMessage.resx">
       <DependentUpon>TaskPage_BogusMessage.cs</DependentUpon>
     </EmbeddedResource>
@@ -187,6 +208,9 @@
     <EmbeddedResource Include="TaskPage\TaskPage_RemoveContact.resx">
       <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_Reply.resx">
+      <DependentUpon>TaskPage_Reply.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_SendDraft.resx">
       <DependentUpon>TaskPage_SendDraft.cs</DependentUpon>
     </EmbeddedResource>
@@ -195,6 +219,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_Test.resx">
       <DependentUpon>TaskPage_Test.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_WriteDraftDelete.resx">
+      <DependentUpon>TaskPage_WriteDraftDelete.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TaskWizard.resx">
       <DependentUpon>TaskWizard.cs</DependentUpon>

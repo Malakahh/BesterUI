@@ -43,6 +43,9 @@ namespace SecondTest
             Contacts.Add(new Contact("MMM RSA Team", "", "", "rsa@info-3mglobal.com"));
             Contacts.Add(new Contact("VMware Danmark", "", "70106888", "vmwareteam@connect.vmware.com"));
             Contacts.Add(new Contact("TravelBird", "", "89882630", "rejser@travelbirddanmark.dk"));
+            Contacts.Add(new Contact("Todoist Team", "", "", "news@todoist.com"));
+            Contacts.Add(new Contact("Coursera", "", "", "noreply@coursera.com"));
+            Contacts.Add(new Contact("Thomas", "", "", "thomas@usersnap.com"));
         }
     }
 }
