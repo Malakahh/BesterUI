@@ -25,7 +25,8 @@ namespace SecondTest
         RemoveContact,
         AddTwoContacts,
         WriteDraftDelete,
-        ReplyToMail
+        ReplyToMail,
+        NotResponding
     }
 
     public partial class TaskWizard : Form
@@ -163,6 +164,9 @@ namespace SecondTest
                     break;
                 case Task.ReplyToMail:
                     return new TaskPage.TaskPage_Reply();
+                    break;
+                case Task.NotResponding:
+                    return new TaskPage.TaskPage_NotResponding();
                     break;
 
             }

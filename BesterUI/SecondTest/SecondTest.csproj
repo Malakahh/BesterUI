@@ -118,6 +118,12 @@
     <Compile Include="TaskPage\TaskPage_None.Designer.cs">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
     </Compile>
+    <Compile Include="TaskPage\TaskPage_NotResponding.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TaskPage\TaskPage_NotResponding.Designer.cs">
+      <DependentUpon>TaskPage_NotResponding.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskPage\TaskPage_RemoveContact.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -205,6 +211,9 @@
     <EmbeddedResource Include="TaskPage\TaskPage_None.resx">
       <DependentUpon>TaskPage_None.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TaskPage\TaskPage_NotResponding.resx">
+      <DependentUpon>TaskPage_NotResponding.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TaskPage\TaskPage_RemoveContact.resx">
       <DependentUpon>TaskPage_RemoveContact.cs</DependentUpon>
     </EmbeddedResource>
@@ -244,6 +253,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ajax-loader.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\NotResponding.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
