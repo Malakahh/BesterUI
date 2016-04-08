@@ -157,6 +157,7 @@ namespace BesterUI
 
         private void button2_Click(object sender, EventArgs e)
         {
+            /*
             if (runSecondTestChkBox.Checked)
             {
                 EEGDataReading r = new EEGDataReading(true);
@@ -164,6 +165,7 @@ namespace BesterUI
                 rf.Show();
                 return;
             }
+            */
 
             if (!collectingData)
             {
