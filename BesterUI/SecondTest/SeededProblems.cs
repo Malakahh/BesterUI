@@ -174,6 +174,17 @@ namespace SecondTest
                 EventLog.Write("BogusMessage: Text Changed");
                 return true;
             }
+
+            public static bool NotResponding()
+            {
+                if (CurrentTask != Task.NotResponding)
+                {
+                    return false;
+                }
+
+                EventLog.Write("Task: NotResponding");
+                return true;
+            }
         }
     }
 }
