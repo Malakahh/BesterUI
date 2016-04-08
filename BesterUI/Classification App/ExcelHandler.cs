@@ -7,6 +7,7 @@ using System.IO;
 using Excel = Microsoft.Office.Interop.Excel;
 using Classification_App;
 using BesterUI.Helpers;
+using System.Diagnostics;
 
 
 namespace Classification_App
@@ -22,6 +23,10 @@ namespace Classification_App
 
         public ExcelHandler(string path)
         {
+            foreach (var process in Process.GetProcessesByName("excel"))
+            {
+                process.Kill();
+            }
             statsFolderPath = path + "/" + "Stats/";
             MyApp = new Excel.Application() { Visible = false };
             BooksOpen = CreateNOpenFiles();
