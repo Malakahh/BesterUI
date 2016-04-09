@@ -296,6 +296,9 @@ namespace BesterUI
 
             Func<string, Color, int, int, string> AddShade = (label, color, from, to) =>
             {
+                from = (int)((double)from / 60000);
+                to = (int)((double)to / 60000);
+
                 ShadeCount++;
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine(@"[Shade" + ShadeCount + "]");
@@ -316,6 +319,7 @@ namespace BesterUI
 
             Func<string, Color, List<double>, List<double>, string> AddPointSeries = (label, color, xs, ys) =>
             {
+                xs = xs.Select(curX => curX / 60000).ToList();
                 StringBuilder sb = new StringBuilder();
                 PointSeriesCount++;
                 sb.AppendLine(@"[PointSeries" + PointSeriesCount + "]");
