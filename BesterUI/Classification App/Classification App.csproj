@@ -272,7 +272,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="NuiDatabase\App.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bin32\libiomp5md.dll">
