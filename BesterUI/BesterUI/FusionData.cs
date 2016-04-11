@@ -208,7 +208,8 @@ namespace BesterUI
                     LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
                 }
             }
-
+            newValues = newValues.Distinct().ToList();
+            newValues.OrderBy(x => x.timestamp);
             return newValues;
 
         }
@@ -296,6 +297,9 @@ namespace BesterUI
 
             Func<string, Color, int, int, string> AddShade = (label, color, from, to) =>
             {
+                from = (int)((double)from / 60000);
+                to = (int)((double)to / 60000);
+
                 ShadeCount++;
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine(@"[Shade" + ShadeCount + "]");
@@ -316,6 +320,7 @@ namespace BesterUI
 
             Func<string, Color, List<double>, List<double>, string> AddPointSeries = (label, color, xs, ys) =>
             {
+                xs = xs.Select(curX => curX / 60000).ToList();
                 StringBuilder sb = new StringBuilder();
                 PointSeriesCount++;
                 sb.AppendLine(@"[PointSeries" + PointSeriesCount + "]");
@@ -369,7 +374,7 @@ namespace BesterUI
             #region HR
             hrData = hrData.Where(dat => dat.signal < 2000).ToList();
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
+            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
             #endregion
             #region EEG

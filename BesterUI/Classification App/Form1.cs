@@ -201,7 +201,7 @@ namespace Classification_App
             }
             if (throwaway.Count > 5 && samData.ShouldSkip() == "")
             {
-                Log.LogMessage("Too many data points thrown away (" + throwaway.Count+")");
+                Log.LogMessage("Too many data points thrown away (" + throwaway.Count + ")");
                 return false;
             }
             Log.LogMessage("Fusion Data loaded!");
@@ -640,7 +640,7 @@ namespace Classification_App
                             {
                                 var voteRes = meta.DoVoting(feel, 1, chk_useControlValues.Checked);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
-                                Log.LogMessage("Voting on " + feel+" gave " +voteRes.GetAccuracy());
+                                Log.LogMessage("Voting on " + feel + " gave " + voteRes.GetAccuracy());
                                 DPH.done["Voting" + feel] = true;
                                 DPH.SaveProgress();
                             });
