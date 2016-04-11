@@ -180,7 +180,7 @@ namespace Classification_App
             {
                 if (FeatureCreator.EEGDataSlice(_fd.eegData.ToList<DataReading>(), samD).Count == 0 ||
                     FeatureCreator.GSRDataSlice(_fd.gsrData.ToList<DataReading>(), samD).Count == 0 ||
-                    FeatureCreator.HRDataSlice(_fd.hrData.ToList<DataReading>(), samD).Count == 0 ||
+                    (FeatureCreator.HRDataSlice(_fd.hrData.ToList<DataReading>(), samD).Count == 0 || FeatureCreator.HRDataSlice(_fd.hrData.ToList<DataReading>(), samD).Cast<HRDataReading>().Count(x => x.isBeat) == 0) ||
                     FeatureCreator.FaceDataSlice(_fd.faceData.ToList<DataReading>(), samD).Count == 0)
                 {
                     throwaway.Add(samD);

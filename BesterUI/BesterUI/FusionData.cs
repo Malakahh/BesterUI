@@ -16,7 +16,7 @@ namespace BesterUI
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<FaceDataReading> faceData = new List<FaceDataReading>();
-        
+
         public FusionData()
         {
 
@@ -157,7 +157,16 @@ namespace BesterUI
                         {
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
-                            shouldRun.Add(s, true);
+
+                            int shit = hrData.Count(x => x.isBeat);
+                            if (hrData.Count(x => x.isBeat) > 1000)
+                            {
+                                shouldRun.Add(s, true);
+                            }
+                            else
+                            {
+                                shouldRun.Add(s, false);
+                            }
                         }
                         else
                         {
@@ -188,7 +197,7 @@ namespace BesterUI
         public static List<EEGDataReading> EEGFilter(List<EEGDataReading> data, double lowerLimit)
         {
             Log.LogMessage("Removing artifacts from EEG data");
-           return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
+            return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
         }
 
 
@@ -201,7 +210,7 @@ namespace BesterUI
             {
                 List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).ToList();
                 tempValues = tempValues.OrderBy(x => x.resistance).ToList();
-                if (LastValue != null|| tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
+                if (LastValue != null || tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
                 {
                     newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
                     LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
