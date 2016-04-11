@@ -7,6 +7,7 @@ using BesterUI.Data;
 using System.Windows.Forms;
 using System.IO;
 using BesterUI.Helpers;
+using System.Drawing;
 
 namespace BesterUI
 {
@@ -16,7 +17,7 @@ namespace BesterUI
         public List<EEGDataReading> eegData = new List<EEGDataReading>();
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<FaceDataReading> faceData = new List<FaceDataReading>();
-        
+
         public FusionData()
         {
 
@@ -108,7 +109,7 @@ namespace BesterUI
         private const int MINIMUM_EEG_FILE_SIZE = 45000;
         private const int EEG_FILTER_MIN_VALUE = 700;
 
-        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT)
+        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT, bool checkSize = true)
         {
             Dictionary<string, bool> shouldRun = new Dictionary<string, bool>();
             foreach (string file in filesToLoad)
@@ -126,7 +127,7 @@ namespace BesterUI
                 switch (s)
                 {
                     case "GSR.dat":
-                        if (size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading GSR data");
                             gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 15);
@@ -139,7 +140,7 @@ namespace BesterUI
                         }
                         break;
                     case "EEG.dat":
-                        if (size > MINIMUM_EEG_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_EEG_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading EEG data");
                             eegData = EEGFilter(DataReading.LoadFromFile<EEGDataReading>(file, dT), EEG_FILTER_MIN_VALUE);
@@ -153,7 +154,7 @@ namespace BesterUI
                         break;
 
                     case "HR.dat":
-                        if (size > MINIMUM_HR_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_HR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
@@ -166,7 +167,7 @@ namespace BesterUI
                         }
                         break;
                     case "KINECT.dat":
-                        if (size > MINIMUM_FACE_FILE_SIZE && File.Exists(file))
+                        if (!checkSize || size > MINIMUM_FACE_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading Face data");
                             faceData = DataReading.LoadFromFile<FaceDataReading>(file, dT);
@@ -188,7 +189,7 @@ namespace BesterUI
         public static List<EEGDataReading> EEGFilter(List<EEGDataReading> data, double lowerLimit)
         {
             Log.LogMessage("Removing artifacts from EEG data");
-           return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
+            return data.Where(x => x.data.Values.Min(y => y) > lowerLimit).ToList();
         }
 
 
@@ -201,7 +202,7 @@ namespace BesterUI
             {
                 List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).ToList();
                 tempValues = tempValues.OrderBy(x => x.resistance).ToList();
-                if (LastValue != null|| tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
+                if (LastValue != null || tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
                 {
                     newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
                     LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
@@ -269,6 +270,202 @@ namespace BesterUI
             hrData.Add(band1);
 
 
+        }
+
+        public void ExportGRF(string inpath = "")
+        {
+            if (inpath == "") inpath = DataReading.GetWritePath();
+            var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
+            string path = inpath + @"\Graph.grf";
+
+            int TextLabelCount = 0;
+            int FuncCount = 1;
+            int PointSeriesCount = 0;
+            int ShadeCount = 0;
+            int RelationCount = 0;
+            int OleObjectCount = 0;
+
+            double xMin = double.MaxValue;
+            double xMax = double.MinValue;
+            double yMin = double.MaxValue;
+            double yMax = double.MinValue;
+
+            Func<Color, string> c2s = (color) =>
+            {
+                return "0x00" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
+            };
+
+            Func<string, Color, int, int, string> AddShade = (label, color, from, to) =>
+            {
+                from = (int)((double)from / 60000);
+                to = (int)((double)to / 60000);
+
+                ShadeCount++;
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine(@"[Shade" + ShadeCount + "]");
+                sb.AppendLine(@"LegendText = " + label);
+                sb.AppendLine(@"ShadeStyle = 1");
+                sb.AppendLine(@"BrushStyle = 0");
+                sb.AppendLine(@"Color = " + c2s(color));
+                sb.AppendLine(@"FuncNo = 1");
+                sb.AppendLine(@"sMin = " + from);
+                sb.AppendLine(@"sMax = " + to);
+                sb.AppendLine(@"sMin2 = " + from);
+                sb.AppendLine(@"sMax2 = " + to);
+                sb.AppendLine(@"MarkBorder = 0");
+                sb.AppendLine();
+
+                return sb.ToString();
+            };
+
+            Func<string, Color, List<double>, List<double>, string> AddPointSeries = (label, color, xs, ys) =>
+            {
+                xs = xs.Select(curX => curX / 60000).ToList();
+                StringBuilder sb = new StringBuilder();
+                PointSeriesCount++;
+                sb.AppendLine(@"[PointSeries" + PointSeriesCount + "]");
+                sb.AppendLine(@"FillColor = " + c2s(color));
+                sb.AppendLine(@"LineColor = " + c2s(color));
+                sb.AppendLine(@"Size = 0");
+                sb.AppendLine(@"Style = 0");
+                sb.AppendLine(@"LineStyle = 0");
+                sb.AppendLine(@"LabelPosition = 1");
+                sb.AppendLine(@"PointCount = " + xs.Count);
+
+                sb.Append("Points = ");
+                for (int pointId = 0; pointId < xs.Count; pointId++)
+                {
+                    sb.Append(xs[pointId] + "," + ys[pointId] + ";");
+                }
+                sb.AppendLine();
+                sb.AppendLine(@"LegendText = " + label);
+                sb.AppendLine();
+
+                xMin = Math.Min(xMin, xs.Min());
+                xMax = Math.Max(xMax, xs.Max());
+                yMin = Math.Min(yMin, ys.Min());
+                yMax = Math.Max(yMax, ys.Max());
+
+                return sb.ToString();
+            };
+
+            if (!Directory.Exists(DataReading.GetWritePath()))
+            {
+                Directory.CreateDirectory(DataReading.GetWritePath());
+            }
+
+            List<string> shades = new List<string>();
+            for (int eventId = 0; eventId < events.Length - 2; eventId++)
+            {
+                string[] evnt = events[eventId].Split('#');
+                if (evnt[1].Contains("Bogus")) continue;
+
+                shades.Add(AddShade(evnt[1], e2c(evnt[1]), int.Parse(evnt[0]), int.Parse(events[eventId + 1].Split('#')[0])));
+            }
+
+
+            //actual data
+            List<string> pointSeries = new List<string>();
+            List<double> x = new List<double>();
+            List<double> y = new List<double>();
+            #region GSR
+            //gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
+            #endregion
+            #region HR
+            hrData = hrData.Where(dat => dat.signal < 2000).ToList();
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
+            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            #endregion
+            #region EEG
+            //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });
+            //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.F3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.F4.ToString()]); });
+            #endregion
+            #region Kinect
+            //nothing to see here, move along
+            #endregion
+
+            pointSeries.Add(AddPointSeries("Data", Color.Black, x, y));
+
+            using (var f = File.CreateText(path))
+            {
+                f.WriteLine(@"[Graph]");
+                f.WriteLine(@"Version = 4.4.2.543");
+                f.WriteLine(@"MinVersion = 2.5");
+                f.WriteLine(@"OS = Windows NT 6.2");
+                f.WriteLine();
+
+                f.WriteLine(@"[Func1]");
+                f.WriteLine(@"FuncType = 0");
+                f.WriteLine(@"y = " + yMax);
+                f.WriteLine(@"Color = clNone");
+                f.WriteLine(@"Size = 0");
+
+                f.WriteLine();
+
+                //shades go here
+                foreach (var shade in shades)
+                {
+                    f.Write(shade);
+                }
+                //end shades
+
+                //data series go here
+                foreach (var ps in pointSeries)
+                {
+                    f.Write(ps);
+                }
+                //end data series
+
+                f.WriteLine(@"[Axes]");
+                f.WriteLine(@"xMin = " + xMin);
+                f.WriteLine(@"xMax = " + xMax);
+                f.WriteLine(@"xTickUnit = 1");
+                f.WriteLine(@"xGridUnit = 1");
+                f.WriteLine(@"xAxisCross = " + yMin);
+                f.WriteLine(@"yMin = " + yMin);
+                f.WriteLine(@"yMax = " + yMax);
+                f.WriteLine(@"yTickUnit = 2");
+                f.WriteLine(@"yGridUnit = 2");
+                f.WriteLine(@"AxesColor = clBlack");
+                f.WriteLine(@"GridColor = 0x00FF9999");
+                f.WriteLine(@"ShowLegend = 0");
+                f.WriteLine(@"Radian = 1");
+                f.WriteLine(@"LegendPlacement = 0");
+                f.WriteLine(@"LegendPos = 0,0");
+
+                f.WriteLine();
+
+                f.WriteLine(@"[Data]");
+                f.WriteLine(@"TextLabelCount = " + TextLabelCount);
+                f.WriteLine(@"FuncCount = " + FuncCount);
+                f.WriteLine(@"PointSeriesCount = " + PointSeriesCount);
+                f.WriteLine(@"ShadeCount = " + ShadeCount);
+                f.WriteLine(@"RelationCount = " + RelationCount);
+                f.WriteLine(@"OleObjectCount = " + OleObjectCount);
+            }
+
+            Log.LogMessage("DonnoDK");
+        }
+
+        //event 2 color
+        Color e2c(string evnt)
+        {
+            if (evnt == "TaskWizard - BtnCompleteClicked") return Color.Green;
+            if (evnt == "TaskWizard - BtnIncompleteClicked") return Color.Red;
+            if (evnt == "SendDraft error shown") return Color.Purple;
+            if (evnt == "CreateDraft, language changed to: US") return Color.Purple;
+            if (evnt == "AddAttachmentButtonClick: 1") return Color.Turquoise;
+            if (evnt == "AddAttachmentButtonClick: 2") return Color.Teal;
+            if (evnt == "AddAttachmentButtonClick: 3") return Color.Blue;
+            if (evnt == "AddAttachment complete") return Color.BlueViolet;
+            if (evnt == "Add Contact Button click: 1") return Color.PaleVioletRed;
+            if (evnt == "Add Contact Button click: 2") return Color.MediumVioletRed;
+            if (evnt == "Add Contact Button click: 3") return Color.IndianRed;
+            if (evnt == "AddContact complete") return Color.HotPink;
+            if (evnt == "RemoveContact clicked") return Color.GreenYellow;
+
+            return Color.Black;
         }
     }
 }

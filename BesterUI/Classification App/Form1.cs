@@ -141,7 +141,7 @@ namespace Classification_App
             {
                 StdClassifier mac = new StdClassifier(name, pars, feats, samData);
                 mac.UpdateCallback = UpdateCallback;
-                var res = mac.OldCrossValidate(feels,1, useControlSAM);
+                var res = mac.OldCrossValidate(feels, 1, useControlSAM);
                 SaveBestResult(res, mac.Name + "_" + feels);
             });
         }
@@ -169,14 +169,45 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            if (samData.ShouldSkip())
+            string temp = samData.ShouldSkip();
+            if (!(temp == ""))
             {
+                Log.LogMessage(temp);
                 return false;
             }
             shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
+            //Slicing
+            List<SAMDataPoint> throwaway = new List<SAMDataPoint>();
+            foreach (SAMDataPoint samD in samData.dataPoints)
+            {
+                if (FeatureCreator.EEGDataSlice(_fd.eegData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.GSRDataSlice(_fd.gsrData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.HRDataSlice(_fd.hrData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.FaceDataSlice(_fd.faceData.ToList<DataReading>(), samD).Count == 0)
+                {
+                    throwaway.Add(samD);
+                }
+            }
+
+            if (throwaway.Count > 5)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < throwaway.Count; i++)
+            {
+                Log.LogMessage("Threw away a sam data point");
+                samData.dataPoints.Remove(throwaway[i]);
+            }
+            if (throwaway.Count > 5 && samData.ShouldSkip() == "")
+            {
+                Log.LogMessage("Too many data points thrown away (" + throwaway.Count + ")");
+                return false;
+            }
             Log.LogMessage("Fusion Data loaded!");
 
             Log.LogMessage("Applying data to features..");
+
 
             FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
             FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
@@ -185,7 +216,7 @@ namespace Classification_App
             FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
             FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
             FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
-            
+
             Log.LogMessage("Looking for configurations...");
 
             svmConfs.Clear();
@@ -278,10 +309,10 @@ namespace Classification_App
                 List<SVMParameter> parameters = GenerateSVMParameters();
 
                 //Debug param
-               /* List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
-                parameters[0].C = 32;
-                parameters[0].Gamma = 0.25;
-                parameters[0].Kernel = SVMKernelType.SIGMOID;*/
+                /* List<SVMParameter> parameters = new List<SVMParameter> { new SVMParameter() };
+                 parameters[0].C = 32;
+                 parameters[0].Gamma = 0.25;
+                 parameters[0].Kernel = SVMKernelType.SIGMOID;*/
 
 
                 int curDat = 1;
@@ -289,12 +320,6 @@ namespace Classification_App
 
                 foreach (var item in dataFolders)
                 {
-                    if (!LoadData(item))
-                    {
-                        Log.LogMessage(item.Split('-').Last() +" is not classifiable");
-                        continue;
-                    }
-
                     if (item.Split('\\').Last() == "Stats")
                     {
                         Log.LogMessage("Stats folder skipping");
@@ -307,10 +332,16 @@ namespace Classification_App
                         curDat++;
                         continue;
                     }
+                    if (!LoadData(item))
+                    {
+                        Log.LogMessage(item.Split('-').Last() + " is not classifiable");
+                        continue;
+                    }
+
 
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
-                    
+
                     foreach (var feel in feelings)
                     {
                         statusLabel.Text = "STANDARD: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
@@ -427,9 +458,9 @@ namespace Classification_App
                                 hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
                                 confs.Add(hrConf);
                                 var hrMac = new StdClassifier(hrConf, samData);
-                                var hrRes = hrMac.OldCrossValidate(feel,1);
+                                var hrRes = hrMac.OldCrossValidate(feel, 1);
                                 Log.LogMessage("Best result for person " + curDat + " HR " + feel + " is " + hrRes[0].GetAccuracy());
-                                
+
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.HR, hrRes.First(), feel);
                                 DPH.done["HR" + Enum.GetName(typeof(SAMDataPoint.FeelingModel), feel)] = true;
                                 DPH.SaveProgress();
@@ -442,7 +473,7 @@ namespace Classification_App
                                 eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
                                 confs.Add(eegConf);
                                 var eegMac = new StdClassifier(eegConf, samData);
-                                var eegRes = eegMac.OldCrossValidate(feel,1);
+                                var eegRes = eegMac.OldCrossValidate(feel, 1);
                                 Log.LogMessage("Best result for person " + curDat + " EEG " + feel + " is " + eegRes[0].GetAccuracy());
 
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.EEG, eegRes.First(), feel);
@@ -457,7 +488,7 @@ namespace Classification_App
                                 faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
                                 confs.Add(faceConf);
                                 var faceMac = new StdClassifier(faceConf, samData);
-                                var faceRes = faceMac.OldCrossValidate(feel,1);
+                                var faceRes = faceMac.OldCrossValidate(feel, 1);
                                 Log.LogMessage("Best result for person " + curDat + " Face " + feel + " is " + faceRes[0].GetAccuracy());
 
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.FACE, faceRes.First(), feel);
@@ -475,7 +506,7 @@ namespace Classification_App
                         }
                         //Write normal results
                         eh.Save();
-                        Log.LogMessage("Total time: " + stopwatch.Elapsed+ " Current person: " + curDat + " and model " + feel.ToString());
+                        Log.LogMessage("Total time: " + stopwatch.Elapsed + " Current person: " + curDat + " and model " + feel.ToString());
 
 
                     }
@@ -609,6 +640,7 @@ namespace Classification_App
                             {
                                 var voteRes = meta.DoVoting(feel, 1, chk_useControlValues.Checked);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                                Log.LogMessage("Voting on " + feel + " gave " + voteRes.GetAccuracy());
                                 DPH.done["Voting" + feel] = true;
                                 DPH.SaveProgress();
                             });
@@ -634,6 +666,7 @@ namespace Classification_App
                                 var res = meta.DoStacking(feel, 1, chk_useControlValues.Checked);
                                 var bestRes = meta.FindBestFScorePrediction(res);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                                Log.LogMessage("Stacking on " + feel + " gave " + bestRes.GetAccuracy());
                                 DPH.done["Stacking" + feel] = true;
                                 DPH.SaveProgress();
                                 meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };
@@ -786,6 +819,6 @@ namespace Classification_App
             }
         }
         #endregion
-        
+
     }
 }

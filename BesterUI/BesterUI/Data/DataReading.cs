@@ -75,6 +75,17 @@ namespace BesterUI.Data
             writers[deviceName].Flush();
         }
 
+        public static string GetWritePath()
+        {
+            if (startTime == null)
+            {
+                Log.LogMessage("ERROR: No path yet");
+                return @"\PhysData";
+            }
+
+            return @"\PhysData\" + startTime.Value.ToString(dateFormat);
+        }
+
         public abstract string Serialize();
 
         static volatile bool doneReading = true;
@@ -99,7 +110,7 @@ namespace BesterUI.Data
             TimeSpan offset = new TimeSpan();
 
             Log.LogMessage("Loading " + typeof(T).Name + ": 0/" + size + " bytes.");
-                
+
             while ((!doneReading || q.Count > 0) && !kill)
             {
                 if (q.Count > 0)

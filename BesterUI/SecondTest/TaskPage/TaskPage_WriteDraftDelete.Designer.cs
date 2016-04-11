@@ -1,6 +1,6 @@
 ﻿namespace SecondTest.TaskPage
 {
-    partial class TaskPage_BogusMessage
+    partial class TaskPage_WriteDraftDelete
     {
         /// <summary> 
         /// Required designer variable.
@@ -37,17 +37,17 @@
             this.label1.Location = new System.Drawing.Point(4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(385, 150);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Write a mail with the following text, and \r\nsave it as a draft.\r\n\r\nHi, my name is" +
-    " __________, and I\'m currently\r\ntaking a Usability Test.";
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Write a new email with any text then save the email as a draft. Afterwards - dele" +
+    "te it.";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // TaskPage_BogusMessage
+            // TaskPage_WriteDraftDelete
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.label1);
-            this.Name = "TaskPage_BogusMessage";
+            this.Name = "TaskPage_WriteDraftDelete";
             this.Size = new System.Drawing.Size(392, 150);
             this.ResumeLayout(false);
 

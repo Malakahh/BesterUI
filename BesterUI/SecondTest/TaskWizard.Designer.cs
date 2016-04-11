@@ -63,6 +63,7 @@
             this.Controls.Add(this.btnTaskComplete);
             this.Name = "TaskWizard";
             this.Text = "TaskWizard";
+            this.TopMost = true;
             this.ResumeLayout(false);
 
         }

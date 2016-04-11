@@ -12,7 +12,22 @@ using System.Runtime.InteropServices;
 
 namespace SecondTest
 {
-    public enum Task { None, Final, AddContact, AddAttachment, SendMailToContact, SendDraft, CreateDraft, BogusMessage, RemoveContact }
+    public enum Task
+    {
+        None,
+        Final,
+        AddContact,
+        AddAttachment,
+        SendMailToContact,
+        SendDraft,
+        CreateDraft,
+        BogusMessage,
+        RemoveContact,
+        AddTwoContacts,
+        WriteDraftDelete,
+        ReplyToMail,
+        NotResponding
+    }
 
     public partial class TaskWizard : Form
     {
@@ -141,6 +156,19 @@ namespace SecondTest
                 case Task.RemoveContact:
                     return new TaskPage.TaskPage_RemoveContact();
                     break;
+                case Task.AddTwoContacts:
+                    return new TaskPage.TaskPage_AddTwoContacts();
+                    break;
+                case Task.WriteDraftDelete:
+                    return new TaskPage.TaskPage_WriteDraftDelete();
+                    break;
+                case Task.ReplyToMail:
+                    return new TaskPage.TaskPage_Reply();
+                    break;
+                case Task.NotResponding:
+                    return new TaskPage.TaskPage_NotResponding();
+                    break;
+
             }
         }
 

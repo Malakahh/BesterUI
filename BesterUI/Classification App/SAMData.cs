@@ -63,14 +63,14 @@ namespace Classification_App
             return data;
         }
         
-        public bool ShouldSkip()
+        public string ShouldSkip()
         {
             foreach (SAMDataPoint.FeelingModel fm in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
             {
                 List<int> distinctList = dataPoints.Select(x => x.ToAVCoordinate(fm)).Distinct().ToList();
                 if (dataPoints.Select(x => x.ToAVCoordinate(fm)).Distinct().Count() == 1)
                 {
-                    return true;
+                    return "Only one class in " + fm.ToString();
                 }
                 else
                 {
@@ -78,12 +78,12 @@ namespace Classification_App
                     {
                         if (dataPoints.Where(x => x.ToAVCoordinate(fm) == index).Count() == 1)
                         {
-                            return true;
+                            return "Only one case of class " + index + "in fm";
                         }
                     }
                 }
             }
-            return false;
+            return "";
         }
 
         public static DateTime DateTimeFromUnixTime(long unixTime)
@@ -153,7 +153,7 @@ namespace Classification_App
                 //case FeelingModel.Valence9:
                 //    return valenceToUse;
                 case FeelingModel.Valence3:
-                    return valenceToUse < 3 ? 0 : (valenceToUse < 4 ? 1 : 2);
+                    return valenceToUse < 3 ? 0 : (valenceToUse < 6 ? 1 : 2);
                 case FeelingModel.Valence2Low:
                     return valenceToUse < 4 ? 0 : 1;
                 case FeelingModel.Valence2High:

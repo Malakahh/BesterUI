@@ -73,6 +73,16 @@ namespace SecondTest.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap NotResponding {
+            get {
+                object obj = ResourceManager.GetObject("NotResponding", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap reply {
             get {
                 object obj = ResourceManager.GetObject("reply", resourceCulture);

@@ -1,6 +1,6 @@
 ﻿namespace SecondTest.TaskPage
 {
-    partial class TaskPage_BogusMessage
+    partial class TaskPage_Reply
     {
         /// <summary> 
         /// Required designer variable.
@@ -37,17 +37,17 @@
             this.label1.Location = new System.Drawing.Point(4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(385, 150);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Write a mail with the following text, and \r\nsave it as a draft.\r\n\r\nHi, my name is" +
-    " __________, and I\'m currently\r\ntaking a Usability Test.";
+            this.label1.TabIndex = 5;
+            this.label1.Text = "Reply to Nina Tylers mail regarding going out for  a drink. Reply that you\'d be h" +
+    "appy to go out soon!";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // TaskPage_BogusMessage
+            // TaskPage_Reply
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.label1);
-            this.Name = "TaskPage_BogusMessage";
+            this.Name = "TaskPage_Reply";
             this.Size = new System.Drawing.Size(392, 150);
             this.ResumeLayout(false);
 
