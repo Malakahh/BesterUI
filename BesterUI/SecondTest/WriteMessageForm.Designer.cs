@@ -32,13 +32,14 @@
             this.richtext_mail_body = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.textbox_mail_to = new System.Windows.Forms.TextBox();
-            this.btn_mail_send = new System.Windows.Forms.Button();
             this.btn_mail_save = new System.Windows.Forms.Button();
-            this.btn_msg_contacts = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.textbox_mail_title = new System.Windows.Forms.TextBox();
             this.btn_attach = new System.Windows.Forms.Button();
             this.attachmentLabel = new System.Windows.Forms.Label();
+            this.panelNotResponding = new System.Windows.Forms.Panel();
+            this.btn_msg_contacts = new System.Windows.Forms.Button();
+            this.btn_mail_send = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // richtext_mail_body
@@ -66,18 +67,6 @@
             this.textbox_mail_to.Size = new System.Drawing.Size(100, 20);
             this.textbox_mail_to.TabIndex = 2;
             // 
-            // btn_mail_send
-            // 
-            this.btn_mail_send.Image = global::SecondTest.Properties.Resources.reply;
-            this.btn_mail_send.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.btn_mail_send.Location = new System.Drawing.Point(539, 26);
-            this.btn_mail_send.Name = "btn_mail_send";
-            this.btn_mail_send.Size = new System.Drawing.Size(75, 23);
-            this.btn_mail_send.TabIndex = 3;
-            this.btn_mail_send.Text = "Send";
-            this.btn_mail_send.UseVisualStyleBackColor = true;
-            this.btn_mail_send.Click += new System.EventHandler(this.btn_mail_send_Click);
-            // 
             // btn_mail_save
             // 
             this.btn_mail_save.Location = new System.Drawing.Point(449, 26);
@@ -87,16 +76,6 @@
             this.btn_mail_save.Text = "Save";
             this.btn_mail_save.UseVisualStyleBackColor = true;
             this.btn_mail_save.Click += new System.EventHandler(this.btn_mail_save_Click);
-            // 
-            // btn_msg_contacts
-            // 
-            this.btn_msg_contacts.Image = ((System.Drawing.Image)(resources.GetObject("btn_msg_contacts.Image")));
-            this.btn_msg_contacts.Location = new System.Drawing.Point(149, 26);
-            this.btn_msg_contacts.Name = "btn_msg_contacts";
-            this.btn_msg_contacts.Size = new System.Drawing.Size(23, 23);
-            this.btn_msg_contacts.TabIndex = 5;
-            this.btn_msg_contacts.UseVisualStyleBackColor = true;
-            this.btn_msg_contacts.Click += new System.EventHandler(this.btn_msg_contacts_Click);
             // 
             // label2
             // 
@@ -132,11 +111,43 @@
             this.attachmentLabel.Size = new System.Drawing.Size(0, 13);
             this.attachmentLabel.TabIndex = 9;
             // 
+            // panelNotResponding
+            // 
+            this.panelNotResponding.BackgroundImage = global::SecondTest.Properties.Resources.NotResponding;
+            this.panelNotResponding.Location = new System.Drawing.Point(2, 0);
+            this.panelNotResponding.Name = "panelNotResponding";
+            this.panelNotResponding.Size = new System.Drawing.Size(623, 311);
+            this.panelNotResponding.TabIndex = 10;
+            this.panelNotResponding.Visible = false;
+            // 
+            // btn_msg_contacts
+            // 
+            this.btn_msg_contacts.Image = ((System.Drawing.Image)(resources.GetObject("btn_msg_contacts.Image")));
+            this.btn_msg_contacts.Location = new System.Drawing.Point(149, 26);
+            this.btn_msg_contacts.Name = "btn_msg_contacts";
+            this.btn_msg_contacts.Size = new System.Drawing.Size(23, 23);
+            this.btn_msg_contacts.TabIndex = 5;
+            this.btn_msg_contacts.UseVisualStyleBackColor = true;
+            this.btn_msg_contacts.Click += new System.EventHandler(this.btn_msg_contacts_Click);
+            // 
+            // btn_mail_send
+            // 
+            this.btn_mail_send.Image = global::SecondTest.Properties.Resources.reply;
+            this.btn_mail_send.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btn_mail_send.Location = new System.Drawing.Point(539, 26);
+            this.btn_mail_send.Name = "btn_mail_send";
+            this.btn_mail_send.Size = new System.Drawing.Size(75, 23);
+            this.btn_mail_send.TabIndex = 3;
+            this.btn_mail_send.Text = "Send";
+            this.btn_mail_send.UseVisualStyleBackColor = true;
+            this.btn_mail_send.Click += new System.EventHandler(this.btn_mail_send_Click);
+            // 
             // WriteMessageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(626, 310);
+            this.Controls.Add(this.panelNotResponding);
             this.Controls.Add(this.attachmentLabel);
             this.Controls.Add(this.btn_attach);
             this.Controls.Add(this.textbox_mail_title);
@@ -166,5 +177,6 @@
         private System.Windows.Forms.TextBox textbox_mail_title;
         private System.Windows.Forms.Button btn_attach;
         private System.Windows.Forms.Label attachmentLabel;
+        private System.Windows.Forms.Panel panelNotResponding;
     }
 }

@@ -157,6 +157,14 @@ namespace BesterUI
 
         private void button2_Click(object sender, EventArgs e)
         {
+            if (runSecondTestChkBox.Checked)
+            {
+                EEGDataReading r = new EEGDataReading(true);
+                RestingForm rf = new RestingForm();
+                rf.Show();
+                return;
+            }
+
             if (!collectingData)
             {
                 fusionData.Reset();
@@ -186,13 +194,33 @@ namespace BesterUI
                 button2.Text = "START COLLECTING";
                 collectingData = true;
                 collectingDataPanel.BackColor = Color.Red;
+
+                if (runSecondTestChkBox.Checked)
+                {
+                    fusionData.ExportGRF();
+                }
+
                 DeleteStartFile();
             }
         }
 
+
+
         private void exportBtn_Click(object sender, EventArgs e)
         {
-            fusionData.ExportData();
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                //string txt = File.ReadLines(path + @"\GSR.dat").First().Split('|')[1];
+                //DateTime dt = DateTime.ParseExact(txt, "yyyy-MM-dd HH_mm_ss_fff", System.Globalization.CultureInfo.InvariantCulture);
+                fusionData.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+
+                fusionData.ExportGRF(path);
+            }
+
+
         }
 
         private void StartTestFromCollector()

@@ -169,8 +169,10 @@ namespace Classification_App
             Log.LogMessage("Selected folder: " + path);
             //load fusion data
             samData = SAMData.LoadFromPath(path + @"\SAM.json");
-            if (samData.ShouldSkip())
+            string temp = samData.ShouldSkip();
+            if (!(temp == ""))
             {
+                Log.LogMessage(temp);
                 return false;
             }
             shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
@@ -197,8 +199,9 @@ namespace Classification_App
                 Log.LogMessage("Threw away a sam data point");
                 samData.dataPoints.Remove(throwaway[i]);
             }
-            if (throwaway.Count > 0 && samData.ShouldSkip())
+            if (throwaway.Count > 5 && samData.ShouldSkip() == "")
             {
+                Log.LogMessage("Too many data points thrown away (" + throwaway.Count + ")");
                 return false;
             }
             Log.LogMessage("Fusion Data loaded!");
@@ -637,6 +640,7 @@ namespace Classification_App
                             {
                                 var voteRes = meta.DoVoting(feel, 1, chk_useControlValues.Checked);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Voting, voteRes, feel);
+                                Log.LogMessage("Voting on " + feel + " gave " + voteRes.GetAccuracy());
                                 DPH.done["Voting" + feel] = true;
                                 DPH.SaveProgress();
                             });
@@ -662,6 +666,7 @@ namespace Classification_App
                                 var res = meta.DoStacking(feel, 1, chk_useControlValues.Checked);
                                 var bestRes = meta.FindBestFScorePrediction(res);
                                 eh.AddDataToPerson(personName, ExcelHandler.Book.Stacking, bestRes, feel);
+                                Log.LogMessage("Stacking on " + feel + " gave " + bestRes.GetAccuracy());
                                 DPH.done["Stacking" + feel] = true;
                                 DPH.SaveProgress();
                                 meta.Parameters = new List<SVMParameter>() { bestRes.svmParams };

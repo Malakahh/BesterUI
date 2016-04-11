@@ -23,7 +23,7 @@ namespace BesterUI
 
         private async void DoWait()
         {
-            await Task<bool>.Delay(180000);
+            await Task<bool>.Delay(3000);
             this.Close();
         }
 

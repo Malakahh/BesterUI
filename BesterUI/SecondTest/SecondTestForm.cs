@@ -36,17 +36,21 @@ namespace SecondTest
             SeededProblems.Init(taskWizard);
 
             var myScreen = Screen.FromControl(this);
-            var otherScreen = Screen.AllScreens.FirstOrDefault(s => !s.Equals(myScreen))
-                           ?? myScreen;
+            //var otherScreen = Screen.AllScreens.FirstOrDefault(s => !s.Equals(myScreen))
+            //               ?? myScreen;
 
             taskWizard.StartPosition = FormStartPosition.Manual;
-            taskWizard.Left = otherScreen.WorkingArea.Left + 120;
-            taskWizard.Top = otherScreen.WorkingArea.Top + 120;
+            //taskWizard.Left = myScreen.WorkingArea.Left + 120;
+            //taskWizard.Top = myScreen.WorkingArea.Top + 120;
+
+            taskWizard.Left = myScreen.Bounds.Right - taskWizard.Width;
+            taskWizard.Top = myScreen.Bounds.Bottom - taskWizard.Height;
 
             taskWizard.Show();
 
             MakeEmails();
             LoadEmails();
+
 
         }
 
@@ -72,6 +76,40 @@ namespace SecondTest
                 Contact.Contacts.Find(x => x.Email == "help@microsoft.com"),
                 "The new Windows is out!",
                 "Enjoy the new windows which has more features than ever. We have redesigned the start menu, added additional features for gamers and in house media centers. Become faster at your work with the new office 365 apps as well!",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "support@chrononsystems.com"),
+                "Big Dripstat Update",
+                "Scala Support! \n We have finally added support for Scala, Play and Spray Frameworks! We specifically designed our agent to capture all the asynchronous activity that using these frameworks entails. \n \n Details for: \n 1. Play framework Support \n 2. Spray Framework Support \n \n Follow us on twitter for the latest news and status updates: twitter.com/dripstat \n\n Keep Dripping,\n Team Dripstat",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "news@todoist.com"),
+                "Todoist for windows 10",
+                "Hi,\n Since launching the Todoist for Windows 10 preview last November, over 12, 000 passionate beta testers have lent a hand in helping us craft the best task manager for modern Windows devices.\n We’ve leveraged the most unique features of Windows 10 for a truly customizable and easy - to - use experience that’s everywhere you need it.\n Now with:\n \n A faster, smarter Quick Add that automatically recognizes Projects and Labels \n Jump List integration for easy task access throughout the day \n Offline support and automatic sync when reconnecting online \n \n And tons of other productivity enhancing goodies! \n To celebrate we’re giving away a brand new Windows device!\n\n Best Regards: \n The Todoist Team",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "noreply@coursera.com"),
+                "We have recommendations for you",
+                "We combed our catalog and found courses and Specializations that we think match your interests. See our recommendations below, and start learning something new today.\n\n Datastructures and Algorithms\n Interaction Design\n Game Design: Arts and Concepts\n Java Programming: An introduction to software\n \n\n Other courses you might be interested in outside your field could be\n\n Internet History, technology and security\n Cybersecurity and its ten domains\n Securing digital democracy\n Model thinking\n \n\n Please do not reply to this mail.",
+                new List<Contact>() { Contact.User }
+                ));
+
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "thomas@usersnap.com"),
+                "Thomas from Usersnap",
+                "Hi there,\n\n a while ago I asked you to contributed to a survey about the state of client collaboration. Nearly 1,000 agencies, web design & development companies participated in the survey. Thank you!\n\n Today, we published the final survey report. And its findings are surprising on some counts and encouraging on others.\n\n We encourage you to share these results with your colleagues and social networks (tweet now) - and we look forward to next year’s survey and hearing about progress you make and new concepts you implement.\n\n Check out the full survey report here.\n\n Happy reading!\n Thomas from Usersnap",
+                new List<Contact>() { Contact.User }
+                ));
+            mails.Add(new Email(
+                Contact.Contacts.Find(x => x.Email == "noreply@coursera.com"),
+                "How can you learn more?",
+                "Earn your Certificate with these five simple steps\n\n Whether you’re new to online learning or a veteran of hundreds of courses, these motivation and time management strategies can help make your next course your most successful yet.\n\n 1\n Know your goals.\n Do you want to get a promotion, start a business, or write a song? Write down your reasons for learning, and post a copy near your computer.\n\n Master the art of goal-setting:\n • Career Brand Management\n The State University of New York\n\n • Career Success\n University of California, Irvine Extension\n\n • From Idea to Startup\n Technion – Israel Institute of Technology\n\n\n 2\n Establish accountability\n Ask a friend to check in on your learning progress - or even better, recruit a group of friends to take a course with you.\n\n Become your own coach\n • Coaching Skills for Managers\n University of California, Davis\n\n • Leading People and Teams\n University of Michigan\n\n • Human Resource Management: HR for People Managers\n University of Minnesota\n\n\n 3\n Learn on the go\n Download the Coursera App for Android or iOS, save videos for offline viewing, and fit learning into your commute, coffee break, or other quiet moments in your day.\n\n Learn more about mobile\n • Android App Development\n Vanderbilt University\n\n • iOS App Development with Swift\n University of Toronto\n\n • iOS Development for Creative Entrepreneurs\n University of California, Irvine Extension\n",
                 new List<Contact>() { Contact.User }
                 ));
 
