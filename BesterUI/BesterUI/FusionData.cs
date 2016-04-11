@@ -207,7 +207,7 @@ namespace BesterUI
                     LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
                 }
             }
-
+            newValues.OrderBy(x => x.timestamp);
             return newValues;
 
         }
