@@ -71,7 +71,6 @@ namespace SecondTest
             currentTaskPage = GetTaskPage(Task.None);
             this.Controls.Add(currentTaskPage);
             currentTaskPage.Show();
-
         }
 
         private List<Task> GetScrambledTaskOrder()
