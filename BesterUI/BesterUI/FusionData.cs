@@ -273,10 +273,10 @@ namespace BesterUI
         }
 
         public void ExportGRF(string inpath = "")
-        {
-            if (inpath == "") inpath = DataReading.GetWritePath();
+        {   if (inpath == "") inpath = DataReading.GetWritePath();
             var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
             string path = inpath + @"\Graph.grf";
+            
 
             int TextLabelCount = 0;
             int FuncCount = 1;
@@ -363,19 +363,19 @@ namespace BesterUI
                 shades.Add(AddShade(evnt[1], e2c(evnt[1]), int.Parse(evnt[0]), int.Parse(events[eventId + 1].Split('#')[0])));
             }
 
-
             //actual data
+            
             List<string> pointSeries = new List<string>();
             List<double> x = new List<double>();
             List<double> y = new List<double>();
             #region GSR
-            gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
+            //gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
             #endregion
             #region HR
             hrData = hrData.Where(dat => dat.signal < 2000).ToList();
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
+            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
             #endregion
             #region EEG
             //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });

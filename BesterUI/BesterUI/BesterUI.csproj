@@ -110,6 +110,8 @@
     <Compile Include="Data\EEGDataReading.cs" />
     <Compile Include="Data\GSRDataReading.cs" />
     <Compile Include="EnumExtension.cs" />
+    <Compile Include="Feature.cs" />
+    <Compile Include="NewFeatureCreator.cs" />
     <Compile Include="FusionData.cs" />
     <Compile Include="Helpers\COMHandler.cs" />
     <Compile Include="Helpers\Log.cs" />

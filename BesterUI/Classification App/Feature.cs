@@ -11,11 +11,11 @@ namespace Classification_App
     public class Feature
     {
         public readonly string name;
-        Func<List<DataReading>, SAMDataPoint, double> featureCalculator;
+        Func<List<DataReading>, double> featureCalculator;
         List<DataReading> dataReadings;
-        Dictionary<SAMDataPoint, double> cachedResults = new Dictionary<SAMDataPoint, double>();
+        Dictionary<string, double> cachedResults = new Dictionary<string, double>();
 
-        public Feature(string name, Func<List<DataReading>, SAMDataPoint, double> featureCalculator)
+        public Feature(string name, Func<List<DataReading>, double> featureCalculator)
         {
             this.name = name;
             this.featureCalculator = featureCalculator;
@@ -26,34 +26,19 @@ namespace Classification_App
             return name;
         }
 
-        public double GetValue(SAMDataPoint sam)
+        public double GetValue(string Name)
         {
             if (dataReadings == null)
             {
                 throw new Exception("ERROR: Du skal fandme lige bruge Feature.SetData() først!!");
             }
 
-            if (!cachedResults.ContainsKey(sam))
+            if (!cachedResults.ContainsKey(Name))
             {
-                    cachedResults.Add(sam, featureCalculator(dataReadings, sam));
+                    cachedResults.Add(Name, featureCalculator(dataReadings));
 
             }
-                return cachedResults[sam];
-        }
-
-        public List<double> GetAllValues(SAMData samd)
-        {
-            if (dataReadings == null)
-            {
-                throw new Exception("ERROR: You need to call SetData before this function is usable");
-            }
-
-            List<double> values = new List<double>();
-            foreach (SAMDataPoint sd in samd.dataPoints)
-            {
-               values.Add(GetValue(sd));
-            }
-            return values;
+                return cachedResults[Name];
         }
 
         public void SetData(List<DataReading> dataReadings)
