@@ -271,7 +271,6 @@ namespace BesterUI
 
 
         }
-
         public void ExportGRF(string inpath = "")
         {   if (inpath == "") inpath = DataReading.GetWritePath();
             var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
@@ -364,7 +363,6 @@ namespace BesterUI
             }
 
             //actual data
-            
             List<string> pointSeries = new List<string>();
             List<double> x = new List<double>();
             List<double> y = new List<double>();
