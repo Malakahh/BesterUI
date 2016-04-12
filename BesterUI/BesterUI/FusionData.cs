@@ -274,7 +274,7 @@ namespace BesterUI
 
         public void ExportGRF(string inpath = "")
         {
-            if (inpath == "") inpath = DataReading.GetWritePath();
+            if (inpath == "") inpath = Directory.GetCurrentDirectory() + DataReading.GetWritePath();
             var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
             string path = inpath + @"\Graph.grf";
 
@@ -358,7 +358,7 @@ namespace BesterUI
             for (int eventId = 0; eventId < events.Length - 2; eventId++)
             {
                 string[] evnt = events[eventId].Split('#');
-                if (evnt[1].Contains("Bogus")) continue;
+                if (evnt[1].Contains("BogusMessage:")) continue;
 
                 shades.Add(AddShade(evnt[1], e2c(evnt[1]), int.Parse(evnt[0]), int.Parse(events[eventId + 1].Split('#')[0])));
             }
@@ -375,7 +375,7 @@ namespace BesterUI
             hrData = hrData.Where(dat => dat.signal < 2000).ToList();
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
             #endregion
             #region EEG
             //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });
@@ -385,7 +385,7 @@ namespace BesterUI
             //nothing to see here, move along
             #endregion
 
-            pointSeries.Add(AddPointSeries("Data", Color.Black, x, y));
+            pointSeries.Add(AddPointSeries("Data", Color.Magenta, x, y));
 
             using (var f = File.CreateText(path))
             {
@@ -451,8 +451,8 @@ namespace BesterUI
         //event 2 color
         Color e2c(string evnt)
         {
-            if (evnt == "TaskWizard - BtnCompleteClicked") return Color.Green;
-            if (evnt == "TaskWizard - BtnIncompleteClicked") return Color.Red;
+            if (evnt.Contains("TaskWizard - BtnCompleteClicked")) return Color.Green;
+            if (evnt.Contains("TaskWizard - BtnIncompleteClicked")) return Color.Red;
             if (evnt == "SendDraft error shown") return Color.Purple;
             if (evnt == "CreateDraft, language changed to: US") return Color.Purple;
             if (evnt == "AddAttachmentButtonClick: 1") return Color.Turquoise;

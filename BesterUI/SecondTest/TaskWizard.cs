@@ -178,7 +178,7 @@ namespace SecondTest
                 return;
             }
 
-            EventLog.Write("TaskWizard - BtnCompleteClicked");
+            EventLog.Write("TaskWizard - BtnCompleteClicked - " + Enum.GetName(typeof(Task), SeededProblems.CurrentTask));
             NextTask();
         }
 
@@ -189,7 +189,7 @@ namespace SecondTest
                 return;
             }
 
-            EventLog.Write("TaskWizard - BtnIncompleteClicked");
+            EventLog.Write("TaskWizard - BtnIncompleteClicked - " + Enum.GetName(typeof(Task), SeededProblems.CurrentTask));
             NextTask();
         }
 

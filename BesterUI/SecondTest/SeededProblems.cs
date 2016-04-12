@@ -12,7 +12,7 @@ namespace SecondTest
         static event Action<Task> CurrentTaskChanged;
 
         static Task _currentTask;
-        static Task CurrentTask
+        public static Task CurrentTask
         {
             get
             {
