@@ -17,6 +17,8 @@ namespace BesterUI
         public RestingForm()
         {
             InitializeComponent();
+            FormBorderStyle = FormBorderStyle.None;
+            WindowState = FormWindowState.Maximized;
             this.FormClosing += RestingForm_FormClosing;
             DoWait();
         }
