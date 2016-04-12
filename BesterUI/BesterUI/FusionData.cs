@@ -355,12 +355,14 @@ namespace BesterUI
             }
 
             List<string> shades = new List<string>();
-            for (int eventId = 0; eventId < events.Length - 2; eventId++)
+            int last = 0;
+            for (int eventId = 0; eventId < events.Length - 1; eventId++)
             {
                 string[] evnt = events[eventId].Split('#');
                 if (evnt[1].Contains("BogusMessage:")) continue;
 
-                shades.Add(AddShade(evnt[1], e2c(evnt[1]), int.Parse(evnt[0]), int.Parse(events[eventId + 1].Split('#')[0])));
+                shades.Add(AddShade(evnt[1], e2c(evnt[1]), last, int.Parse(events[eventId].Split('#')[0])));
+                last = int.Parse(evnt[0]);
             }
 
 
