@@ -217,7 +217,8 @@ namespace BesterUI
                     LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
                 }
             }
-
+            newValues = newValues.Distinct().ToList();
+            newValues = newValues.OrderBy(x => x.timestamp).ToList();
             return newValues;
 
         }
@@ -282,7 +283,7 @@ namespace BesterUI
 
         public void ExportGRF(string inpath = "")
         {
-            if (inpath == "") inpath = DataReading.GetWritePath();
+            if (inpath == "") inpath = Directory.GetCurrentDirectory() + DataReading.GetWritePath();
             var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
             string path = inpath + @"\Graph.grf";
 
@@ -303,10 +304,10 @@ namespace BesterUI
                 return "0x00" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
             };
 
-            Func<string, Color, int, int, string> AddShade = (label, color, from, to) =>
+            Func<string, Color, double, double, string> AddShade = (label, color, from, to) =>
             {
-                from = (int)((double)from / 60000);
-                to = (int)((double)to / 60000);
+                from = from / 60000;
+                to = to / 60000;
 
                 ShadeCount++;
                 StringBuilder sb = new StringBuilder();
@@ -316,10 +317,10 @@ namespace BesterUI
                 sb.AppendLine(@"BrushStyle = 0");
                 sb.AppendLine(@"Color = " + c2s(color));
                 sb.AppendLine(@"FuncNo = 1");
-                sb.AppendLine(@"sMin = " + from);
-                sb.AppendLine(@"sMax = " + to);
-                sb.AppendLine(@"sMin2 = " + from);
-                sb.AppendLine(@"sMax2 = " + to);
+                sb.AppendLine(@"sMin = " + from.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                sb.AppendLine(@"sMax = " + to.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                sb.AppendLine(@"sMin2 = " + from.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                sb.AppendLine(@"sMax2 = " + to.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 sb.AppendLine(@"MarkBorder = 0");
                 sb.AppendLine();
 
@@ -343,7 +344,7 @@ namespace BesterUI
                 sb.Append("Points = ");
                 for (int pointId = 0; pointId < xs.Count; pointId++)
                 {
-                    sb.Append(xs[pointId] + "," + ys[pointId] + ";");
+                    sb.Append(xs[pointId].ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + ys[pointId].ToString(System.Globalization.CultureInfo.InvariantCulture) + ";");
                 }
                 sb.AppendLine();
                 sb.AppendLine(@"LegendText = " + label);
@@ -363,12 +364,14 @@ namespace BesterUI
             }
 
             List<string> shades = new List<string>();
-            for (int eventId = 0; eventId < events.Length - 2; eventId++)
+            int last = 0;
+            for (int eventId = 0; eventId < events.Length - 1; eventId++)
             {
                 string[] evnt = events[eventId].Split('#');
-                if (evnt[1].Contains("Bogus")) continue;
+                if (evnt[1].Contains("BogusMessage:")) continue;
 
-                shades.Add(AddShade(evnt[1], e2c(evnt[1]), int.Parse(evnt[0]), int.Parse(events[eventId + 1].Split('#')[0])));
+                shades.Add(AddShade(evnt[1], e2c(evnt[1]), last, int.Parse(events[eventId].Split('#')[0])));
+                last = int.Parse(evnt[0]);
             }
 
 
@@ -377,13 +380,13 @@ namespace BesterUI
             List<double> x = new List<double>();
             List<double> y = new List<double>();
             #region GSR
-            //gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
+            gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
             #endregion
             #region HR
             hrData = hrData.Where(dat => dat.signal < 2000).ToList();
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
-            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
+            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
             #endregion
             #region EEG
             //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });
@@ -393,7 +396,7 @@ namespace BesterUI
             //nothing to see here, move along
             #endregion
 
-            pointSeries.Add(AddPointSeries("Data", Color.Black, x, y));
+            pointSeries.Add(AddPointSeries("Data", Color.Magenta, x, y));
 
             using (var f = File.CreateText(path))
             {
@@ -459,8 +462,8 @@ namespace BesterUI
         //event 2 color
         Color e2c(string evnt)
         {
-            if (evnt == "TaskWizard - BtnCompleteClicked") return Color.Green;
-            if (evnt == "TaskWizard - BtnIncompleteClicked") return Color.Red;
+            if (evnt.Contains("TaskWizard - BtnCompleteClicked")) return Color.Green;
+            if (evnt.Contains("TaskWizard - BtnIncompleteClicked")) return Color.Red;
             if (evnt == "SendDraft error shown") return Color.Purple;
             if (evnt == "CreateDraft, language changed to: US") return Color.Purple;
             if (evnt == "AddAttachmentButtonClick: 1") return Color.Turquoise;

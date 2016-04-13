@@ -38,8 +38,8 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(385, 150);
             this.label1.TabIndex = 5;
-            this.label1.Text = "Reply to Nina Tylers mail regarding going out for  a drink. Reply that you\'d be h" +
-    "appy to go out soon!";
+            this.label1.Text = "Reply to Nina Tyles\' mail regarding going out for a drink. Reply that you\'d be ha" +
+    "ppy to go out soon!";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // TaskPage_Reply

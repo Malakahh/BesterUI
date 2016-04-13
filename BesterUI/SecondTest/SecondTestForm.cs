@@ -35,6 +35,8 @@ namespace SecondTest
             TaskWizard taskWizard = new TaskWizard();
             SeededProblems.Init(taskWizard);
 
+            EventLog.Write("Resting period over");
+
             var myScreen = Screen.FromControl(this);
             //var otherScreen = Screen.AllScreens.FirstOrDefault(s => !s.Equals(myScreen))
             //               ?? myScreen;

@@ -17,13 +17,15 @@ namespace BesterUI
         public RestingForm()
         {
             InitializeComponent();
+            FormBorderStyle = FormBorderStyle.None;
+            WindowState = FormWindowState.Maximized;
             this.FormClosing += RestingForm_FormClosing;
             DoWait();
         }
 
         private async void DoWait()
         {
-            await Task<bool>.Delay(3000);
+            await Task<bool>.Delay(180000);
             this.Close();
         }
 

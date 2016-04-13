@@ -105,6 +105,7 @@ namespace SecondTest
                     nextReset = r.Next(5, 20);
                     keyCount = 0;
                     richtext_mail_body.SelectionStart = r.Next(richtext_mail_body.Text.Length);
+                    EventLog.Write("Caret Moved");
                 }
                 else
                 {

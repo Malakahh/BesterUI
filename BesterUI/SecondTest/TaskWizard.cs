@@ -71,29 +71,34 @@ namespace SecondTest
             currentTaskPage = GetTaskPage(Task.None);
             this.Controls.Add(currentTaskPage);
             currentTaskPage.Show();
-
         }
 
         private List<Task> GetScrambledTaskOrder()
         {
-            List<Task> list = new List<Task>();
-            list = Enum.GetValues(typeof(Task)).Cast<Task>().ToList();
+            List<Task> scrambleList = new List<Task>();
+            scrambleList = Enum.GetValues(typeof(Task)).Cast<Task>().ToList();
 
-            list.Remove(Task.None);
-            list.Remove(Task.Final);
+            scrambleList.Remove(Task.None);
+            scrambleList.Remove(Task.AddTwoContacts);
+            scrambleList.Remove(Task.ReplyToMail);
+            scrambleList.Remove(Task.Final);
 
             //Scramble
             Random rng = new Random();
-            int n = list.Count;
+            int n = scrambleList.Count;
             while (n > 1)
             {
                 n--;
                 int k = rng.Next(n + 1);
-                Task val = list[k];
-                list[k] = list[n];
-                list[n] = val;
+                Task val = scrambleList[k];
+                scrambleList[k] = scrambleList[n];
+                scrambleList[n] = val;
             }
 
+            List<Task> list = new List<Task>();
+            list.Add(Task.AddTwoContacts);
+            list.Add(Task.ReplyToMail);
+            list.AddRange(scrambleList);
             list.Add(Task.Final);
 
             return list;
@@ -179,7 +184,7 @@ namespace SecondTest
                 return;
             }
 
-            EventLog.Write("TaskWizard - BtnCompleteClicked");
+            EventLog.Write("TaskWizard - BtnCompleteClicked - " + Enum.GetName(typeof(Task), SeededProblems.CurrentTask));
             NextTask();
         }
 
@@ -190,7 +195,7 @@ namespace SecondTest
                 return;
             }
 
-            EventLog.Write("TaskWizard - BtnIncompleteClicked");
+            EventLog.Write("TaskWizard - BtnIncompleteClicked - " + Enum.GetName(typeof(Task), SeededProblems.CurrentTask));
             NextTask();
         }
 
