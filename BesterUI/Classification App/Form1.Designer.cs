@@ -54,6 +54,7 @@
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
+            this.btn_Anova = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -210,6 +211,7 @@
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.btn_Anova);
             this.tabPage3.Controls.Add(this.label2);
             this.tabPage3.Controls.Add(this.lst_excel_files);
             this.tabPage3.Controls.Add(this.btn_excel_merge);
@@ -314,6 +316,16 @@
             this.chk_useControlValues.Text = "Use IAPS Control Values";
             this.chk_useControlValues.UseVisualStyleBackColor = true;
             // 
+            // btn_Anova
+            // 
+            this.btn_Anova.Location = new System.Drawing.Point(165, 3);
+            this.btn_Anova.Name = "btn_Anova";
+            this.btn_Anova.Size = new System.Drawing.Size(75, 23);
+            this.btn_Anova.TabIndex = 4;
+            this.btn_Anova.Text = "ANOVA";
+            this.btn_Anova.UseVisualStyleBackColor = true;
+            this.btn_Anova.Click += new System.EventHandler(this.btn_Anova_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -368,6 +380,7 @@
         private System.Windows.Forms.ListBox lst_excel_files;
         private System.Windows.Forms.Button btn_excel_merge;
         private System.Windows.Forms.Button btn_excel_add;
+        private System.Windows.Forms.Button btn_Anova;
     }
 }
 

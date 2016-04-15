@@ -818,7 +818,179 @@ namespace Classification_App
                 Log.LogMessage("Closing Excel");
             }
         }
+
+        private void btn_Anova_Click(object sender, EventArgs e)
+        {
+            var files = lst_excel_files.Items.Cast<string>().ToList();
+            if (files.Count(x => x.Contains("Stacking")) == 0 ||
+                files.Count(x => x.Contains("Voting")) == 0 ||
+                files.Count(x => x.Contains("GSR")) == 0 ||
+                files.Count(x => x.Contains("HR")) == 0 ||
+                files.Count(x => x.Contains("EEG")) == 0 ||
+                files.Count(x => x.Contains("FACE")) == 0)
+            {
+                Log.LogMessage("You must use all data files");
+                return;
+            }
+
+            SaveFileDialog sd = new SaveFileDialog();
+            sd.FileName = "anova.xlsx";
+            sd.Filter = "xlsx|*.xlsx";
+
+            //feeling type < test subject <  sensor type < value >>>
+            var values = new Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Dictionary<string, double>>>();
+            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+            {
+                values.Add(feel, new Dictionary<string, Dictionary<string, double>>());
+            }
+
+
+            if (sd.ShowDialog() == DialogResult.OK)
+            {
+                Log.LogMessage("Starting Excel");
+                Excel.Application exc = new Excel.Application() { Visible = false };
+
+                foreach (var path in files)
+                {
+                    string fileType = path.Split('\\').Last().Split('.').First();
+                    Excel.Workbook current = exc.Workbooks.Open(path, ExcelHandler.missingValue,
+                                                            false,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            true,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            true,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue);
+
+                    foreach (Excel.Worksheet sheit in current.Sheets)
+                    {
+                        if (sheit.Name == "First" || sheit.Name == "Last" || sheit.Name == "Overview")
+                        {
+                            continue;
+                        }
+
+                        string tpName = "tp" + sheit.Name.Split(' ').Last();
+
+                        var accuracies = new Dictionary<SAMDataPoint.FeelingModel, double>();
+                        foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                        {
+                            accuracies.Add(feel, -1);
+                        }
+
+                        #region TryValues
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Arousal2High] = sheit.Cells[2, 3].Value;
+                        }
+                        catch { };
+
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Arousal2Low] = sheit.Cells[15, 3].Value;
+                        }
+                        catch { };
+
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Arousal3] = sheit.Cells[28, 3].Value;
+                        }
+                        catch { };
+
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Valence2High] = sheit.Cells[44, 3].Value;
+                        }
+                        catch { };
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Valence2Low] = sheit.Cells[57, 3].Value;
+                        }
+                        catch { };
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Valence3] = sheit.Cells[70, 3].Value;
+                        }
+                        catch { };
+                        #endregion
+
+                        foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                        {
+                            if (accuracies[feel] == -1) continue;
+
+                            if (!values[feel].ContainsKey(tpName))
+                            {
+                                values[feel].Add(tpName, new Dictionary<string, double>());
+                            }
+
+                            if (!values[feel][tpName].ContainsKey(fileType))
+                            {
+                                values[feel][tpName].Add(fileType, accuracies[feel]);
+                            }
+                        }
+                    }
+
+                    current.Close();
+                }
+
+
+                Dictionary<string, int> columns = new Dictionary<string, int>()
+                {
+                    ["Stacking"] = 0,
+                    ["Voting"] = 1,
+                    ["EEG"] = 2,
+                    ["HR"] = 3,
+                    ["FACE"] = 4,
+                    ["GSR"] = 5,
+                };
+
+                foreach (var feelValue in values)
+                {
+                    Excel.Workbook anova = exc.Workbooks.Add(ExcelHandler.missingValue);
+                    Dictionary<int, List<double>> anovals = new Dictionary<int, List<double>>();
+
+                    foreach (var testSubject in feelValue.Value)
+                    {
+                        foreach (var sensorType in testSubject.Value)
+                        {
+                            if (!anovals.ContainsKey(columns[sensorType.Key]))
+                            {
+                                anovals.Add(columns[sensorType.Key], new List<double>());
+                            }
+
+                            anovals[columns[sensorType.Key]].Add(sensorType.Value);
+                        }
+                    }
+
+                    anova.Sheets[1].Cells[1, 1] = "Machine";
+                    anova.Sheets[1].Cells[1, 2] = "DataPoint";
+
+                    int currentRow = 2;
+                    foreach (var item in anovals)
+                    {
+                        for (int i = 0; i < item.Value.Count; i++)
+                        {
+                            anova.Sheets[1].Cells[currentRow, 1] = item.Key;
+                            anova.Sheets[1].Cells[currentRow, 2] = item.Value[i];
+                            currentRow++;
+                        }
+                    }
+
+                    anova.SaveCopyAs(sd.FileName.Replace(".xlsx", $"_{feelValue.Key.ToString()}.xlsx"));
+                    Log.LogMessage("Done with " + feelValue.Key);
+                    anova.Close(false);
+                }
+
+
+                exc.Quit();
+                Log.LogMessage("Closing Excel");
+            }
+        }
         #endregion
+
 
     }
 }
