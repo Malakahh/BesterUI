@@ -18,6 +18,11 @@ namespace BesterUI
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<FaceDataReading> faceData = new List<FaceDataReading>();
 
+        public bool Loaded
+        {
+            get { return hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || faceData.Count != 0; }
+        }
+
         public FusionData()
         {
 
@@ -158,6 +163,7 @@ namespace BesterUI
                         {
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
+                            hrData = hrData.Where(x => x.signal < 2000).ToList();
                             shouldRun.Add(s, true);
                         }
                         else

@@ -16,6 +16,11 @@ using System.Threading;
 using System.Diagnostics;
 using Excel = Microsoft.Office.Interop.Excel;
 
+using System.Windows.Forms.DataVisualization.Charting;
+
+using OxyPlot;
+using OxyPlot.WindowsForms;
+
 namespace Classification_App
 {
     public partial class Form1 : Form
@@ -26,6 +31,8 @@ namespace Classification_App
         List<SVMConfiguration> svmConfs = new List<SVMConfiguration>();
         List<MetaSVMConfiguration> metaConfs = new List<MetaSVMConfiguration>();
 
+        FusionData fdTest = new FusionData();
+        FusionData fdRecall = new FusionData();
 
         public Form1()
         {
@@ -36,6 +43,94 @@ namespace Classification_App
 
             Log.LogBox = richTextBox1;
             this.FormClosing += Form1_FormClosing;
+
+            chart_TestData.Series.Clear();
+            chart_TestData.Series.Add(new Series() { Color = Color.Red, ChartType = SeriesChartType.Line });
+            chart_TestData.Series.Add(new Series() { Color = Color.Blue, ChartType = SeriesChartType.Line });
+
+            var area = chart_TestData.ChartAreas.First();
+            area.AxisX.MajorGrid.Enabled = false;
+            area.AxisY.MajorGrid.Enabled = false;
+            area.AxisY.Minimum = 0;
+            area.AxisY.Maximum = 1;
+
+            dataInterpreters.Add("GSR Raw", (dat) =>
+            {
+                List<long> xs = dat.gsrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.gsrData.Select(x => (double)x.resistance).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("HR Raw", (dat) =>
+            {
+                List<long> xs = dat.hrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.hrData.Select(x => (double)x.signal).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("HR IBI", (dat) =>
+            {
+                List<long> xs = dat.hrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.hrData.Select(x => (double)x.IBI).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("HR BPM", (dat) =>
+            {
+                List<long> xs = dat.hrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.hrData.Select(x => (double)x.BPM).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG F3 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["F3"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG F4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["F4"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG AF3 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["AF3"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG AF4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["F3"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG F3-F4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => x.data["F3"] - x.data["F4"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG AF3-AF4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => x.data["AF3"] - x.data["AF4"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            foreach (var item in dataInterpreters)
+            {
+                cmb_PlotDataType.Items.Add(item.Key);
+            }
+
+            cmb_PlotDataType.Text = (string)cmb_PlotDataType.Items[0];
+
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -163,7 +258,7 @@ namespace Classification_App
             }
         }
 
-        bool LoadData(string path)
+        bool LoadData(string path, FusionData fd)
         {
             currentPath = path;
             Log.LogMessage("Selected folder: " + path);
@@ -175,15 +270,15 @@ namespace Classification_App
                 Log.LogMessage(temp);
                 return false;
             }
-            shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
+            shouldRun = fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
             //Slicing
             List<SAMDataPoint> throwaway = new List<SAMDataPoint>();
             foreach (SAMDataPoint samD in samData.dataPoints)
             {
-                if (FeatureCreator.EEGDataSlice(_fd.eegData.ToList<DataReading>(), samD).Count == 0 ||
-                    FeatureCreator.GSRDataSlice(_fd.gsrData.ToList<DataReading>(), samD).Count == 0 ||
-                    FeatureCreator.HRDataSlice(_fd.hrData.ToList<DataReading>(), samD).Count == 0 ||
-                    FeatureCreator.FaceDataSlice(_fd.faceData.ToList<DataReading>(), samD).Count == 0)
+                if (FeatureCreator.EEGDataSlice(fd.eegData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.GSRDataSlice(fd.gsrData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.HRDataSlice(fd.hrData.ToList<DataReading>(), samD).Count == 0 ||
+                    FeatureCreator.FaceDataSlice(fd.faceData.ToList<DataReading>(), samD).Count == 0)
                 {
                     throwaway.Add(samD);
                 }
@@ -209,13 +304,13 @@ namespace Classification_App
             Log.LogMessage("Applying data to features..");
 
 
-            FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
-            FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-            FeatureCreator.HRValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-            FeatureCreator.EEGArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-            FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-            FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
-            FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
+            FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(fd.gsrData.ToList<DataReading>()));
+            FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(fd.hrData.ToList<DataReading>()));
+            FeatureCreator.HRValenceOptimizationFeatures.ForEach(x => x.SetData(fd.hrData.ToList<DataReading>()));
+            FeatureCreator.EEGArousalOptimizationFeatures.ForEach(x => x.SetData(fd.eegData.ToList<DataReading>()));
+            FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(fd.eegData.ToList<DataReading>()));
+            FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
+            FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
 
             Log.LogMessage("Looking for configurations...");
 
@@ -332,7 +427,7 @@ namespace Classification_App
                         curDat++;
                         continue;
                     }
-                    if (!LoadData(item))
+                    if (!LoadData(item, _fd))
                     {
                         Log.LogMessage(item.Split('-').Last() + " is not classifiable");
                         continue;
@@ -590,7 +685,7 @@ namespace Classification_App
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
 
-                    LoadData(item);
+                    LoadData(item, _fd);
                     foreach (var feel in feelings)
                     {
                         statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
@@ -989,8 +1084,215 @@ namespace Classification_App
                 Log.LogMessage("Closing Excel");
             }
         }
+
         #endregion
 
+        #region Plotting
+        private void btn_ExportPNG_Click(object sender, EventArgs e)
+        {
+            int height = 0;
+            if (!int.TryParse(txt_height.Text, out height))
+            {
+                Log.LogMessage("Height must be an integer");
+                return;
+            }
 
+            int width = 0;
+            if (!int.TryParse(txt_width.Text, out width))
+            {
+                Log.LogMessage("Width must be an integer");
+                return;
+            }
+
+            int offset = 0;
+            if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
+            {
+                Log.LogMessage("Offset must be an integer");
+                return;
+            }
+
+            double pointSize = 0;
+            if (!double.TryParse(txt_PlotPointSize.Text.Replace(".", ","), out pointSize))
+            {
+                Log.LogMessage("Point size must be a double");
+                return;
+            }
+
+
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.DefaultExt = ".png";
+            sfd.Filter = "png|*.png";
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                PngExporter pngify = new PngExporter();
+                pngify.Width = width;
+                pngify.Height = height;
+
+                var model = new PlotModel() { Title = "Scatter Plot" };
+                var dataSeries = new OxyPlot.Series.ScatterSeries() { MarkerType = MarkerType.Circle, MarkerStroke = OxyColors.Red };
+
+                var test = chart_TestData.Series[0].Points;
+                var recall = chart_TestData.Series[1].Points.Where(x => x.XValue >= 0).ToList();
+
+                int min = Math.Min(test.Count, recall.Count);
+                for (int i = 0; i < min; i++)
+                {
+                    dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i].YValues[0], recall[i].YValues[0]) { Size = pointSize });
+                }
+
+                model.Series.Add(dataSeries);
+
+                model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
+                model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
+
+
+                pngify.ExportToFile(model, sfd.FileName);
+                Log.LogMessage("Saved " + sfd.FileName + "!");
+            }
+        }
+
+        private void btn_PlotLoadTest_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                fdTest.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                txt_TestDataName.Text = fbd.SelectedPath.Split('\\').Last();
+
+                var xs = fdTest.gsrData.Select(x => x.timestamp).ToList();
+                var ys = fdTest.gsrData.Select(y => (double)y.resistance).ToList();
+
+                LoadDataSeries(xs, ys, 0);
+            }
+        }
+
+        private void btn_PlotLoadRecall_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                fdRecall.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                txt_RecallDataName.Text = fbd.SelectedPath.Split('\\').Last();
+
+                var xs = fdRecall.gsrData.Select(x => x.timestamp).ToList();
+                var ys = fdRecall.gsrData.Select(y => (double)y.resistance).ToList();
+
+                LoadDataSeries(xs, ys, 1);
+            }
+        }
+
+        void LoadDataSeries(List<long> xs, List<double> ys, int seriesId)
+        {
+            var ser = chart_TestData.Series[seriesId];
+            ser.Points.Clear();
+
+            long first = xs[0];
+            for (int i = 0; i < xs.Count; i++)
+            {
+                xs[i] -= first;
+            }
+
+            double max = ys.Max();
+            for (int i = 0; i < ys.Count; i++)
+            {
+                ser.Points.AddXY(xs[i], ys[i] / max);
+            }
+
+            scroll_PlotView.Maximum = (int)xs.Last() - chartMsToShow;
+            UpdateChart();
+        }
+
+        int chartMsToShow = 20000;
+        void UpdateChart()
+        {
+            var area = chart_TestData.ChartAreas.First();
+
+            area.AxisX.Minimum = scroll_PlotView.Value;
+            area.AxisX.Maximum = scroll_PlotView.Value + chartMsToShow;
+        }
+
+
+        private void scroll_PlotView_Scroll(object sender, ScrollEventArgs e)
+        {
+            UpdateChart();
+        }
+
+        int oldOffset = 0;
+        private void txt_PlotDataOffset_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                int offset = 0;
+                if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
+                {
+                    Log.LogMessage("Offset must be an integer");
+                    return;
+                }
+
+                var diff = oldOffset - offset;
+
+                var test = chart_TestData.Series[0];
+                var recall = chart_TestData.Series[1];
+
+                for (int i = 0; i < recall.Points.Count; i++)
+                {
+                    recall.Points[i].XValue -= diff;
+                }
+
+                oldOffset = offset;
+            }
+        }
+
+        Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>> dataInterpreters = new Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>>();
+        private void cmb_PlotDataType_SelectedValueChanged(object sender, EventArgs e)
+        {
+
+            if (cmb_PlotDataType.SelectedItem == null || !dataInterpreters.ContainsKey((string)cmb_PlotDataType.SelectedItem))
+            {
+                Log.LogMessage("Something wrong was selected in the dropdown menu");
+                return;
+            }
+
+            if (fdTest.Loaded)
+            {
+                var newData = dataInterpreters[(string)cmb_PlotDataType.SelectedItem](fdTest);
+                LoadDataSeries(newData.Item1, newData.Item2, 0);
+            }
+
+            if (fdRecall.Loaded)
+            {
+                var newData = dataInterpreters[(string)cmb_PlotDataType.SelectedItem](fdRecall);
+                LoadDataSeries(newData.Item1, newData.Item2, 1);
+            }
+
+            Log.LogMessage($"Switched to new data [{(string)cmb_PlotDataType.SelectedItem}]");
+        }
+
+        private void txt_PlotWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                var oldValue = chartMsToShow;
+                if (!int.TryParse(txt_PlotWindow.Text, out chartMsToShow))
+                {
+                    Log.LogMessage("View window must be integer");
+                }
+                else if (chartMsToShow <= 10)
+                {
+                    Log.LogMessage("View window must be >10");
+                    chartMsToShow = oldValue;
+                }
+                else
+                {
+                    scroll_PlotView.LargeChange = chartMsToShow / 10;
+                    scroll_PlotView.SmallChange = chartMsToShow / 100;
+                    UpdateChart();
+                }
+            }
+        }
+        #endregion
     }
 }

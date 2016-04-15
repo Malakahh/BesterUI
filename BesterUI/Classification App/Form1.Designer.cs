@@ -28,6 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -44,21 +46,44 @@
             this.prg_meta_txt = new System.Windows.Forms.Label();
             this.prg_meta = new System.Windows.Forms.ProgressBar();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.btn_Anova = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.lst_excel_files = new System.Windows.Forms.ListBox();
             this.btn_excel_merge = new System.Windows.Forms.Button();
             this.btn_excel_add = new System.Windows.Forms.Button();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.txt_PlotWindow = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.cmb_PlotDataType = new System.Windows.Forms.ComboBox();
+            this.scroll_PlotView = new System.Windows.Forms.HScrollBar();
+            this.chart_TestData = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.txt_PlotPointSize = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.txt_PlotDataOffset = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.txt_RecallDataName = new System.Windows.Forms.Label();
+            this.txt_TestDataName = new System.Windows.Forms.Label();
+            this.btn_PlotLoadRecall = new System.Windows.Forms.Button();
+            this.btn_PlotLoadTest = new System.Windows.Forms.Button();
+            this.txt_width = new System.Windows.Forms.TextBox();
+            this.txt_height = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.btn_ExportPNG = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
-            this.btn_Anova = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -66,6 +91,7 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
+            this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -223,6 +249,16 @@
             this.tabPage3.Text = "Excel Merger";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // btn_Anova
+            // 
+            this.btn_Anova.Location = new System.Drawing.Point(165, 3);
+            this.btn_Anova.Name = "btn_Anova";
+            this.btn_Anova.Size = new System.Drawing.Size(75, 23);
+            this.btn_Anova.TabIndex = 4;
+            this.btn_Anova.Text = "ANOVA";
+            this.btn_Anova.UseVisualStyleBackColor = true;
+            this.btn_Anova.Click += new System.EventHandler(this.btn_Anova_Click);
+            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -261,6 +297,223 @@
             this.btn_excel_add.Text = "Add xlsx";
             this.btn_excel_add.UseVisualStyleBackColor = true;
             this.btn_excel_add.Click += new System.EventHandler(this.btn_excel_add_Click);
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.txt_PlotWindow);
+            this.tabPage4.Controls.Add(this.label11);
+            this.tabPage4.Controls.Add(this.label10);
+            this.tabPage4.Controls.Add(this.label9);
+            this.tabPage4.Controls.Add(this.cmb_PlotDataType);
+            this.tabPage4.Controls.Add(this.scroll_PlotView);
+            this.tabPage4.Controls.Add(this.chart_TestData);
+            this.tabPage4.Controls.Add(this.txt_PlotPointSize);
+            this.tabPage4.Controls.Add(this.label8);
+            this.tabPage4.Controls.Add(this.txt_PlotDataOffset);
+            this.tabPage4.Controls.Add(this.label7);
+            this.tabPage4.Controls.Add(this.txt_RecallDataName);
+            this.tabPage4.Controls.Add(this.txt_TestDataName);
+            this.tabPage4.Controls.Add(this.btn_PlotLoadRecall);
+            this.tabPage4.Controls.Add(this.btn_PlotLoadTest);
+            this.tabPage4.Controls.Add(this.txt_width);
+            this.tabPage4.Controls.Add(this.txt_height);
+            this.tabPage4.Controls.Add(this.label6);
+            this.tabPage4.Controls.Add(this.label5);
+            this.tabPage4.Controls.Add(this.btn_ExportPNG);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(540, 292);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "Plotting";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // txt_PlotWindow
+            // 
+            this.txt_PlotWindow.Location = new System.Drawing.Point(76, 90);
+            this.txt_PlotWindow.Name = "txt_PlotWindow";
+            this.txt_PlotWindow.Size = new System.Drawing.Size(46, 20);
+            this.txt_PlotWindow.TabIndex = 20;
+            this.txt_PlotWindow.Text = "10000";
+            this.txt_PlotWindow.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_PlotWindow_KeyDown);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(8, 93);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(72, 13);
+            this.label11.TabIndex = 19;
+            this.label11.Text = "View window:";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(288, 48);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(140, 13);
+            this.label10.TabIndex = 18;
+            this.label10.Text = "Red = test    |    Blue = recall";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(288, 14);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(60, 13);
+            this.label9.TabIndex = 17;
+            this.label9.Text = "Data Type:";
+            // 
+            // cmb_PlotDataType
+            // 
+            this.cmb_PlotDataType.FormattingEnabled = true;
+            this.cmb_PlotDataType.Location = new System.Drawing.Point(354, 11);
+            this.cmb_PlotDataType.Name = "cmb_PlotDataType";
+            this.cmb_PlotDataType.Size = new System.Drawing.Size(179, 21);
+            this.cmb_PlotDataType.TabIndex = 16;
+            this.cmb_PlotDataType.SelectedValueChanged += new System.EventHandler(this.cmb_PlotDataType_SelectedValueChanged);
+            // 
+            // scroll_PlotView
+            // 
+            this.scroll_PlotView.LargeChange = 1000;
+            this.scroll_PlotView.Location = new System.Drawing.Point(171, 273);
+            this.scroll_PlotView.Maximum = 10000;
+            this.scroll_PlotView.Name = "scroll_PlotView";
+            this.scroll_PlotView.Size = new System.Drawing.Size(362, 16);
+            this.scroll_PlotView.SmallChange = 100;
+            this.scroll_PlotView.TabIndex = 15;
+            this.scroll_PlotView.Scroll += new System.Windows.Forms.ScrollEventHandler(this.scroll_PlotView_Scroll);
+            // 
+            // chart_TestData
+            // 
+            this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
+            chartArea1.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea1);
+            this.chart_TestData.Location = new System.Drawing.Point(171, 64);
+            this.chart_TestData.Name = "chart_TestData";
+            series1.ChartArea = "ChartArea1";
+            series1.Name = "Series1";
+            this.chart_TestData.Series.Add(series1);
+            this.chart_TestData.Size = new System.Drawing.Size(362, 201);
+            this.chart_TestData.TabIndex = 13;
+            this.chart_TestData.Text = "chart1";
+            // 
+            // txt_PlotPointSize
+            // 
+            this.txt_PlotPointSize.Location = new System.Drawing.Point(64, 213);
+            this.txt_PlotPointSize.Name = "txt_PlotPointSize";
+            this.txt_PlotPointSize.Size = new System.Drawing.Size(46, 20);
+            this.txt_PlotPointSize.TabIndex = 12;
+            this.txt_PlotPointSize.Text = "0.4";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(3, 216);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(55, 13);
+            this.label8.TabIndex = 11;
+            this.label8.Text = "Point size:";
+            // 
+            // txt_PlotDataOffset
+            // 
+            this.txt_PlotDataOffset.Location = new System.Drawing.Point(76, 64);
+            this.txt_PlotDataOffset.Name = "txt_PlotDataOffset";
+            this.txt_PlotDataOffset.Size = new System.Drawing.Size(46, 20);
+            this.txt_PlotDataOffset.TabIndex = 10;
+            this.txt_PlotDataOffset.Text = "0";
+            this.txt_PlotDataOffset.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_PlotDataOffset_KeyDown);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(8, 67);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(62, 13);
+            this.label7.TabIndex = 9;
+            this.label7.Text = "Data offset:";
+            // 
+            // txt_RecallDataName
+            // 
+            this.txt_RecallDataName.AutoSize = true;
+            this.txt_RecallDataName.Location = new System.Drawing.Point(128, 40);
+            this.txt_RecallDataName.Name = "txt_RecallDataName";
+            this.txt_RecallDataName.Size = new System.Drawing.Size(10, 13);
+            this.txt_RecallDataName.TabIndex = 8;
+            this.txt_RecallDataName.Text = "-";
+            // 
+            // txt_TestDataName
+            // 
+            this.txt_TestDataName.AutoSize = true;
+            this.txt_TestDataName.Location = new System.Drawing.Point(128, 11);
+            this.txt_TestDataName.Name = "txt_TestDataName";
+            this.txt_TestDataName.Size = new System.Drawing.Size(10, 13);
+            this.txt_TestDataName.TabIndex = 7;
+            this.txt_TestDataName.Text = "-";
+            // 
+            // btn_PlotLoadRecall
+            // 
+            this.btn_PlotLoadRecall.Location = new System.Drawing.Point(6, 35);
+            this.btn_PlotLoadRecall.Name = "btn_PlotLoadRecall";
+            this.btn_PlotLoadRecall.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotLoadRecall.TabIndex = 6;
+            this.btn_PlotLoadRecall.Text = "Load Recall Data";
+            this.btn_PlotLoadRecall.UseVisualStyleBackColor = true;
+            this.btn_PlotLoadRecall.Click += new System.EventHandler(this.btn_PlotLoadRecall_Click);
+            // 
+            // btn_PlotLoadTest
+            // 
+            this.btn_PlotLoadTest.Location = new System.Drawing.Point(6, 6);
+            this.btn_PlotLoadTest.Name = "btn_PlotLoadTest";
+            this.btn_PlotLoadTest.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotLoadTest.TabIndex = 5;
+            this.btn_PlotLoadTest.Text = "Load Test Data";
+            this.btn_PlotLoadTest.UseVisualStyleBackColor = true;
+            this.btn_PlotLoadTest.Click += new System.EventHandler(this.btn_PlotLoadTest_Click);
+            // 
+            // txt_width
+            // 
+            this.txt_width.Location = new System.Drawing.Point(64, 265);
+            this.txt_width.Name = "txt_width";
+            this.txt_width.Size = new System.Drawing.Size(46, 20);
+            this.txt_width.TabIndex = 4;
+            this.txt_width.Text = "800";
+            // 
+            // txt_height
+            // 
+            this.txt_height.Location = new System.Drawing.Point(64, 239);
+            this.txt_height.Name = "txt_height";
+            this.txt_height.Size = new System.Drawing.Size(46, 20);
+            this.txt_height.TabIndex = 3;
+            this.txt_height.Text = "800";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(3, 242);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(41, 13);
+            this.label6.TabIndex = 2;
+            this.label6.Text = "Height:";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(3, 268);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(38, 13);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "Width:";
+            // 
+            // btn_ExportPNG
+            // 
+            this.btn_ExportPNG.Location = new System.Drawing.Point(6, 184);
+            this.btn_ExportPNG.Name = "btn_ExportPNG";
+            this.btn_ExportPNG.Size = new System.Drawing.Size(104, 23);
+            this.btn_ExportPNG.TabIndex = 0;
+            this.btn_ExportPNG.Text = "Export .png";
+            this.btn_ExportPNG.UseVisualStyleBackColor = true;
+            this.btn_ExportPNG.Click += new System.EventHandler(this.btn_ExportPNG_Click);
             // 
             // richTextBox1
             // 
@@ -316,16 +569,6 @@
             this.chk_useControlValues.Text = "Use IAPS Control Values";
             this.chk_useControlValues.UseVisualStyleBackColor = true;
             // 
-            // btn_Anova
-            // 
-            this.btn_Anova.Location = new System.Drawing.Point(165, 3);
-            this.btn_Anova.Name = "btn_Anova";
-            this.btn_Anova.Size = new System.Drawing.Size(75, 23);
-            this.btn_Anova.TabIndex = 4;
-            this.btn_Anova.Text = "ANOVA";
-            this.btn_Anova.UseVisualStyleBackColor = true;
-            this.btn_Anova.Click += new System.EventHandler(this.btn_Anova_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -347,6 +590,9 @@
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
+            this.tabPage4.ResumeLayout(false);
+            this.tabPage4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -381,6 +627,27 @@
         private System.Windows.Forms.Button btn_excel_merge;
         private System.Windows.Forms.Button btn_excel_add;
         private System.Windows.Forms.Button btn_Anova;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.TextBox txt_width;
+        private System.Windows.Forms.TextBox txt_height;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button btn_ExportPNG;
+        private System.Windows.Forms.Button btn_PlotLoadTest;
+        private System.Windows.Forms.Label txt_TestDataName;
+        private System.Windows.Forms.Button btn_PlotLoadRecall;
+        private System.Windows.Forms.Label txt_RecallDataName;
+        private System.Windows.Forms.TextBox txt_PlotDataOffset;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txt_PlotPointSize;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.HScrollBar scroll_PlotView;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart_TestData;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.ComboBox cmb_PlotDataType;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox txt_PlotWindow;
+        private System.Windows.Forms.Label label11;
     }
 }
 
