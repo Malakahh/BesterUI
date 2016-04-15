@@ -172,7 +172,7 @@ namespace BesterUI
                 fusionData.Reset();
                 DataReading.ResetTimers();
 
-                StartTestFromCollector();
+                //StartTestFromCollector();
                 eegCollect.StartCollect();
                 gsrCollect.StartCollecting();
                 hrCollect.StartCollecting();
@@ -202,7 +202,7 @@ namespace BesterUI
                     fusionData.ExportGRF();
                 }
 
-                DeleteStartFile();
+                //DeleteStartFile();
             }
         }
 
