@@ -128,7 +128,6 @@ namespace SecondTest
                 }
 
                 EventLog.Write("Task: CreateDraft");
-
                 origLang = InputLanguage.CurrentInputLanguage;
                 InputLanguage.CurrentInputLanguage = GetInputLanguageEnglish();
                 EventLog.Write("CreateDraft, language changed to: " + InputLanguage.CurrentInputLanguage.LayoutName);

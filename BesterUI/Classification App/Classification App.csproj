@@ -104,10 +104,8 @@
   <ItemGroup>
     <Compile Include="DataProgressHandler.cs" />
     <Compile Include="ExcelHandler.cs" />
-    <Compile Include="Feature.cs" />
     <Compile Include="Classifier.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="FeatureCreator.cs" />
     <Compile Include="FFT.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

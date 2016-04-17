@@ -71,6 +71,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\DotNetEmotivSDK.dll</HintPath>
     </Reference>
+    <Reference Include="ILNumerics">
+      <HintPath>..\packages\ILNumerics.3.3.3.0\lib\ILNumerics.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Kinect, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Kinect.2.0.1410.19000\lib\net45\Microsoft.Kinect.dll</HintPath>
       <Private>True</Private>
@@ -110,8 +113,7 @@
     <Compile Include="Data\EEGDataReading.cs" />
     <Compile Include="Data\GSRDataReading.cs" />
     <Compile Include="EnumExtension.cs" />
-    <Compile Include="Feature.cs" />
-    <Compile Include="NewFeatureCreator.cs" />
+    <Compile Include="FFT.cs" />
     <Compile Include="FusionData.cs" />
     <Compile Include="Helpers\COMHandler.cs" />
     <Compile Include="Helpers\Log.cs" />
