@@ -67,7 +67,7 @@ namespace BesterUI.Data
             foreach (var item in bits)
             {
                 var dat = item.Split(':');
-                 data.Add(dat[0], double.Parse(dat[1].Replace('.',',')));
+                 data.Add(dat[0], double.Parse(dat[1].Replace(',','.')));
             }
 
             return this;
