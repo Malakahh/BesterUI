@@ -1118,6 +1118,19 @@ namespace Classification_App
                 return;
             }
 
+            int from = -1;
+            if (!int.TryParse(txt_ExportFrom.Text, out from) || txt_ExportFrom.Text == "")
+            {
+                Log.LogMessage("Export from not valid integer, using 0");
+                from = -1;
+            }
+
+            int to = -1;
+            if (!int.TryParse(txt_ExportTo.Text, out to) || txt_ExportTo.Text == "")
+            {
+                Log.LogMessage("Export to not valid integer, using max");
+                to = -1;
+            }
 
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.DefaultExt = ".png";
@@ -1129,7 +1142,7 @@ namespace Classification_App
                 pngify.Width = width;
                 pngify.Height = height;
 
-                var xy = GetXY();
+                var xy = GetXY(from, to);
 
                 var test = xy.Item1;
                 var recall = xy.Item2;
@@ -1143,7 +1156,7 @@ namespace Classification_App
                     dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i], recall[i]) { Size = pointSize });
                 }
 
-                var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.1) { MarkerStroke = OxyColors.Blue };
+                var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.001) { Color = OxyColors.Blue };
 
                 model.Series.Add(dataSeries);
                 model.Series.Add(fitSeries);
@@ -1262,6 +1275,27 @@ namespace Classification_App
         }
 
         int oldOffset = 0;
+        void PlotSetNewOffset(int offset)
+        {
+            var diff = oldOffset - offset;
+
+            var test = chart_TestData.Series[0];
+            var recall = chart_TestData.Series[1];
+
+            for (int i = 0; i < recall.Points.Count; i++)
+            {
+                recall.Points[i].XValue += diff;
+            }
+
+            oldOffset = offset;
+
+            if (enableFitting)
+            {
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+            }
+        }
+
         private void txt_PlotDataOffset_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -1273,27 +1307,11 @@ namespace Classification_App
                     return;
                 }
 
-                var diff = oldOffset - offset;
-
-                var test = chart_TestData.Series[0];
-                var recall = chart_TestData.Series[1];
-
-                for (int i = 0; i < recall.Points.Count; i++)
-                {
-                    recall.Points[i].XValue -= diff;
-                }
-
-                oldOffset = offset;
-
-                if (enableFitting)
-                {
-                    var xy = GetXY();
-                    FitPlot(xy.Item1, xy.Item2);
-                }
+                PlotSetNewOffset(offset);
             }
         }
 
-        Tuple<List<double>, List<double>> GetXY()
+        Tuple<List<double>, List<double>> GetXY(int from = -1, int to = -1)
         {
             var test = chart_TestData.Series[0].Points.ToList();
             var testMax = test.Max(x => x.XValue);
@@ -1301,6 +1319,13 @@ namespace Classification_App
             var recall = chart_TestData.Series[1].Points.Where(p => p.XValue >= 0 && p.XValue <= testMax).ToList();
             var recallMin = recall.Min(p => p.XValue);
             test = test.Where(p => p.XValue >= recallMin).ToList();
+
+            if (from != -1 && to != -1)
+            {
+                test = test.Where(p => p.XValue >= from && p.XValue <= to).ToList();
+                recall = recall.Where(p => p.XValue >= from && p.XValue <= to).ToList();
+            }
+
 
             if (test.Count > recall.Count)
             {
@@ -1362,6 +1387,90 @@ namespace Classification_App
                     UpdateChart();
                 }
             }
+        }
+
+        bool searching = false;
+        private void btn_SearchOffset_Click(object sender, EventArgs e)
+        {
+
+            if (!enableFitting)
+            {
+                Log.LogMessage("You must load all data first");
+                return;
+            }
+
+
+            int from = 0;
+            int to = 0;
+            int stepsize = 0;
+
+            if (!int.TryParse(txt_OffsetFrom.Text, out from))
+            {
+                Log.LogMessage("Offset from must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(txt_OffsetTo.Text, out to))
+            {
+                Log.LogMessage("Offset to must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(txt_OffsetStep.Text, out stepsize))
+            {
+                Log.LogMessage("offset stepsize must be integer");
+                return;
+            }
+
+            txt_PlotDataOffset.Enabled = false;
+
+            Log.LogMessage($"Search for offset between {from} and {to}, stepsize {stepsize}...");
+
+            int slopeIdx = 0;
+            int rIdx = 0;
+            double bestSlope = double.MaxValue;
+            double bestR = 0;
+            Log.LogMessage("...");
+            searching = true;
+            btn_StopSearch.Visible = true;
+            for (int offset = from; offset <= to && searching; offset += stepsize)
+            {
+                txt_PlotDataOffset.Text = offset.ToString();
+
+                PlotSetNewOffset(offset);
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+
+                var newSlope = Math.Abs(slope - 1);
+                if (newSlope < bestSlope)
+                {
+                    bestSlope = newSlope;
+                    slopeIdx = offset;
+                }
+
+                if (rsquared > bestR)
+                {
+                    bestR = rsquared;
+                    rIdx = offset;
+                }
+
+                Log.LogMessageSameLine($"At {offset}, best slope: {bestSlope.ToString("0.000")} best rsquared: {bestR.ToString("0.000")}");
+                Application.DoEvents();
+            }
+            //Log.LogMessageSameLine($"At {to}, best slope: {bestSlope.ToString("0.000")} best rsquared: {bestR.ToString("0.000")}");
+
+            Log.LogMessage($"Best slope found at offset {slopeIdx}");
+            Log.LogMessage($"Best RSquared found was {bestR.ToString("0.000")} at offset {rIdx}");
+
+            txt_PlotDataOffset.Enabled = true;
+            searching = false;
+            btn_StopSearch.Visible = false;
+        }
+
+        private void btn_StopSearch_Click(object sender, EventArgs e)
+        {
+            searching = false;
+            btn_StopSearch.Visible = false;
         }
         #endregion
     }

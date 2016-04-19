@@ -52,6 +52,20 @@
             this.btn_excel_merge = new System.Windows.Forms.Button();
             this.btn_excel_add = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_StopSearch = new System.Windows.Forms.Button();
+            this.txt_OffsetStep = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.txt_OffsetTo = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.txt_OffsetFrom = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.btn_SearchOffset = new System.Windows.Forms.Button();
+            this.txt_rsquared = new System.Windows.Forms.Label();
+            this.txt_slope = new System.Windows.Forms.Label();
+            this.txt_intercept = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
             this.txt_PlotWindow = new System.Windows.Forms.TextBox();
             this.label11 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
@@ -78,12 +92,10 @@
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label14 = new System.Windows.Forms.Label();
-            this.txt_rsquared = new System.Windows.Forms.Label();
-            this.txt_slope = new System.Windows.Forms.Label();
-            this.txt_intercept = new System.Windows.Forms.Label();
+            this.txt_ExportTo = new System.Windows.Forms.TextBox();
+            this.txt_ExportFrom = new System.Windows.Forms.TextBox();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -101,7 +113,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(548, 318);
+            this.tabControl1.Size = new System.Drawing.Size(665, 318);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -118,7 +130,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(540, 292);
+            this.tabPage1.Size = new System.Drawing.Size(657, 292);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Normal";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -209,7 +221,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(540, 292);
+            this.tabPage2.Size = new System.Drawing.Size(657, 292);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Meta";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -250,7 +262,7 @@
             this.tabPage3.Controls.Add(this.btn_excel_add);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(540, 292);
+            this.tabPage3.Size = new System.Drawing.Size(657, 292);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Excel Merger";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -306,6 +318,18 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.txt_ExportTo);
+            this.tabPage4.Controls.Add(this.txt_ExportFrom);
+            this.tabPage4.Controls.Add(this.label18);
+            this.tabPage4.Controls.Add(this.label19);
+            this.tabPage4.Controls.Add(this.btn_StopSearch);
+            this.tabPage4.Controls.Add(this.txt_OffsetStep);
+            this.tabPage4.Controls.Add(this.label17);
+            this.tabPage4.Controls.Add(this.txt_OffsetTo);
+            this.tabPage4.Controls.Add(this.label16);
+            this.tabPage4.Controls.Add(this.txt_OffsetFrom);
+            this.tabPage4.Controls.Add(this.label15);
+            this.tabPage4.Controls.Add(this.btn_SearchOffset);
             this.tabPage4.Controls.Add(this.txt_rsquared);
             this.tabPage4.Controls.Add(this.txt_slope);
             this.tabPage4.Controls.Add(this.txt_intercept);
@@ -335,16 +359,145 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(540, 292);
+            this.tabPage4.Size = new System.Drawing.Size(657, 292);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Plotting";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // btn_StopSearch
+            // 
+            this.btn_StopSearch.Location = new System.Drawing.Point(128, 183);
+            this.btn_StopSearch.Name = "btn_StopSearch";
+            this.btn_StopSearch.Size = new System.Drawing.Size(42, 23);
+            this.btn_StopSearch.TabIndex = 34;
+            this.btn_StopSearch.Text = "Stop";
+            this.btn_StopSearch.UseVisualStyleBackColor = true;
+            this.btn_StopSearch.Visible = false;
+            this.btn_StopSearch.Click += new System.EventHandler(this.btn_StopSearch_Click);
+            // 
+            // txt_OffsetStep
+            // 
+            this.txt_OffsetStep.Location = new System.Drawing.Point(75, 269);
+            this.txt_OffsetStep.Name = "txt_OffsetStep";
+            this.txt_OffsetStep.Size = new System.Drawing.Size(46, 20);
+            this.txt_OffsetStep.TabIndex = 33;
+            this.txt_OffsetStep.Text = "50";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(19, 272);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(50, 13);
+            this.label17.TabIndex = 32;
+            this.label17.Text = "Stepsize:";
+            // 
+            // txt_OffsetTo
+            // 
+            this.txt_OffsetTo.Location = new System.Drawing.Point(75, 248);
+            this.txt_OffsetTo.Name = "txt_OffsetTo";
+            this.txt_OffsetTo.Size = new System.Drawing.Size(46, 20);
+            this.txt_OffsetTo.TabIndex = 31;
+            this.txt_OffsetTo.Text = "10000";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(46, 251);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(23, 13);
+            this.label16.TabIndex = 30;
+            this.label16.Text = "To:";
+            // 
+            // txt_OffsetFrom
+            // 
+            this.txt_OffsetFrom.Location = new System.Drawing.Point(75, 227);
+            this.txt_OffsetFrom.Name = "txt_OffsetFrom";
+            this.txt_OffsetFrom.Size = new System.Drawing.Size(46, 20);
+            this.txt_OffsetFrom.TabIndex = 29;
+            this.txt_OffsetFrom.Text = "-5000";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(36, 230);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(33, 13);
+            this.label15.TabIndex = 28;
+            this.label15.Text = "From:";
+            // 
+            // btn_SearchOffset
+            // 
+            this.btn_SearchOffset.Location = new System.Drawing.Point(6, 183);
+            this.btn_SearchOffset.Name = "btn_SearchOffset";
+            this.btn_SearchOffset.Size = new System.Drawing.Size(116, 23);
+            this.btn_SearchOffset.TabIndex = 27;
+            this.btn_SearchOffset.Text = "Search for offset";
+            this.btn_SearchOffset.UseVisualStyleBackColor = true;
+            this.btn_SearchOffset.Click += new System.EventHandler(this.btn_SearchOffset_Click);
+            // 
+            // txt_rsquared
+            // 
+            this.txt_rsquared.AutoSize = true;
+            this.txt_rsquared.Location = new System.Drawing.Point(204, 260);
+            this.txt_rsquared.Name = "txt_rsquared";
+            this.txt_rsquared.Size = new System.Drawing.Size(13, 13);
+            this.txt_rsquared.TabIndex = 26;
+            this.txt_rsquared.Text = "0";
+            // 
+            // txt_slope
+            // 
+            this.txt_slope.AutoSize = true;
+            this.txt_slope.Location = new System.Drawing.Point(204, 244);
+            this.txt_slope.Name = "txt_slope";
+            this.txt_slope.Size = new System.Drawing.Size(13, 13);
+            this.txt_slope.TabIndex = 25;
+            this.txt_slope.Text = "0";
+            // 
+            // txt_intercept
+            // 
+            this.txt_intercept.AutoSize = true;
+            this.txt_intercept.Location = new System.Drawing.Point(204, 227);
+            this.txt_intercept.Name = "txt_intercept";
+            this.txt_intercept.Size = new System.Drawing.Size(13, 13);
+            this.txt_intercept.TabIndex = 24;
+            this.txt_intercept.Text = "0";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(145, 258);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(58, 13);
+            this.label14.TabIndex = 23;
+            this.label14.Text = "RSquared:";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(166, 242);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(37, 13);
+            this.label13.TabIndex = 22;
+            this.label13.Text = "Slope:";
+            this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(151, 226);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(52, 13);
+            this.label12.TabIndex = 21;
+            this.label12.Text = "Intercept:";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // txt_PlotWindow
             // 
-            this.txt_PlotWindow.Location = new System.Drawing.Point(76, 90);
+            this.txt_PlotWindow.Location = new System.Drawing.Point(439, 48);
             this.txt_PlotWindow.Name = "txt_PlotWindow";
-            this.txt_PlotWindow.Size = new System.Drawing.Size(46, 20);
+            this.txt_PlotWindow.Size = new System.Drawing.Size(47, 20);
             this.txt_PlotWindow.TabIndex = 20;
             this.txt_PlotWindow.Text = "10000";
             this.txt_PlotWindow.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txt_PlotWindow_KeyDown);
@@ -352,7 +505,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(8, 93);
+            this.label11.Location = new System.Drawing.Point(361, 51);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(72, 13);
             this.label11.TabIndex = 19;
@@ -361,7 +514,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(288, 48);
+            this.label10.Location = new System.Drawing.Point(497, 53);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(140, 13);
             this.label10.TabIndex = 18;
@@ -370,7 +523,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(288, 14);
+            this.label9.Location = new System.Drawing.Point(392, 14);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(60, 13);
             this.label9.TabIndex = 17;
@@ -379,7 +532,7 @@
             // cmb_PlotDataType
             // 
             this.cmb_PlotDataType.FormattingEnabled = true;
-            this.cmb_PlotDataType.Location = new System.Drawing.Point(354, 11);
+            this.cmb_PlotDataType.Location = new System.Drawing.Point(458, 11);
             this.cmb_PlotDataType.Name = "cmb_PlotDataType";
             this.cmb_PlotDataType.Size = new System.Drawing.Size(179, 21);
             this.cmb_PlotDataType.TabIndex = 16;
@@ -388,7 +541,7 @@
             // scroll_PlotView
             // 
             this.scroll_PlotView.LargeChange = 1000;
-            this.scroll_PlotView.Location = new System.Drawing.Point(171, 273);
+            this.scroll_PlotView.Location = new System.Drawing.Point(275, 273);
             this.scroll_PlotView.Maximum = 10000;
             this.scroll_PlotView.Name = "scroll_PlotView";
             this.scroll_PlotView.Size = new System.Drawing.Size(362, 16);
@@ -401,7 +554,7 @@
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
             chartArea1.Name = "ChartArea1";
             this.chart_TestData.ChartAreas.Add(chartArea1);
-            this.chart_TestData.Location = new System.Drawing.Point(171, 64);
+            this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
             series1.ChartArea = "ChartArea1";
             series1.Name = "Series1";
@@ -412,7 +565,7 @@
             // 
             // txt_PlotPointSize
             // 
-            this.txt_PlotPointSize.Location = new System.Drawing.Point(64, 213);
+            this.txt_PlotPointSize.Location = new System.Drawing.Point(71, 89);
             this.txt_PlotPointSize.Name = "txt_PlotPointSize";
             this.txt_PlotPointSize.Size = new System.Drawing.Size(46, 20);
             this.txt_PlotPointSize.TabIndex = 12;
@@ -421,7 +574,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(3, 216);
+            this.label8.Location = new System.Drawing.Point(10, 92);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(55, 13);
             this.label8.TabIndex = 11;
@@ -429,7 +582,7 @@
             // 
             // txt_PlotDataOffset
             // 
-            this.txt_PlotDataOffset.Location = new System.Drawing.Point(76, 64);
+            this.txt_PlotDataOffset.Location = new System.Drawing.Point(75, 206);
             this.txt_PlotDataOffset.Name = "txt_PlotDataOffset";
             this.txt_PlotDataOffset.Size = new System.Drawing.Size(46, 20);
             this.txt_PlotDataOffset.TabIndex = 10;
@@ -439,11 +592,11 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(8, 67);
+            this.label7.Location = new System.Drawing.Point(4, 209);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(62, 13);
+            this.label7.Size = new System.Drawing.Size(73, 13);
             this.label7.TabIndex = 9;
-            this.label7.Text = "Data offset:";
+            this.label7.Text = "Current offset:";
             // 
             // txt_RecallDataName
             // 
@@ -485,7 +638,7 @@
             // 
             // txt_width
             // 
-            this.txt_width.Location = new System.Drawing.Point(64, 265);
+            this.txt_width.Location = new System.Drawing.Point(71, 131);
             this.txt_width.Name = "txt_width";
             this.txt_width.Size = new System.Drawing.Size(46, 20);
             this.txt_width.TabIndex = 4;
@@ -493,7 +646,7 @@
             // 
             // txt_height
             // 
-            this.txt_height.Location = new System.Drawing.Point(64, 239);
+            this.txt_height.Location = new System.Drawing.Point(71, 110);
             this.txt_height.Name = "txt_height";
             this.txt_height.Size = new System.Drawing.Size(46, 20);
             this.txt_height.TabIndex = 3;
@@ -502,7 +655,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(3, 242);
+            this.label6.Location = new System.Drawing.Point(10, 113);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(41, 13);
             this.label6.TabIndex = 2;
@@ -511,7 +664,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(3, 268);
+            this.label5.Location = new System.Drawing.Point(10, 134);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(38, 13);
             this.label5.TabIndex = 1;
@@ -519,9 +672,9 @@
             // 
             // btn_ExportPNG
             // 
-            this.btn_ExportPNG.Location = new System.Drawing.Point(6, 184);
+            this.btn_ExportPNG.Location = new System.Drawing.Point(6, 64);
             this.btn_ExportPNG.Name = "btn_ExportPNG";
-            this.btn_ExportPNG.Size = new System.Drawing.Size(104, 23);
+            this.btn_ExportPNG.Size = new System.Drawing.Size(116, 23);
             this.btn_ExportPNG.TabIndex = 0;
             this.btn_ExportPNG.Text = "Export .png";
             this.btn_ExportPNG.UseVisualStyleBackColor = true;
@@ -531,7 +684,7 @@
             // 
             this.richTextBox1.Location = new System.Drawing.Point(12, 395);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(548, 98);
+            this.richTextBox1.Size = new System.Drawing.Size(661, 98);
             this.richTextBox1.TabIndex = 3;
             this.richTextBox1.Text = "";
             // 
@@ -581,68 +734,43 @@
             this.chk_useControlValues.Text = "Use IAPS Control Values";
             this.chk_useControlValues.UseVisualStyleBackColor = true;
             // 
-            // label12
+            // txt_ExportTo
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(14, 124);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(52, 13);
-            this.label12.TabIndex = 21;
-            this.label12.Text = "Intercept:";
-            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.txt_ExportTo.Location = new System.Drawing.Point(164, 131);
+            this.txt_ExportTo.Name = "txt_ExportTo";
+            this.txt_ExportTo.Size = new System.Drawing.Size(46, 20);
+            this.txt_ExportTo.TabIndex = 38;
             // 
-            // label13
+            // txt_ExportFrom
             // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(29, 139);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(37, 13);
-            this.label13.TabIndex = 22;
-            this.label13.Text = "Slope:";
-            this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.txt_ExportFrom.Location = new System.Drawing.Point(164, 110);
+            this.txt_ExportFrom.Name = "txt_ExportFrom";
+            this.txt_ExportFrom.Size = new System.Drawing.Size(46, 20);
+            this.txt_ExportFrom.TabIndex = 37;
             // 
-            // label14
+            // label18
             // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(8, 155);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(58, 13);
-            this.label14.TabIndex = 23;
-            this.label14.Text = "RSquared:";
-            this.label14.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(132, 113);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(30, 13);
+            this.label18.TabIndex = 36;
+            this.label18.Text = "From";
             // 
-            // txt_rsquared
+            // label19
             // 
-            this.txt_rsquared.AutoSize = true;
-            this.txt_rsquared.Location = new System.Drawing.Point(67, 157);
-            this.txt_rsquared.Name = "txt_rsquared";
-            this.txt_rsquared.Size = new System.Drawing.Size(13, 13);
-            this.txt_rsquared.TabIndex = 26;
-            this.txt_rsquared.Text = "0";
-            // 
-            // txt_slope
-            // 
-            this.txt_slope.AutoSize = true;
-            this.txt_slope.Location = new System.Drawing.Point(67, 141);
-            this.txt_slope.Name = "txt_slope";
-            this.txt_slope.Size = new System.Drawing.Size(13, 13);
-            this.txt_slope.TabIndex = 25;
-            this.txt_slope.Text = "0";
-            // 
-            // txt_intercept
-            // 
-            this.txt_intercept.AutoSize = true;
-            this.txt_intercept.Location = new System.Drawing.Point(67, 125);
-            this.txt_intercept.Name = "txt_intercept";
-            this.txt_intercept.Size = new System.Drawing.Size(13, 13);
-            this.txt_intercept.TabIndex = 24;
-            this.txt_intercept.Text = "0";
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(140, 133);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(20, 13);
+            this.label19.TabIndex = 35;
+            this.label19.Text = "To";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(568, 505);
+            this.ClientSize = new System.Drawing.Size(689, 505);
             this.Controls.Add(this.chk_useControlValues);
             this.Controls.Add(this.Label);
             this.Controls.Add(this.threadBox);
@@ -723,6 +851,18 @@
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Button btn_SearchOffset;
+        private System.Windows.Forms.TextBox txt_OffsetStep;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.TextBox txt_OffsetTo;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox txt_OffsetFrom;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Button btn_StopSearch;
+        private System.Windows.Forms.TextBox txt_ExportTo;
+        private System.Windows.Forms.TextBox txt_ExportFrom;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.Label label18;
     }
 }
 
