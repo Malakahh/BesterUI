@@ -78,6 +78,12 @@
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.txt_rsquared = new System.Windows.Forms.Label();
+            this.txt_slope = new System.Windows.Forms.Label();
+            this.txt_intercept = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -300,6 +306,12 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.txt_rsquared);
+            this.tabPage4.Controls.Add(this.txt_slope);
+            this.tabPage4.Controls.Add(this.txt_intercept);
+            this.tabPage4.Controls.Add(this.label14);
+            this.tabPage4.Controls.Add(this.label13);
+            this.tabPage4.Controls.Add(this.label12);
             this.tabPage4.Controls.Add(this.txt_PlotWindow);
             this.tabPage4.Controls.Add(this.label11);
             this.tabPage4.Controls.Add(this.label10);
@@ -569,6 +581,63 @@
             this.chk_useControlValues.Text = "Use IAPS Control Values";
             this.chk_useControlValues.UseVisualStyleBackColor = true;
             // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(14, 124);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(52, 13);
+            this.label12.TabIndex = 21;
+            this.label12.Text = "Intercept:";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(29, 139);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(37, 13);
+            this.label13.TabIndex = 22;
+            this.label13.Text = "Slope:";
+            this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(8, 155);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(58, 13);
+            this.label14.TabIndex = 23;
+            this.label14.Text = "RSquared:";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // txt_rsquared
+            // 
+            this.txt_rsquared.AutoSize = true;
+            this.txt_rsquared.Location = new System.Drawing.Point(67, 157);
+            this.txt_rsquared.Name = "txt_rsquared";
+            this.txt_rsquared.Size = new System.Drawing.Size(13, 13);
+            this.txt_rsquared.TabIndex = 26;
+            this.txt_rsquared.Text = "0";
+            // 
+            // txt_slope
+            // 
+            this.txt_slope.AutoSize = true;
+            this.txt_slope.Location = new System.Drawing.Point(67, 141);
+            this.txt_slope.Name = "txt_slope";
+            this.txt_slope.Size = new System.Drawing.Size(13, 13);
+            this.txt_slope.TabIndex = 25;
+            this.txt_slope.Text = "0";
+            // 
+            // txt_intercept
+            // 
+            this.txt_intercept.AutoSize = true;
+            this.txt_intercept.Location = new System.Drawing.Point(67, 125);
+            this.txt_intercept.Name = "txt_intercept";
+            this.txt_intercept.Size = new System.Drawing.Size(13, 13);
+            this.txt_intercept.TabIndex = 24;
+            this.txt_intercept.Text = "0";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -648,6 +717,12 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox txt_PlotWindow;
         private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Label txt_rsquared;
+        private System.Windows.Forms.Label txt_slope;
+        private System.Windows.Forms.Label txt_intercept;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label label12;
     }
 }
 

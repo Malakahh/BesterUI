@@ -1129,19 +1129,24 @@ namespace Classification_App
                 pngify.Width = width;
                 pngify.Height = height;
 
-                var model = new PlotModel() { Title = "Scatter Plot" };
+                var xy = GetXY();
+
+                var test = xy.Item1;
+                var recall = xy.Item2;
+
+                FitPlot(test, recall);
+
+                var model = new PlotModel() { Title = $"Slope:{slope.ToString("0.000")} RSquared:{rsquared.ToString("0.000")}" };
                 var dataSeries = new OxyPlot.Series.ScatterSeries() { MarkerType = MarkerType.Circle, MarkerStroke = OxyColors.Red };
-
-                var test = chart_TestData.Series[0].Points;
-                var recall = chart_TestData.Series[1].Points.Where(x => x.XValue >= 0).ToList();
-
-                int min = Math.Min(test.Count, recall.Count);
-                for (int i = 0; i < min; i++)
+                for (int i = 0; i < test.Count; i++)
                 {
-                    dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i].YValues[0], recall[i].YValues[0]) { Size = pointSize });
+                    dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i], recall[i]) { Size = pointSize });
                 }
 
+                var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.1) { MarkerStroke = OxyColors.Blue };
+
                 model.Series.Add(dataSeries);
+                model.Series.Add(fitSeries);
 
                 model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
                 model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
@@ -1150,6 +1155,30 @@ namespace Classification_App
                 pngify.ExportToFile(model, sfd.FileName);
                 Log.LogMessage("Saved " + sfd.FileName + "!");
             }
+        }
+
+        double intercept = 0;
+        double slope = 0;
+        double rsquared = 0;
+        void FitPlot(List<double> xs, List<double> ys)
+        {
+            if (xs.Count > ys.Count)
+            {
+                xs = xs.Take(ys.Count).ToList();
+            }
+            else if (ys.Count > xs.Count)
+            {
+                ys = ys.Take(xs.Count).ToList();
+            }
+
+            var fit = MathNet.Numerics.Fit.Line(xs.ToArray(), ys.ToArray());
+            intercept = fit.Item1;
+            slope = fit.Item2;
+            rsquared = MathNet.Numerics.GoodnessOfFit.RSquared(xs.Select(x => intercept + slope * x), ys);
+
+            txt_intercept.Text = intercept.ToString("0.000");
+            txt_slope.Text = slope.ToString("0.000");
+            txt_rsquared.Text = rsquared.ToString("0.000");
         }
 
         private void btn_PlotLoadTest_Click(object sender, EventArgs e)
@@ -1184,6 +1213,7 @@ namespace Classification_App
             }
         }
 
+        List<int> loaded = new List<int>();
         void LoadDataSeries(List<long> xs, List<double> ys, int seriesId)
         {
             var ser = chart_TestData.Series[seriesId];
@@ -1203,8 +1233,19 @@ namespace Classification_App
 
             scroll_PlotView.Maximum = (int)xs.Last() - chartMsToShow;
             UpdateChart();
+            if (!loaded.Contains(seriesId))
+            {
+                loaded.Add(seriesId);
+            }
+            if (loaded.Count > 1)
+            {
+                enableFitting = true;
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+            }
         }
 
+        bool enableFitting = false;
         int chartMsToShow = 20000;
         void UpdateChart()
         {
@@ -1243,7 +1284,36 @@ namespace Classification_App
                 }
 
                 oldOffset = offset;
+
+                if (enableFitting)
+                {
+                    var xy = GetXY();
+                    FitPlot(xy.Item1, xy.Item2);
+                }
             }
+        }
+
+        Tuple<List<double>, List<double>> GetXY()
+        {
+            var test = chart_TestData.Series[0].Points.ToList();
+            var testMax = test.Max(x => x.XValue);
+
+            var recall = chart_TestData.Series[1].Points.Where(p => p.XValue >= 0 && p.XValue <= testMax).ToList();
+            var recallMin = recall.Min(p => p.XValue);
+            test = test.Where(p => p.XValue >= recallMin).ToList();
+
+            if (test.Count > recall.Count)
+            {
+                test = test.Take(recall.Count).ToList();
+            }
+            else if (recall.Count > test.Count)
+            {
+                recall = recall.Take(test.Count).ToList();
+            }
+
+
+            return Tuple.Create(test.Select(p => p.YValues[0]).ToList(), recall.Select(p => p.YValues[0]).ToList());
+
         }
 
         Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>> dataInterpreters = new Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>>();
