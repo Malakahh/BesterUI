@@ -1473,5 +1473,204 @@ namespace Classification_App
             btn_StopSearch.Visible = false;
         }
         #endregion
+
+        private void btn_CalculateResults_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                FolderBrowserDialog sfd = new FolderBrowserDialog() { Description = "Select folder to load excel sheets from" };
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    Excel.Application exc = new Excel.Application() { Visible = false };
+
+                    List<string> singles = new List<string>()
+                    {
+                        "EEG",
+                        "FACE",
+                        "GSR",
+                        "HR"
+                    };
+
+                    List<string> fusion = new List<string>()
+                    {
+                        "Stacking",
+                        "Voting"
+                    };
+
+                    Dictionary<SAMDataPoint.FeelingModel, int> cellOffsets = new Dictionary<SAMDataPoint.FeelingModel, int>()
+                    {
+                        [SAMDataPoint.FeelingModel.Arousal2High] = 11,
+                        [SAMDataPoint.FeelingModel.Arousal2Low] = 24,
+                        [SAMDataPoint.FeelingModel.Arousal3] = 40,
+                        [SAMDataPoint.FeelingModel.Valence2High] = 53,
+                        [SAMDataPoint.FeelingModel.Valence2Low] = 66,
+                        [SAMDataPoint.FeelingModel.Valence3] = 82
+                    };
+
+                    //test subject[SAMModel[machineType]]
+                    //items: C, Gamma, Kernel
+                    var configs = new Dictionary<string, Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>>();
+
+
+                    foreach (var configBook in singles.Concat(fusion))
+                    {
+                        Log.LogMessage($"Reading {configBook}...");
+                        Excel.Workbook dataBook = exc.Workbooks.Open(sfd.SelectedPath + $"/{configBook}.xlsx", ExcelHandler.missingValue,
+                                                                    false,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    true,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    true,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue);
+
+                        foreach (Excel.Worksheet sheet in dataBook.Sheets)
+                        {
+                            if (sheet.Name == "Overview" || sheet.Name == "First" || sheet.Name == "Last") continue;
+
+                            if (!configs.ContainsKey(sheet.Name))
+                            {
+                                configs.Add(sheet.Name, new Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>());
+                            }
+
+                            if (configs[sheet.Name].Count == 0)
+                            {
+                                foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                                {
+                                    configs[sheet.Name].Add(feel, new Dictionary<string, Tuple<double, double, int>>());
+
+                                    singles.ForEach(x => configs[sheet.Name][feel].Add(x, null));
+                                    fusion.ForEach(x => configs[sheet.Name][feel].Add(x, null));
+
+                                    if (feel.ToString().Contains("Valence"))
+                                    {
+                                        configs[sheet.Name][feel].Remove("GSR");
+                                    }
+                                }
+                            }
+
+
+                            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                            {
+                                if (configBook == "GSR" && feel.ToString().Contains("Valence")) continue;
+
+                                Excel.Range c = (Excel.Range)sheet.Cells[cellOffsets[feel], 3];
+                                Excel.Range gamma = (Excel.Range)sheet.Cells[cellOffsets[feel] + 1, 3];
+                                Excel.Range kernel = (Excel.Range)sheet.Cells[cellOffsets[feel] + 2, 3];
+
+                                if (c.Value != null && gamma.Value != null && kernel.Value != null)
+                                {
+                                    configs[sheet.Name][feel][configBook] = Tuple.Create(c.Value, gamma.Value, (int)kernel.Value);
+                                }
+
+                            }
+
+                        }
+
+                        dataBook.Close();
+                    }
+
+                    List<string> skippedList = new List<string>();
+                    foreach (var subject in configs)
+                    {
+                        foreach (var feel in subject.Value)
+                        {
+                            foreach (var machine in feel.Value)
+                            {
+                                if (machine.Value == null)
+                                {
+                                    skippedList.Add(subject.Key);
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (var skipped in skippedList)
+                    {
+                        configs.Remove(skipped);
+                        Log.LogMessage($"Skipped {skipped}");
+                    }
+
+                    var resultsList = new Dictionary<string, Dictionary<string, List<int>>>();
+                    foreach (string feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                    {
+                        resultsList.Add(feel, new Dictionary<string, List<int>>());
+                        resultsList.Add("SAM", new Dictionary<string, List<int>>());
+                        foreach (var item in singles.Concat(fusion))
+                        {
+                            resultsList[feel].Add(item, new List<int>());
+                        }
+                    }
+
+                    foreach (var subject in configs)
+                    {
+                        if (LoadData(fbd.SelectedPath + $"/{subject.Key}", _fd))
+                        {
+                            foreach (var feel in subject.Value)
+                            {
+                                resultsList["SAM"][feel.Key.ToString()].AddRange(samData.dataPoints.Select(x => x.ToAVCoordinate(feel.Key)));
+
+                                foreach (var machine in feel.Value)
+                                {
+                                    Log.LogMessage($"Calculating {subject.Key} / {feel} / {machine}");
+
+                                    var param = new SVMParameter()
+                                    {
+                                        C = machine.Value.Item1,
+                                        Gamma = machine.Value.Item2,
+                                        Kernel = (SVMKernelType)machine.Value.Item3
+                                    };
+
+                                    if (singles.Contains(machine.Key))
+                                    {
+                                        var classifier = new StdClassifier(new SVMConfiguration(param, FeatureCreator.GetFeatures(machine.Key, feel.Key)), samData);
+
+                                        var results = classifier.OldCrossValidate(feel.Key, 1);
+                                        foreach (var res in results[0].guesses)
+                                        {
+                                            resultsList[feel.Key.ToString()][machine.Key].Add(res);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        //var classifier = new MetaClassifier(machine.Key, param, samData)
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Log.LogMessage($"Skipped {subject.Key} due to bad data");
+                            skippedList.Add(subject.Key);
+                        }
+                    }
+
+                    Excel.Workbook resultBook = exc.Workbooks.Add(ExcelHandler.missingValue);
+
+                    Excel.Worksheet metaSheet = resultBook.Sheets.Add();
+                    metaSheet.Name = "Meta";
+
+                    metaSheet.Cells[1, 1] = "Skipped " + skippedList.Count;
+                    for (int i = 0; i < skippedList.Count; i++)
+                    {
+                        metaSheet.Cells[i + 2, 1] = skippedList[i];
+                    }
+
+                    foreach (var feel in Enum.GetNames(typeof(SAMDataPoint.FeelingModel)))
+                    {
+                        Excel.Worksheet feelSheet = resultBook.Sheets.Add();
+                        feelSheet.Name = feel;
+                    }
+
+                    exc.Quit();
+                }
+            }
+        }
     }
 }

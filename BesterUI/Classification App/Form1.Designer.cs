@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -52,6 +52,10 @@
             this.btn_excel_merge = new System.Windows.Forms.Button();
             this.btn_excel_add = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.txt_ExportTo = new System.Windows.Forms.TextBox();
+            this.txt_ExportFrom = new System.Windows.Forms.TextBox();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
             this.btn_StopSearch = new System.Windows.Forms.Button();
             this.txt_OffsetStep = new System.Windows.Forms.TextBox();
             this.label17 = new System.Windows.Forms.Label();
@@ -92,10 +96,7 @@
             this.threadBox = new System.Windows.Forms.ComboBox();
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
-            this.txt_ExportTo = new System.Windows.Forms.TextBox();
-            this.txt_ExportFrom = new System.Windows.Forms.TextBox();
-            this.label18 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
+            this.btn_CalculateResults = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -364,6 +365,38 @@
             this.tabPage4.Text = "Plotting";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // txt_ExportTo
+            // 
+            this.txt_ExportTo.Location = new System.Drawing.Point(164, 131);
+            this.txt_ExportTo.Name = "txt_ExportTo";
+            this.txt_ExportTo.Size = new System.Drawing.Size(46, 20);
+            this.txt_ExportTo.TabIndex = 38;
+            // 
+            // txt_ExportFrom
+            // 
+            this.txt_ExportFrom.Location = new System.Drawing.Point(164, 110);
+            this.txt_ExportFrom.Name = "txt_ExportFrom";
+            this.txt_ExportFrom.Size = new System.Drawing.Size(46, 20);
+            this.txt_ExportFrom.TabIndex = 37;
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(132, 113);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(30, 13);
+            this.label18.TabIndex = 36;
+            this.label18.Text = "From";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(140, 133);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(20, 13);
+            this.label19.TabIndex = 35;
+            this.label19.Text = "To";
+            // 
             // btn_StopSearch
             // 
             this.btn_StopSearch.Location = new System.Drawing.Point(128, 183);
@@ -552,13 +585,13 @@
             // chart_TestData
             // 
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
-            chartArea1.Name = "ChartArea1";
-            this.chart_TestData.ChartAreas.Add(chartArea1);
+            chartArea2.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea2);
             this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
-            series1.ChartArea = "ChartArea1";
-            series1.Name = "Series1";
-            this.chart_TestData.Series.Add(series1);
+            series2.ChartArea = "ChartArea1";
+            series2.Name = "Series1";
+            this.chart_TestData.Series.Add(series2);
             this.chart_TestData.Size = new System.Drawing.Size(362, 201);
             this.chart_TestData.TabIndex = 13;
             this.chart_TestData.Text = "chart1";
@@ -734,43 +767,22 @@
             this.chk_useControlValues.Text = "Use IAPS Control Values";
             this.chk_useControlValues.UseVisualStyleBackColor = true;
             // 
-            // txt_ExportTo
+            // btn_CalculateResults
             // 
-            this.txt_ExportTo.Location = new System.Drawing.Point(164, 131);
-            this.txt_ExportTo.Name = "txt_ExportTo";
-            this.txt_ExportTo.Size = new System.Drawing.Size(46, 20);
-            this.txt_ExportTo.TabIndex = 38;
-            // 
-            // txt_ExportFrom
-            // 
-            this.txt_ExportFrom.Location = new System.Drawing.Point(164, 110);
-            this.txt_ExportFrom.Name = "txt_ExportFrom";
-            this.txt_ExportFrom.Size = new System.Drawing.Size(46, 20);
-            this.txt_ExportFrom.TabIndex = 37;
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(132, 113);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(30, 13);
-            this.label18.TabIndex = 36;
-            this.label18.Text = "From";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(140, 133);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(20, 13);
-            this.label19.TabIndex = 35;
-            this.label19.Text = "To";
+            this.btn_CalculateResults.Location = new System.Drawing.Point(12, 34);
+            this.btn_CalculateResults.Name = "btn_CalculateResults";
+            this.btn_CalculateResults.Size = new System.Drawing.Size(149, 24);
+            this.btn_CalculateResults.TabIndex = 14;
+            this.btn_CalculateResults.Text = "Calculate All Results";
+            this.btn_CalculateResults.UseVisualStyleBackColor = true;
+            this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(689, 505);
+            this.Controls.Add(this.btn_CalculateResults);
             this.Controls.Add(this.chk_useControlValues);
             this.Controls.Add(this.Label);
             this.Controls.Add(this.threadBox);
@@ -863,6 +875,7 @@
         private System.Windows.Forms.TextBox txt_ExportFrom;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.Button btn_CalculateResults;
     }
 }
 
