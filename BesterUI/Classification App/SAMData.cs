@@ -62,7 +62,7 @@ namespace Classification_App
             }
             return data;
         }
-        
+
         public string ShouldSkip()
         {
             foreach (SAMDataPoint.FeelingModel fm in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
@@ -78,7 +78,7 @@ namespace Classification_App
                     {
                         if (dataPoints.Where(x => x.ToAVCoordinate(fm) == index).Count() == 1)
                         {
-                            return "Only one case of class " + index + "in fm";
+                            return "Only one case of class " + index + " in " + fm.ToString();
                         }
                     }
                 }

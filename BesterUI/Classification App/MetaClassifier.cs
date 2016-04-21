@@ -13,6 +13,8 @@ namespace Classification_App
 {
     class MetaClassifier : Classifier
     {
+        private const string ONLY_ONE_CLASS = "Only one class is present in the full";
+        private const string ONLY_ONE_CLASS_IN_TRAINING = "Only one class is present in the trained set";
         public Action<int, int> UpdateCallback;
         private List<StdClassifier> standardClassifiers = new List<StdClassifier>();
         public List<int> boostingOrder = new List<int>();
@@ -56,6 +58,25 @@ namespace Classification_App
             //Get correct results
             int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
 
+            bool postedOneClassError = false;
+            if (answers.Distinct().Count() <= 1)
+            {
+                int progressCounter = 0;
+                List<PredictionResult> predictedResults = new List<PredictionResult>();
+                int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+                //Calculate scoring results
+                double[,] confus = CalculateConfusion(answers.ToList().ConvertAll(x => (double)x).ToArray(), answers, numberOfLabels);
+                List<double> pres = CalculatePrecision(confus, numberOfLabels);
+                List<double> recall = CalculateRecall(confus, numberOfLabels);
+                List<double> fscore = CalculateFScore(pres, recall);
+                PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature>(), answers.ToList(), answers.ToList().ConvertAll(x => (int)x));
+                predictedResults.Add(pR);
+                progressCounter++;
+                Log.LogMessage(ONLY_ONE_CLASS);
+                Log.LogMessage("");
+                return predictedResults;
+            }
+
             List<PredictionResult> finalResults = new List<PredictionResult>();
 
             //Run for each parameter setting
@@ -68,9 +89,33 @@ namespace Classification_App
                 }
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
-                foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                try
                 {
-                    guesses.AddRange(tupleProblem.Item2.Predict(tupleProblem.Item1.Train(SVMpara)));
+
+                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                    {
+                        SVMModel trainingModel = tupleProblem.Item1.Train(SVMpara);
+                        if (trainingModel.ClassCount <= 1)
+                        {
+                            if (!postedOneClassError)
+                            {
+                                Log.LogMessage(ONLY_ONE_CLASS_IN_TRAINING);
+                                postedOneClassError = true;
+                            }
+                            guesses.AddRange(tupleProblem.Item1.Y.ToList().Take(tupleProblem.Item2.Y.Count()).ToList());
+                        }
+                        else
+                        {
+                            guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    for (int i = 0; i < samData.dataPoints.Count; i++)
+                    {
+                        guesses.Add(-1);
+                    }
                 }
                 int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
                 //Calculate scoring results
