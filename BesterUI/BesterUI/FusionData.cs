@@ -135,7 +135,7 @@ namespace BesterUI
                         if (!checkSize || size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading GSR data");
-                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 1);
+                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             shouldRun.Add(s, true);
                         }
                         else
@@ -294,7 +294,8 @@ namespace BesterUI
 
             Func<Color, string> c2s = (color) =>
             {
-                return "0x00" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
+                //This order Graph
+                return "0x00" + color.B.ToString("X2") + color.G.ToString("X2") + color.R.ToString("X2");
             };
 
             Func<string, Color, double, double, string> AddShade = (label, color, from, to) =>
@@ -358,100 +359,147 @@ namespace BesterUI
 
             List<string> pointSeries = new List<string>();
             List<string> shades = new List<string>();
-            for (int eventId = 1; eventId < events.Length; eventId++)
+            double lastTime = 0;
+            for (int eventId = 0; eventId < events.Length; eventId++)
             {
                 string[] evnt = events[eventId].Split('#');
+                
                 if (evnt[1].Contains("Bogus"))
                 {
                     continue;
                 }
-                shades.Add(AddShade(events[eventId-1], e2c(evnt[1]), int.Parse(events[eventId - 1].Split('#')[0]), int.Parse(evnt[0])));
+                shades.Add(AddShade(evnt[1],e2c(evnt[1]), lastTime,int.Parse(evnt[0])));
+                lastTime = int.Parse(evnt[0]);
 
-                pointSeries.Add(AddPointSeries("Splitter", Color.Black, new List<double>() { int.Parse(events[eventId - 1].Split('#')[0]), int.Parse(events[eventId - 1].Split('#')[0]) },
+                pointSeries.Add(AddPointSeries("Splitter", Color.Black, new List<double>() { int.Parse(events[eventId].Split('#')[0]), int.Parse(events[eventId].Split('#')[0]) },
                     new List<double>() { 0, 10000}));
             }
-
+            List<Tuple<double, string>> timestamps = new List<Tuple<double, string>>();
+            List<Tuple<double, string>> timestampsProspects = new List<Tuple<double, string>>();
             //actual data
-            List<double> x = new List<double>();
-            List<double> y = new List<double>();
             #region GSR
-            //gsrData = gsrData.OrderBy(n => n.timestamp).ToList();
+            gsrData = gsrData.OrderBy(n => n.timestamp).ToList();
+            // gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance)});
+            List<Tuple<long, double>> datGSR = new List<Tuple<long, double>>();
+            foreach (GSRDataReading g in gsrData)
+            {
+                datGSR.Add(new Tuple<long, double>(g.timestamp, g.resistance));
+            }
+
+            var gsrResult = GetInterrestingTimeStamp(datGSR, 40, MinMaxDifference, int.Parse(events[2].Split('#')[0]), true, 4000);
+            timestamps.AddRange(gsrResult.Item1.Select(x=>Tuple.Create(x,"GSR")));
+            timestampsProspects.AddRange(gsrResult.Item2.Select(x => Tuple.Create(x, "GSR")));
             //gsrData.ForEach(signal => { x.Add(signal.timestamp - hrData[0].timestamp); y.Add(signal.resistance); });
             //gsrData.ForEach(signal => { x.Add(signal.timestamp - hrData[0].timestamp); y.Add(signal.resistance); });
-            /*  int windowSize = 20;
-              long startTime = gsrData.First().timestamp;
-              long endTime = gsrData.Last().timestamp - gsrData.First().timestamp;
-              for (int i = 0; i < gsrData.Count - windowSize; i++)
-              {
-                  //Standarddeviation/variance
-
-                  List<GSRDataReading> datReadings = gsrData.Skip(i).Take(windowSize).ToList();
-                  double avg = datReadings.Average(k => k.resistance);
-                  double variance = Math.Sqrt(datReadings.Sum(u => Math.Pow(u.resistance - avg, 2)) / datReadings.Count);
-
-                      y.Add(variance);
-                      x.Add(datReadings[0].timestamp - startTime);
-              }
-
-              double maxValue = y.Max();
-              double minValue = y.Min();
-              y = y.Select(e => (e - minValue) / (maxValue - minValue)).ToList();*/
 
             #endregion
             #region HR
-            hrData = hrData.Where(e => e.isBeat).ToList().Where(dat => dat.signal < 2000).ToList();
-          /*  int windowSize = 20;
-            long startTime = hrData.First().timestamp;
-            long endTime = hrData.Last().timestamp - gsrData.First().timestamp;
-            for (int i = 0; i < hrData.Count - windowSize; i++)
+            List<Tuple<long, double>> datHR = new List<Tuple<long, double>>();
+            foreach (HRDataReading h in hrData)
             {
-                //Standarddeviation/variance
-
-                List<HRDataReading> datReadings = hrData.Skip(i).Take(windowSize).ToList();
-                double avg = (double)datReadings.Average(k => k.IBI);
-                double variance = Math.Sqrt(datReadings.Sum(u => Math.Pow((double)u.IBI - avg, 2)) / datReadings.Count);
-
-                y.Add(variance);
-                x.Add(datReadings[0].timestamp - startTime);
+                datHR.Add(new Tuple<long, double>(h.timestamp, (double)h.IBI));
             }
 
-            double maxValue = y.Max();
-            double minValue = y.Min();
-            y = y.Select(e => (e - minValue) / (maxValue - minValue)).ToList();
-
-    */
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
-           // hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            var hrResult = GetInterrestingTimeStamp(datGSR, 90, Variance, int.Parse(events[2].Split('#')[0]), true, 4000);
+            timestamps.AddRange(hrResult.Item1.Select(x => Tuple.Create(x, "HR")));
+            timestampsProspects.AddRange(hrResult.Item2.Select(x => Tuple.Create(x, "HR")));
 
             #endregion
             #region EEG
-          /*   int windowSize = 64;
-            long startTime = eegData.First().timestamp;
-            long endTime = eegData.Last().timestamp - gsrData.First().timestamp;
-            for (int i = 0; i < hrData.Count - windowSize; i++)
-            {
-                //Standarddeviation/variance
+            List<Tuple<long, double>> datEEG = new List<Tuple<long, double>>();
+            
 
-                List<HRDataReading> datReadings = hrData.Skip(i).Take(windowSize).ToList();
-                double avg = (double)datReadings.Average(k => k.IBI);
-                double variance = Math.Sqrt(datReadings.Sum(u => Math.Pow((double)u.IBI - avg, 2)) / datReadings.Count);
-
-                y.Add(variance);
-                x.Add(datReadings[0].timestamp - startTime);
-            }
-
-            double maxValue = y.Max();
-            double minValue = y.Min();
-            y = y.Select(e => (e - minValue) / (maxValue - minValue)).ToList();*/
-            //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });
-            eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.F3.ToString()] /*- eeg.data[EEGDataReading.ELECTRODE.F4.ToString()]*/); });
             #endregion
             #region Kinect
-            //nothing to see here, move along
+            List<Tuple<long, double>> datKinect = new List<Tuple<long, double>>();
+            foreach (FaceDataReading f in faceData)
+            {
+                datKinect.Add(Tuple.Create(f.timestamp, (double)(f.data[Microsoft.Kinect.Face.FaceShapeAnimations.RighteyebrowLowerer] 
+                    + f.data[Microsoft.Kinect.Face.FaceShapeAnimations.LefteyebrowLowerer])/2));
+            }
+            var kinectResult = GetInterrestingTimeStamp(datKinect, 15, Variance, int.Parse(events[2].Split('#')[0]), true, 500);
+            timestamps.AddRange(kinectResult.Item1.Select(x => Tuple.Create(x, "FACE1")));
+            timestampsProspects.AddRange(kinectResult.Item2.Select(x => Tuple.Create(x, "FACE1")));
+
+            List<Tuple<long, double>> datKinect2 = new List<Tuple<long, double>>();
+            foreach (FaceDataReading f in faceData)
+            {
+                datKinect2.Add(Tuple.Create(f.timestamp, (double)(f.data[Microsoft.Kinect.Face.FaceShapeAnimations.LowerlipDepressorRight]
+                    + f.data[Microsoft.Kinect.Face.FaceShapeAnimations.LowerlipDepressorLeft]) / 2));
+            }
+            var kinectResult2 = GetInterrestingTimeStamp(datKinect2, 15, Variance, int.Parse(events[2].Split('#')[0]), true, 500);
+            timestamps.AddRange(kinectResult2.Item1.Select(x => Tuple.Create(x, "FACE2")));
+            timestampsProspects.AddRange(kinectResult2.Item2.Select(x => Tuple.Create(x, "FACE2")));
             #endregion
 
-            pointSeries.Add(AddPointSeries("Data", Color.Black, x, y));
+            #region Create interest Graph
+            List<double> xValues = new List<double>();
+            List<double> yValues = new List<double>();
+            double outlierWeight = 15;
+            double suspectedWeight = 5;
+            double windowSize = 1000;
+            int tsCount = timestamps.Count;
+            int tspCount = timestampsProspects.Count;
+            timestamps = timestamps.OrderBy(x=>x).ToList();
+            timestampsProspects = timestampsProspects.OrderBy(x => x).ToList();
+            int lastIndex = 0;
+            int prospectsLastIndex = 0;
+            for (double i = 0; i < int.Parse(events.Last().Split('#')[0]) - windowSize; i += 10)
+            {
+                //Find start index
+                lastIndex = tsCount - timestamps.Skip(lastIndex).SkipWhile(x => i > x.Item1).Count();
+                prospectsLastIndex = tspCount - timestampsProspects.Skip(prospectsLastIndex).SkipWhile(x => i > x.Item1).Count();
+
+                List<string> inThisWindow = new List<string>();
+
+                xValues.Add(i);
+                double value = 0;
+                var temp = timestamps.Skip(lastIndex).ToList();
+                int counter = 0;
+                while (true)
+                {
+                    if (temp.Count > counter && temp[counter].Item1 - i < windowSize)
+                    {
+                        if (!inThisWindow.Contains(temp[counter].Item2))
+                        {
+                            inThisWindow.Add(temp[counter].Item2);
+                            value += outlierWeight;
+                        }
+                            
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    counter++;
+                }
+                var tempPros = timestampsProspects.Skip(prospectsLastIndex).ToList();
+                int prosCounter = 0;
+                while (true)
+                {
+                    if (tempPros.Count > prosCounter && tempPros[prosCounter].Item1 -i < windowSize)
+                    {
+                        if (!inThisWindow.Contains(tempPros[prosCounter].Item2))
+                        {
+                            inThisWindow.Add(tempPros[prosCounter].Item2);
+                            value += suspectedWeight;
+                        }
+
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    prosCounter++;
+                }
+                yValues.Add(value);
+            }
+
+            #endregion
+
+            pointSeries.Add(AddPointSeries("InterrestingPoints", Color.Magenta, xValues, yValues));
 
             using (var f = File.CreateText(path))
             {
@@ -515,7 +563,7 @@ namespace BesterUI
         }
 
         //event 2 color
-        Color e2c(string evnt)
+        private Color e2c(string evnt)
         {
             if (evnt.Contains("TaskWizard - BtnCompleteClicked")) return Color.Green;
             if (evnt.Contains("TaskWizard - BtnIncompleteClicked")) return Color.Red;
@@ -532,5 +580,44 @@ namespace BesterUI
             if (evnt.Contains("RemoveContact clicked")) return Color.GreenYellow;
             return Color.DarkMagenta;
         }
+
+        public double Variance(List<double> data)
+        {
+            double avg = data.Average();
+            return Math.Sqrt(data.Average(x => Math.Pow(x - avg, 2)));
+        }
+
+        public double MinMaxDifference(List<double> data)
+        {
+            return Math.Abs(data.Max() - data.Min());
+        }
+
+
+        private Tuple<List<double>, List<double>> GetInterrestingTimeStamp(List<Tuple<long, double>> dataList, int windowSize, Func<List<double>, double> Calculator, int calibrationTime, bool withRestPeriod, int offset = 0)
+        {
+            int restTimer = (withRestPeriod) ? 180000 : 0;
+            dataList = dataList.OrderBy(x => x.Item1).ToList();
+            long startTime = dataList.First().Item1;
+            List<Tuple<double, double>> data = new List<Tuple<double, double>>();
+            for (int i = 0; i < dataList.Count - windowSize; i++)
+            {
+                List<Tuple<long, double>> datReadings = dataList.Skip(i).Take(windowSize).ToList();
+                double result = Calculator(datReadings.Select(x => x.Item2).ToList());
+                data.Add(new Tuple<double, double>(datReadings.Select(x => Convert.ToDouble(x.Item1)).Average() - startTime, result));
+            }
+
+            List<double> timestamps = new List<double>();
+            List<double> timestampsProspects = new List<double>();
+
+            BoxPlot bp = SAnalysis.BoxPlot(data.Where(o => restTimer <= o.Item1 && o.Item1 <= calibrationTime).ToList());
+            List<Tuple<double, double>> dat = data.Where(o => bp.upperOuterFence < o.Item2 || bp.lowerOuterFence > o.Item2).ToList();
+            timestamps.AddRange(dat.Select(o => o.Item1).ToList());
+            List<Tuple<double, double>> datPros = data.Where((o => (bp.upperInnerFence < o.Item2 && o.Item2 < bp.upperOuterFence) || (bp.lowerOuterFence < o.Item2 && o.Item2 < bp.lowerInnerFence))).Where(o => o.Item1 > calibrationTime).ToList();
+            timestampsProspects.AddRange(datPros.Select(o => o.Item1).ToList());
+            timestamps.ForEach(x => x -= offset);
+            timestampsProspects.ForEach(x => x -= offset);
+            return new Tuple<List<double>, List<double>>(timestamps, timestampsProspects);
+        }
     }
+  
 }

@@ -58,6 +58,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.runSecondTestChkBox = new System.Windows.Forms.CheckBox();
+            this.bpButton = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -344,11 +345,22 @@
             this.runSecondTestChkBox.Text = "Run Second Test";
             this.runSecondTestChkBox.UseVisualStyleBackColor = true;
             // 
+            // bpButton
+            // 
+            this.bpButton.Location = new System.Drawing.Point(211, 146);
+            this.bpButton.Name = "bpButton";
+            this.bpButton.Size = new System.Drawing.Size(75, 23);
+            this.bpButton.TabIndex = 12;
+            this.bpButton.Text = "BoxPlotter";
+            this.bpButton.UseVisualStyleBackColor = true;
+            this.bpButton.Click += new System.EventHandler(this.bpButton_Click);
+            // 
             // CollectForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(816, 311);
+            this.Controls.Add(this.bpButton);
             this.Controls.Add(this.runSecondTestChkBox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.panel2);
@@ -401,5 +413,6 @@
         private System.Windows.Forms.Panel rdyLookLeft;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox runSecondTestChkBox;
+        private System.Windows.Forms.Button bpButton;
     }
 }

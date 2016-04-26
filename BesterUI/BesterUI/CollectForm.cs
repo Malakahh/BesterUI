@@ -244,5 +244,22 @@ namespace BesterUI
 
 
         }
+
+        private void bpButton_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                //string txt = File.ReadLines(path + @"\GSR.dat").First().Split('|')[1];
+                //DateTime dt = DateTime.ParseExact(txt, "yyyy-MM-dd HH_mm_ss_fff", System.Globalization.CultureInfo.InvariantCulture);
+                fusionData.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                BoxPlot bp = SAnalysis.BoxPlot(fusionData.hrData.Where(x=> (x.timestamp - fusionData.hrData.First().timestamp) > 180000 && (x.timestamp - fusionData.hrData.First().timestamp) < 642000 && x.isBeat == true).Select(x => new Tuple<double, double>(x.timestamp- fusionData.hrData.First().timestamp, double.Parse(x.IBI.ToString()))).ToList());
+                List<HRDataReading> hrDat = fusionData.hrData.Where(x => bp.upperOuterFence < x.IBI).ToList();
+                List<double> timestamps = hrDat.Where(x=>x.isBeat).Select(x => (double)(x.timestamp - fusionData.hrData.First().timestamp)).ToList();
+            }
+
+        }
     }
 }
