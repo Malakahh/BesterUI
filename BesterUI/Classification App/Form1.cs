@@ -1118,6 +1118,19 @@ namespace Classification_App
                 return;
             }
 
+            int from = -1;
+            if (!int.TryParse(txt_ExportFrom.Text, out from) || txt_ExportFrom.Text == "")
+            {
+                Log.LogMessage("Export from not valid integer, using 0");
+                from = -1;
+            }
+
+            int to = -1;
+            if (!int.TryParse(txt_ExportTo.Text, out to) || txt_ExportTo.Text == "")
+            {
+                Log.LogMessage("Export to not valid integer, using max");
+                to = -1;
+            }
 
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.DefaultExt = ".png";
@@ -1129,19 +1142,24 @@ namespace Classification_App
                 pngify.Width = width;
                 pngify.Height = height;
 
-                var model = new PlotModel() { Title = "Scatter Plot" };
+                var xy = GetXY(from, to);
+
+                var test = xy.Item1;
+                var recall = xy.Item2;
+
+                FitPlot(test, recall);
+
+                var model = new PlotModel() { Title = $"Slope:{slope.ToString("0.000")} RSquared:{rsquared.ToString("0.000")}" };
                 var dataSeries = new OxyPlot.Series.ScatterSeries() { MarkerType = MarkerType.Circle, MarkerStroke = OxyColors.Red };
-
-                var test = chart_TestData.Series[0].Points;
-                var recall = chart_TestData.Series[1].Points.Where(x => x.XValue >= 0).ToList();
-
-                int min = Math.Min(test.Count, recall.Count);
-                for (int i = 0; i < min; i++)
+                for (int i = 0; i < test.Count; i++)
                 {
-                    dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i].YValues[0], recall[i].YValues[0]) { Size = pointSize });
+                    dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i], recall[i]) { Size = pointSize });
                 }
 
+                var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.001) { Color = OxyColors.Blue };
+
                 model.Series.Add(dataSeries);
+                model.Series.Add(fitSeries);
 
                 model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
                 model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
@@ -1150,6 +1168,30 @@ namespace Classification_App
                 pngify.ExportToFile(model, sfd.FileName);
                 Log.LogMessage("Saved " + sfd.FileName + "!");
             }
+        }
+
+        double intercept = 0;
+        double slope = 0;
+        double rsquared = 0;
+        void FitPlot(List<double> xs, List<double> ys)
+        {
+            if (xs.Count > ys.Count)
+            {
+                xs = xs.Take(ys.Count).ToList();
+            }
+            else if (ys.Count > xs.Count)
+            {
+                ys = ys.Take(xs.Count).ToList();
+            }
+
+            var fit = MathNet.Numerics.Fit.Line(xs.ToArray(), ys.ToArray());
+            intercept = fit.Item1;
+            slope = fit.Item2;
+            rsquared = MathNet.Numerics.GoodnessOfFit.RSquared(xs.Select(x => intercept + slope * x), ys);
+
+            txt_intercept.Text = intercept.ToString("0.000");
+            txt_slope.Text = slope.ToString("0.000");
+            txt_rsquared.Text = rsquared.ToString("0.000");
         }
 
         private void btn_PlotLoadTest_Click(object sender, EventArgs e)
@@ -1184,6 +1226,7 @@ namespace Classification_App
             }
         }
 
+        List<int> loaded = new List<int>();
         void LoadDataSeries(List<long> xs, List<double> ys, int seriesId)
         {
             var ser = chart_TestData.Series[seriesId];
@@ -1203,8 +1246,19 @@ namespace Classification_App
 
             scroll_PlotView.Maximum = (int)xs.Last() - chartMsToShow;
             UpdateChart();
+            if (!loaded.Contains(seriesId))
+            {
+                loaded.Add(seriesId);
+            }
+            if (loaded.Count > 1)
+            {
+                enableFitting = true;
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+            }
         }
 
+        bool enableFitting = false;
         int chartMsToShow = 20000;
         void UpdateChart()
         {
@@ -1221,6 +1275,27 @@ namespace Classification_App
         }
 
         int oldOffset = 0;
+        void PlotSetNewOffset(int offset)
+        {
+            var diff = oldOffset - offset;
+
+            var test = chart_TestData.Series[0];
+            var recall = chart_TestData.Series[1];
+
+            for (int i = 0; i < recall.Points.Count; i++)
+            {
+                recall.Points[i].XValue += diff;
+            }
+
+            oldOffset = offset;
+
+            if (enableFitting)
+            {
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+            }
+        }
+
         private void txt_PlotDataOffset_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -1232,18 +1307,38 @@ namespace Classification_App
                     return;
                 }
 
-                var diff = oldOffset - offset;
-
-                var test = chart_TestData.Series[0];
-                var recall = chart_TestData.Series[1];
-
-                for (int i = 0; i < recall.Points.Count; i++)
-                {
-                    recall.Points[i].XValue -= diff;
-                }
-
-                oldOffset = offset;
+                PlotSetNewOffset(offset);
             }
+        }
+
+        Tuple<List<double>, List<double>> GetXY(int from = -1, int to = -1)
+        {
+            var test = chart_TestData.Series[0].Points.ToList();
+            var testMax = test.Max(x => x.XValue);
+
+            var recall = chart_TestData.Series[1].Points.Where(p => p.XValue >= 0 && p.XValue <= testMax).ToList();
+            var recallMin = recall.Min(p => p.XValue);
+            test = test.Where(p => p.XValue >= recallMin).ToList();
+
+            if (from != -1 && to != -1)
+            {
+                test = test.Where(p => p.XValue >= from && p.XValue <= to).ToList();
+                recall = recall.Where(p => p.XValue >= from && p.XValue <= to).ToList();
+            }
+
+
+            if (test.Count > recall.Count)
+            {
+                test = test.Take(recall.Count).ToList();
+            }
+            else if (recall.Count > test.Count)
+            {
+                recall = recall.Take(test.Count).ToList();
+            }
+
+
+            return Tuple.Create(test.Select(p => p.YValues[0]).ToList(), recall.Select(p => p.YValues[0]).ToList());
+
         }
 
         Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>> dataInterpreters = new Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>>();
@@ -1293,6 +1388,289 @@ namespace Classification_App
                 }
             }
         }
+
+        bool searching = false;
+        private void btn_SearchOffset_Click(object sender, EventArgs e)
+        {
+
+            if (!enableFitting)
+            {
+                Log.LogMessage("You must load all data first");
+                return;
+            }
+
+
+            int from = 0;
+            int to = 0;
+            int stepsize = 0;
+
+            if (!int.TryParse(txt_OffsetFrom.Text, out from))
+            {
+                Log.LogMessage("Offset from must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(txt_OffsetTo.Text, out to))
+            {
+                Log.LogMessage("Offset to must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(txt_OffsetStep.Text, out stepsize))
+            {
+                Log.LogMessage("offset stepsize must be integer");
+                return;
+            }
+
+            txt_PlotDataOffset.Enabled = false;
+
+            Log.LogMessage($"Search for offset between {from} and {to}, stepsize {stepsize}...");
+
+            int slopeIdx = 0;
+            int rIdx = 0;
+            double bestSlope = double.MaxValue;
+            double bestR = 0;
+            Log.LogMessage("...");
+            searching = true;
+            btn_StopSearch.Visible = true;
+            for (int offset = from; offset <= to && searching; offset += stepsize)
+            {
+                txt_PlotDataOffset.Text = offset.ToString();
+
+                PlotSetNewOffset(offset);
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+
+                var newSlope = Math.Abs(slope - 1);
+                if (newSlope < bestSlope)
+                {
+                    bestSlope = newSlope;
+                    slopeIdx = offset;
+                }
+
+                if (rsquared > bestR)
+                {
+                    bestR = rsquared;
+                    rIdx = offset;
+                }
+
+                Log.LogMessageSameLine($"At {offset}, best slope: {bestSlope.ToString("0.000")} best rsquared: {bestR.ToString("0.000")}");
+                Application.DoEvents();
+            }
+            //Log.LogMessageSameLine($"At {to}, best slope: {bestSlope.ToString("0.000")} best rsquared: {bestR.ToString("0.000")}");
+
+            Log.LogMessage($"Best slope found at offset {slopeIdx}");
+            Log.LogMessage($"Best RSquared found was {bestR.ToString("0.000")} at offset {rIdx}");
+
+            txt_PlotDataOffset.Enabled = true;
+            searching = false;
+            btn_StopSearch.Visible = false;
+        }
+
+        private void btn_StopSearch_Click(object sender, EventArgs e)
+        {
+            searching = false;
+            btn_StopSearch.Visible = false;
+        }
         #endregion
+
+        private void btn_CalculateResults_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                FolderBrowserDialog sfd = new FolderBrowserDialog() { Description = "Select folder to load excel sheets from" };
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    Excel.Application exc = new Excel.Application() { Visible = false };
+
+                    List<string> singles = new List<string>()
+                    {
+                        "EEG",
+                        "FACE",
+                        "GSR",
+                        "HR"
+                    };
+
+                    List<string> fusion = new List<string>()
+                    {
+                        "Stacking",
+                        "Voting"
+                    };
+
+                    Dictionary<SAMDataPoint.FeelingModel, int> cellOffsets = new Dictionary<SAMDataPoint.FeelingModel, int>()
+                    {
+                        [SAMDataPoint.FeelingModel.Arousal2High] = 11,
+                        [SAMDataPoint.FeelingModel.Arousal2Low] = 24,
+                        [SAMDataPoint.FeelingModel.Arousal3] = 40,
+                        [SAMDataPoint.FeelingModel.Valence2High] = 53,
+                        [SAMDataPoint.FeelingModel.Valence2Low] = 66,
+                        [SAMDataPoint.FeelingModel.Valence3] = 82
+                    };
+
+                    //test subject[SAMModel[machineType]]
+                    //items: C, Gamma, Kernel
+                    var configs = new Dictionary<string, Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>>();
+
+
+                    foreach (var configBook in singles.Concat(fusion))
+                    {
+                        Log.LogMessage($"Reading {configBook}...");
+                        Excel.Workbook dataBook = exc.Workbooks.Open(sfd.SelectedPath + $"/{configBook}.xlsx", ExcelHandler.missingValue,
+                                                                    false,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    true,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    true,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue,
+                                                                    ExcelHandler.missingValue);
+
+                        foreach (Excel.Worksheet sheet in dataBook.Sheets)
+                        {
+                            if (sheet.Name == "Overview" || sheet.Name == "First" || sheet.Name == "Last") continue;
+
+                            if (!configs.ContainsKey(sheet.Name))
+                            {
+                                configs.Add(sheet.Name, new Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>());
+                            }
+
+                            if (configs[sheet.Name].Count == 0)
+                            {
+                                foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                                {
+                                    configs[sheet.Name].Add(feel, new Dictionary<string, Tuple<double, double, int>>());
+
+                                    singles.ForEach(x => configs[sheet.Name][feel].Add(x, null));
+                                    fusion.ForEach(x => configs[sheet.Name][feel].Add(x, null));
+
+                                    if (feel.ToString().Contains("Valence"))
+                                    {
+                                        configs[sheet.Name][feel].Remove("GSR");
+                                    }
+                                }
+                            }
+
+
+                            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                            {
+                                if (configBook == "GSR" && feel.ToString().Contains("Valence")) continue;
+
+                                Excel.Range c = (Excel.Range)sheet.Cells[cellOffsets[feel], 3];
+                                Excel.Range gamma = (Excel.Range)sheet.Cells[cellOffsets[feel] + 1, 3];
+                                Excel.Range kernel = (Excel.Range)sheet.Cells[cellOffsets[feel] + 2, 3];
+
+                                if (c.Value != null && gamma.Value != null && kernel.Value != null)
+                                {
+                                    configs[sheet.Name][feel][configBook] = Tuple.Create(c.Value, gamma.Value, (int)kernel.Value);
+                                }
+
+                            }
+
+                        }
+
+                        dataBook.Close();
+                    }
+
+                    List<string> skippedList = new List<string>();
+                    foreach (var subject in configs)
+                    {
+                        foreach (var feel in subject.Value)
+                        {
+                            foreach (var machine in feel.Value)
+                            {
+                                if (machine.Value == null)
+                                {
+                                    skippedList.Add(subject.Key);
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (var skipped in skippedList)
+                    {
+                        configs.Remove(skipped);
+                        Log.LogMessage($"Skipped {skipped}");
+                    }
+
+                    var resultsList = new Dictionary<string, Dictionary<string, List<int>>>();
+                    foreach (string feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                    {
+                        resultsList.Add(feel, new Dictionary<string, List<int>>());
+                        resultsList.Add("SAM", new Dictionary<string, List<int>>());
+                        foreach (var item in singles.Concat(fusion))
+                        {
+                            resultsList[feel].Add(item, new List<int>());
+                        }
+                    }
+
+                    foreach (var subject in configs)
+                    {
+                        if (LoadData(fbd.SelectedPath + $"/{subject.Key}", _fd))
+                        {
+                            foreach (var feel in subject.Value)
+                            {
+                                resultsList["SAM"][feel.Key.ToString()].AddRange(samData.dataPoints.Select(x => x.ToAVCoordinate(feel.Key)));
+
+                                foreach (var machine in feel.Value)
+                                {
+                                    Log.LogMessage($"Calculating {subject.Key} / {feel} / {machine}");
+
+                                    var param = new SVMParameter()
+                                    {
+                                        C = machine.Value.Item1,
+                                        Gamma = machine.Value.Item2,
+                                        Kernel = (SVMKernelType)machine.Value.Item3
+                                    };
+
+                                    if (singles.Contains(machine.Key))
+                                    {
+                                        var classifier = new StdClassifier(new SVMConfiguration(param, FeatureCreator.GetFeatures(machine.Key, feel.Key)), samData);
+
+                                        var results = classifier.OldCrossValidate(feel.Key, 1);
+                                        foreach (var res in results[0].guesses)
+                                        {
+                                            resultsList[feel.Key.ToString()][machine.Key].Add(res);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        //var classifier = new MetaClassifier(machine.Key, param, samData)
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Log.LogMessage($"Skipped {subject.Key} due to bad data");
+                            skippedList.Add(subject.Key);
+                        }
+                    }
+
+                    Excel.Workbook resultBook = exc.Workbooks.Add(ExcelHandler.missingValue);
+
+                    Excel.Worksheet metaSheet = resultBook.Sheets.Add();
+                    metaSheet.Name = "Meta";
+
+                    metaSheet.Cells[1, 1] = "Skipped " + skippedList.Count;
+                    for (int i = 0; i < skippedList.Count; i++)
+                    {
+                        metaSheet.Cells[i + 2, 1] = skippedList[i];
+                    }
+
+                    foreach (var feel in Enum.GetNames(typeof(SAMDataPoint.FeelingModel)))
+                    {
+                        Excel.Worksheet feelSheet = resultBook.Sheets.Add();
+                        feelSheet.Name = feel;
+                    }
+
+                    exc.Quit();
+                }
+            }
+        }
     }
 }

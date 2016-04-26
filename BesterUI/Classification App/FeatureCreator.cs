@@ -37,8 +37,29 @@ namespace Classification_App
         const int EEG_DURATION = 710;
         const int FACE_LATENCY = 500;
         const int FACE_DURATION = 500;
-        
+
         const char SEPARATOR = '|';
+
+        public static List<Feature> GetFeatures(string machine, SAMDataPoint.FeelingModel feel)
+        {
+            bool valence = ((int)feel) < 3;
+
+            if (valence)
+            {
+                if (machine == "HR") return HRValenceOptimizationFeatures;
+                if (machine == "EEG") return EEGValenceOptimizationFeatures;
+                if (machine == "FACE") return FACEValenceOptimizationFeatures;
+            }
+            else
+            {
+                if (machine == "GSR") return GSRArousalOptimizationFeatures;
+                if (machine == "HR") return HRArousalOptimizationFeatures;
+                if (machine == "EEG") return EEGArousalOptimizationFeatures;
+                if (machine == "FACE") return FACEArousalOptimizationFeatures;
+            }
+
+            return null;
+        }
 
         static FeatureCreator()
         {
@@ -46,6 +67,8 @@ namespace Classification_App
             PopulateGSR();
             PopulateHR();
             PopulateFACE();
+
+
 
             allFeatures.AddRange(GSRArousalOptimizationFeatures);
             allFeatures.AddRange(HRArousalOptimizationFeatures);
@@ -176,7 +199,7 @@ namespace Classification_App
                 {
                     if (lastBeat.IBI != null)
                     {
-                        sqauredHRV.Add(Math.Pow((double)d.IBI - (double)lastBeat.IBI,2));
+                        sqauredHRV.Add(Math.Pow((double)d.IBI - (double)lastBeat.IBI, 2));
                         lastBeat = d;
                     }
                     else
@@ -228,17 +251,17 @@ namespace Classification_App
         }
 
         public static double DASM(List<DataReading> data, string band, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
-        {        
-            FFT fft1 = new FFT(data.Select(x => valueAccessor1(x)).ToList());        
-            FFT fft2 = new FFT(data.Select(x => valueAccessor2(x)).ToList());        
-            return fft1.AbsoluteBandPower[band] - fft2.AbsoluteBandPower[band];        
+        {
+            FFT fft1 = new FFT(data.Select(x => valueAccessor1(x)).ToList());
+            FFT fft2 = new FFT(data.Select(x => valueAccessor2(x)).ToList());
+            return fft1.AbsoluteBandPower[band] - fft2.AbsoluteBandPower[band];
         }
 
-    #endregion
+        #endregion
 
 
 
-    #region DataSlicing
+        #region DataSlicing
         public static List<DataReading> EEGDataSlice(List<DataReading> data, SAMDataPoint sam)
         {
             return data.SkipWhile(x => x.timestamp < sam.timeOffset + EEG_LATENCY).TakeWhile(x => x.timestamp < sam.timeOffset + EEG_LATENCY + EEG_DURATION).ToList();
@@ -286,7 +309,7 @@ namespace Classification_App
 
         static void PopulateEEG()
         {
-            List<string> names = new List<string>() { "Delta", "Theta", "Alpha","Beta", "Gamma" };
+            List<string> names = new List<string>() { "Delta", "Theta", "Alpha", "Beta", "Gamma" };
 
             foreach (string name in names)
             {
@@ -334,7 +357,7 @@ namespace Classification_App
             HRValenceOptimizationFeatures.Add(new Feature("HRV RMSSD", (data, sam) => HRVRMSSD(HRDataSlice(data, sam))));
             HRValenceOptimizationFeatures.Add(new Feature("HR Mean", (data, sam) => Mean(HRDataSlice(data, sam), HRValueAccessor)));
             HRValenceOptimizationFeatures.Add(new Feature("HR Max", (data, sam) => Max(HRDataSlice(data, sam), HRValueAccessor)));
-            
+
         }
 
         static void PopulateGSR()
@@ -374,7 +397,7 @@ namespace Classification_App
             FACEArousalOptimizationFeatures.Add(new Feature("Face Mean 11 & 12 ", (data, sam) => FaceMean(FaceDataSlice(data, sam),
                 (x => KinectValueAccessor(x, (FaceShapeAnimations)11)),
                 (x => KinectValueAccessor(x, (FaceShapeAnimations)12)))));
-            
+
             FACEArousalOptimizationFeatures.Add(new Feature("Face SD 11 & 12 ",
                 (data, sam) => FaceStandardDeviation(FaceDataSlice(data, sam),
                 (x => KinectValueAccessor(x, (FaceShapeAnimations)11)),
