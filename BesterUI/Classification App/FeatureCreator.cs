@@ -381,7 +381,7 @@ namespace Classification_App
             {
                 int l = i;
                 FACEValenceOptimizationFeatures.Add(new Feature("Face Mean " + meanFaceLeftSide[l] + " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
-                      (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[])),
+                      (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[l])),
                       (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[l])))));
             }
             for (int j = 0; j < sdFaceLeftSide.Count; j++)
