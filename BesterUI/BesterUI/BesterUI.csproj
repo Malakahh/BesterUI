@@ -121,6 +121,7 @@
     <Compile Include="RestingForm.Designer.cs">
       <DependentUpon>RestingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SAnalysis.cs" />
     <EmbeddedResource Include="CollectForm.resx">
       <DependentUpon>CollectForm.cs</DependentUpon>
     </EmbeddedResource>
