@@ -1090,6 +1090,12 @@ namespace Classification_App
         #region Plotting
         private void btn_ExportPNG_Click(object sender, EventArgs e)
         {
+            if (loaded.Count < 2)
+            {
+                Log.LogMessage("You must load all data before exporting!");
+                return;
+            }
+
             int height = 0;
             if (!int.TryParse(txt_height.Text, out height))
             {
@@ -1166,6 +1172,94 @@ namespace Classification_App
 
 
                 pngify.ExportToFile(model, sfd.FileName);
+                Log.LogMessage("Saved " + sfd.FileName + "!");
+            }
+        }
+
+        private void btn_PlotExportExcel_Click(object sender, EventArgs e)
+        {
+            if (loaded.Count < 2)
+            {
+                Log.LogMessage("You must load all data before exporting!");
+                return;
+            }
+
+            int from = -1;
+            if (!int.TryParse(txt_ExportFrom.Text, out from) || txt_ExportFrom.Text == "")
+            {
+                Log.LogMessage("Export from not valid integer, using 0");
+                from = -1;
+            }
+
+            int to = -1;
+            if (!int.TryParse(txt_ExportTo.Text, out to) || txt_ExportTo.Text == "")
+            {
+                Log.LogMessage("Export to not valid integer, using max");
+                to = -1;
+            }
+
+            int offset = 0;
+            if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
+            {
+                Log.LogMessage("Offset must be an integer");
+                return;
+            }
+
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.DefaultExt = ".xlsx";
+            sfd.Filter = "xlsx|*.xlsx";
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                var xy = GetXY(from, to);
+
+                var test = xy.Item1;
+                var recall = xy.Item2;
+
+                FitPlot(test, recall);
+
+                Excel.Application exc = new Excel.Application() { Visible = false };
+
+                Excel.Workbook dataBook = exc.Workbooks.Add(ExcelHandler.missingValue);
+                //Excel.Workbook dataBook = exc.Workbooks.Open(sfd.FileName, ExcelHandler.missingValue,
+                //                                                    false,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    true,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    true,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    ExcelHandler.missingValue,
+                //                                                    ExcelHandler.missingValue);
+
+                Excel.Worksheet sheet = dataBook.Sheets["Sheet1"];
+
+                sheet.Cells[1, 1] = "Test";
+                sheet.Cells[1, 2] = "Recall";
+
+                Log.LogMessage("Data count: " + test.Count);
+                Log.LogMessage("Currently : ");
+                var timer = Stopwatch.StartNew();
+                for (int i = 0; i < test.Count; i++)
+                {
+                    sheet.Cells[i + 2, 1] = test[i];
+                    sheet.Cells[i + 2, 2] = recall[i];
+                    if (timer.ElapsedMilliseconds > 1000)
+                    {
+                        Log.LogMessageSameLine("Currently: " + i);
+                        timer.Restart();
+                        Application.DoEvents();
+                    }
+                }
+                Log.LogMessageSameLine("Currently: " + test.Count);
+                sheet.Name = "data";
+
+                dataBook.SaveCopyAs(sfd.FileName);
+                dataBook.Close(false);
+                exc.Quit();
+
                 Log.LogMessage("Saved " + sfd.FileName + "!");
             }
         }
@@ -1672,5 +1766,7 @@ namespace Classification_App
                 }
             }
         }
+
+
     }
 }

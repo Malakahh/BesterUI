@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -97,6 +97,7 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
+            this.btn_PlotExportExcel = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -319,6 +320,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.btn_PlotExportExcel);
             this.tabPage4.Controls.Add(this.txt_ExportTo);
             this.tabPage4.Controls.Add(this.txt_ExportFrom);
             this.tabPage4.Controls.Add(this.label18);
@@ -585,13 +587,13 @@
             // chart_TestData
             // 
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
-            chartArea2.Name = "ChartArea1";
-            this.chart_TestData.ChartAreas.Add(chartArea2);
+            chartArea1.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea1);
             this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
-            series2.ChartArea = "ChartArea1";
-            series2.Name = "Series1";
-            this.chart_TestData.Series.Add(series2);
+            series1.ChartArea = "ChartArea1";
+            series1.Name = "Series1";
+            this.chart_TestData.Series.Add(series1);
             this.chart_TestData.Size = new System.Drawing.Size(362, 201);
             this.chart_TestData.TabIndex = 13;
             this.chart_TestData.Text = "chart1";
@@ -777,6 +779,16 @@
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
+            // btn_PlotExportExcel
+            // 
+            this.btn_PlotExportExcel.Location = new System.Drawing.Point(128, 64);
+            this.btn_PlotExportExcel.Name = "btn_PlotExportExcel";
+            this.btn_PlotExportExcel.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotExportExcel.TabIndex = 39;
+            this.btn_PlotExportExcel.Text = "Export .xlsx";
+            this.btn_PlotExportExcel.UseVisualStyleBackColor = true;
+            this.btn_PlotExportExcel.Click += new System.EventHandler(this.btn_PlotExportExcel_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -876,6 +888,7 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.Button btn_CalculateResults;
+        private System.Windows.Forms.Button btn_PlotExportExcel;
     }
 }
 
