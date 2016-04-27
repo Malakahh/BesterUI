@@ -1264,6 +1264,101 @@ namespace Classification_App
             }
         }
 
+        private void btn_PlotExportTasks_Click(object sender, EventArgs e)
+        {
+            if (loaded.Count < 2)
+            {
+                Log.LogMessage("You must load all data before exporting!");
+                return;
+            }
+
+            int height = 0;
+            if (!int.TryParse(txt_height.Text, out height))
+            {
+                Log.LogMessage("Height must be an integer");
+                return;
+            }
+
+            int width = 0;
+            if (!int.TryParse(txt_width.Text, out width))
+            {
+                Log.LogMessage("Width must be an integer");
+                return;
+            }
+
+            int offset = 0;
+            if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
+            {
+                Log.LogMessage("Offset must be an integer");
+                return;
+            }
+
+            double pointSize = 0;
+            if (!double.TryParse(txt_PlotPointSize.Text.Replace(".", ","), out pointSize))
+            {
+                Log.LogMessage("Point size must be a double");
+                return;
+            }
+
+            OpenFileDialog ofd = new OpenFileDialog();
+
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                PngExporter pngify = new PngExporter();
+                pngify.Width = width;
+                pngify.Height = height;
+
+                var lines = File.ReadAllLines(ofd.FileName);
+                List<int> points = new List<int>();
+                foreach (var item in lines)
+                {
+                    if (item == "") continue;
+                    var split = item.Split('#');
+                    if (split[1].Contains("ompleteClicked"))
+                    {
+                        int stamp = int.Parse(split[0]);
+                        if (points.Count == 0 || stamp - points.Last() > 3000)
+                        {
+                            points.Add(stamp);
+                        }
+                    }
+                }
+
+                string savepath = ofd.FileName.Replace(ofd.SafeFileName, "");
+                Log.LogMessage("Total: " + (points.Count - 1));
+                for (int j = 0; j < points.Count - 1; j++)
+                {
+                    var xy = GetXY(points[j], points[j + 1]);
+
+                    var test = xy.Item1;
+                    var recall = xy.Item2;
+
+                    FitPlot(test, recall);
+
+                    var model = new PlotModel() { Title = $"Slope:{slope.ToString("0.000")} RSquared:{rsquared.ToString("0.000")}" };
+                    var dataSeries = new OxyPlot.Series.ScatterSeries() { MarkerType = MarkerType.Circle, MarkerStroke = OxyColors.Red };
+                    for (int i = 0; i < test.Count; i++)
+                    {
+                        dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i], recall[i]) { Size = pointSize });
+                    }
+
+                    var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.001) { Color = OxyColors.Blue };
+
+                    model.Series.Add(dataSeries);
+                    model.Series.Add(fitSeries);
+
+                    model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
+                    model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
+
+
+
+                    pngify.ExportToFile(model, $"{savepath}{j}.png");
+                    Log.LogMessage("Saved " + $"{savepath}{j}.png" + "!");
+                }
+                Log.LogMessage("DonnoDK");
+            }
+        }
+
         double intercept = 0;
         double slope = 0;
         double rsquared = 0;
@@ -1360,6 +1455,7 @@ namespace Classification_App
 
             area.AxisX.Minimum = scroll_PlotView.Value;
             area.AxisX.Maximum = scroll_PlotView.Value + chartMsToShow;
+
         }
 
 

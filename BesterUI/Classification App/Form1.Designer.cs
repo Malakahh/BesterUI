@@ -52,6 +52,7 @@
             this.btn_excel_merge = new System.Windows.Forms.Button();
             this.btn_excel_add = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_PlotExportExcel = new System.Windows.Forms.Button();
             this.txt_ExportTo = new System.Windows.Forms.TextBox();
             this.txt_ExportFrom = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
@@ -97,7 +98,7 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
-            this.btn_PlotExportExcel = new System.Windows.Forms.Button();
+            this.btn_PlotExportTasks = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -320,6 +321,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.btn_PlotExportTasks);
             this.tabPage4.Controls.Add(this.btn_PlotExportExcel);
             this.tabPage4.Controls.Add(this.txt_ExportTo);
             this.tabPage4.Controls.Add(this.txt_ExportFrom);
@@ -366,6 +368,16 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Plotting";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // btn_PlotExportExcel
+            // 
+            this.btn_PlotExportExcel.Location = new System.Drawing.Point(128, 64);
+            this.btn_PlotExportExcel.Name = "btn_PlotExportExcel";
+            this.btn_PlotExportExcel.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotExportExcel.TabIndex = 39;
+            this.btn_PlotExportExcel.Text = "Export .xlsx";
+            this.btn_PlotExportExcel.UseVisualStyleBackColor = true;
+            this.btn_PlotExportExcel.Click += new System.EventHandler(this.btn_PlotExportExcel_Click);
             // 
             // txt_ExportTo
             // 
@@ -779,15 +791,15 @@
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
-            // btn_PlotExportExcel
+            // btn_PlotExportTasks
             // 
-            this.btn_PlotExportExcel.Location = new System.Drawing.Point(128, 64);
-            this.btn_PlotExportExcel.Name = "btn_PlotExportExcel";
-            this.btn_PlotExportExcel.Size = new System.Drawing.Size(116, 23);
-            this.btn_PlotExportExcel.TabIndex = 39;
-            this.btn_PlotExportExcel.Text = "Export .xlsx";
-            this.btn_PlotExportExcel.UseVisualStyleBackColor = true;
-            this.btn_PlotExportExcel.Click += new System.EventHandler(this.btn_PlotExportExcel_Click);
+            this.btn_PlotExportTasks.Location = new System.Drawing.Point(7, 154);
+            this.btn_PlotExportTasks.Name = "btn_PlotExportTasks";
+            this.btn_PlotExportTasks.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotExportTasks.TabIndex = 40;
+            this.btn_PlotExportTasks.Text = "Export Tasks";
+            this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
+            this.btn_PlotExportTasks.Click += new System.EventHandler(this.btn_PlotExportTasks_Click);
             // 
             // Form1
             // 
@@ -889,6 +901,7 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.Button btn_CalculateResults;
         private System.Windows.Forms.Button btn_PlotExportExcel;
+        private System.Windows.Forms.Button btn_PlotExportTasks;
     }
 }
 
