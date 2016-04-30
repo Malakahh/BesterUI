@@ -131,6 +131,7 @@
     </Compile>
     <Compile Include="MetaClassifier.cs" />
     <Compile Include="MetaSVMConfiguration.cs" />
+    <Compile Include="OneClassClassifier.cs" />
     <Compile Include="PredictionResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

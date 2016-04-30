@@ -33,6 +33,7 @@ namespace Classification_App
 
         FusionData fdTest = new FusionData();
         FusionData fdRecall = new FusionData();
+        FusionData fdNovelty = new FusionData();
 
         public Form1()
         {
@@ -804,6 +805,11 @@ namespace Classification_App
         }
 
         #region MERGING
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btn_excel_add_Click(object sender, EventArgs e)
         {
             OpenFileDialog fd = new OpenFileDialog();
@@ -1767,6 +1773,64 @@ namespace Classification_App
             }
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            string[] events = new string[0];
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                fdNovelty.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                events = File.ReadAllLines(path + @"\SecondTest.dat");
+            }
+            if (events.Length == 0)
+            {
+                //if events is not assigned with second test data
+                return;
+            }
+            int start = (useRestInTraining.Checked) ? 180000 : 0;
+            int trainingEnd = int.Parse(events[2].Split('#')[0]);
+            int windowSize = 5000;
+            int stepSize = 100;
+            int delay = 2000;
 
+
+            //Split into training & prediction set
+            List<List<double>> featureVectors = new List<List<double>>();
+            List<int> timeStamps = new List<int>();
+
+            for (int i = 0; i < fdNovelty.gsrData.Last().timestamp - fdNovelty.gsrData.First().timestamp - windowSize; i += stepSize)
+            {
+                List<double> featureVector = new List<double>();
+                List<double> data = fdNovelty.gsrData.SkipWhile(x => (x.timestamp - fdNovelty.gsrData.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - fdNovelty.gsrData.First().timestamp)).Select(x=>(double)x.resistance).ToList();
+                if(data.Count == 0)
+                { continue; }
+                featureVector.Add(data.Average());
+                featureVector.Add(data.Max());
+                featureVector.Add(data.Min());
+                double avg = data.Average();
+                double sd = Math.Sqrt(data.Average(x => Math.Pow(x - avg, 2)));
+                featureVector.Add(sd);
+                featureVectors.Add(featureVector);
+                timeStamps.Add(i);
+            }
+
+            featureVectors = featureVectors.NormalizeFeatureList<double>(Normalize.OneMinusOne).ToList();
+            var dataSet = featureVectors.Zip(timeStamps, (first, second) => { return Tuple.Create(first, second); });
+
+            var trainingSet = dataSet.SkipWhile(x => x.Item2 < start).TakeWhile(x => x.Item2 < trainingEnd);
+            var predictionSet = dataSet.SkipWhile(x => x.Item2 < trainingEnd);
+
+            int count = predictionSet.Count();
+            OneClassClassifier occ = new OneClassClassifier(trainingSet.Select(x => x.Item1).ToList());
+            SVMParameter svmP = new SVMParameter();
+            svmP.Kernel = SVMKernelType.SIGMOID;
+            svmP.C = 100;
+            svmP.Gamma = 2;
+            svmP.Type = SVMType.ONE_CLASS;
+            occ.CreateModel(svmP);
+            List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
+            int k = 0;
+        }
     }
 }
