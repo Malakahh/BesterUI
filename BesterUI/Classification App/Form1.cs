@@ -1826,7 +1826,8 @@ namespace Classification_App
             SVMParameter svmP = new SVMParameter();
             svmP.Kernel = SVMKernelType.SIGMOID;
             svmP.C = 100;
-            svmP.Gamma = 2;
+            svmP.Gamma = 0.1;
+            svmP.Nu = 0.01;
             svmP.Type = SVMType.ONE_CLASS;
             occ.CreateModel(svmP);
             List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
