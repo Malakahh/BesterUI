@@ -28,8 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -52,6 +55,7 @@
             this.btn_excel_merge = new System.Windows.Forms.Button();
             this.btn_excel_add = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_PlotExportTasks = new System.Windows.Forms.Button();
             this.btn_PlotExportExcel = new System.Windows.Forms.Button();
             this.txt_ExportTo = new System.Windows.Forms.TextBox();
             this.txt_ExportFrom = new System.Windows.Forms.TextBox();
@@ -91,6 +95,9 @@
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.btn_ExportPNG = new System.Windows.Forms.Button();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.useRestInTraining = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
@@ -98,10 +105,7 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.button1 = new System.Windows.Forms.Button();
-            this.useRestInTraining = new System.Windows.Forms.CheckBox();
-            this.btn_PlotExportTasks = new System.Windows.Forms.Button();
+            this.noveltyChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -109,6 +113,7 @@
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).BeginInit();
             this.tabPage5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.noveltyChart)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -375,6 +380,15 @@
             this.tabPage4.Text = "Plotting";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // btn_PlotExportTasks
+            // 
+            this.btn_PlotExportTasks.Location = new System.Drawing.Point(7, 154);
+            this.btn_PlotExportTasks.Name = "btn_PlotExportTasks";
+            this.btn_PlotExportTasks.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotExportTasks.TabIndex = 40;
+            this.btn_PlotExportTasks.Text = "Export Tasks";
+            this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
+            // 
             // btn_PlotExportExcel
             // 
             this.btn_PlotExportExcel.Location = new System.Drawing.Point(128, 64);
@@ -605,13 +619,13 @@
             // chart_TestData
             // 
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
-            chartArea3.Name = "ChartArea1";
-            this.chart_TestData.ChartAreas.Add(chartArea3);
+            chartArea1.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea1);
             this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
-            series3.ChartArea = "ChartArea1";
-            series3.Name = "Series1";
-            this.chart_TestData.Series.Add(series3);
+            series1.ChartArea = "ChartArea1";
+            series1.Name = "Series1";
+            this.chart_TestData.Series.Add(series1);
             this.chart_TestData.Size = new System.Drawing.Size(362, 201);
             this.chart_TestData.TabIndex = 13;
             this.chart_TestData.Text = "chart1";
@@ -733,6 +747,39 @@
             this.btn_ExportPNG.UseVisualStyleBackColor = true;
             this.btn_ExportPNG.Click += new System.EventHandler(this.btn_ExportPNG_Click);
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.noveltyChart);
+            this.tabPage5.Controls.Add(this.useRestInTraining);
+            this.tabPage5.Controls.Add(this.button1);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(657, 292);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Novelty Detection";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // useRestInTraining
+            // 
+            this.useRestInTraining.AutoSize = true;
+            this.useRestInTraining.Location = new System.Drawing.Point(151, 13);
+            this.useRestInTraining.Name = "useRestInTraining";
+            this.useRestInTraining.Size = new System.Drawing.Size(145, 17);
+            this.useRestInTraining.TabIndex = 1;
+            this.useRestInTraining.Text = "Use rest period in training";
+            this.useRestInTraining.UseVisualStyleBackColor = true;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(6, 6);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(139, 29);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "SVM One Class";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // richTextBox1
             // 
             this.richTextBox1.Location = new System.Drawing.Point(12, 395);
@@ -797,45 +844,21 @@
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
-            // tabPage5
+            // noveltyChart
             // 
-            this.tabPage5.Controls.Add(this.useRestInTraining);
-            this.tabPage5.Controls.Add(this.button1);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(657, 292);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Novelty Detection";
-            this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(6, 6);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(139, 29);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "SVM One Class";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // useRestInTraining
-            // 
-            this.useRestInTraining.AutoSize = true;
-            this.useRestInTraining.Location = new System.Drawing.Point(151, 13);
-            this.useRestInTraining.Name = "useRestInTraining";
-            this.useRestInTraining.Size = new System.Drawing.Size(145, 17);
-            this.useRestInTraining.TabIndex = 1;
-            this.useRestInTraining.Text = "Use rest period in training";
-            this.useRestInTraining.UseVisualStyleBackColor = true;
-            // btn_PlotExportTasks
-            // 
-            this.btn_PlotExportTasks.Location = new System.Drawing.Point(7, 154);
-            this.btn_PlotExportTasks.Name = "btn_PlotExportTasks";
-            this.btn_PlotExportTasks.Size = new System.Drawing.Size(116, 23);
-            this.btn_PlotExportTasks.TabIndex = 40;
-            this.btn_PlotExportTasks.Text = "Export Tasks";
-            this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
+            chartArea2.Name = "ChartArea1";
+            this.noveltyChart.ChartAreas.Add(chartArea2);
+            legend1.Name = "Legend1";
+            this.noveltyChart.Legends.Add(legend1);
+            this.noveltyChart.Location = new System.Drawing.Point(181, 36);
+            this.noveltyChart.Name = "noveltyChart";
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.noveltyChart.Series.Add(series2);
+            this.noveltyChart.Size = new System.Drawing.Size(445, 209);
+            this.noveltyChart.TabIndex = 2;
+            this.noveltyChart.Text = "chart1";
             // 
             // Form1
             // 
@@ -864,6 +887,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).EndInit();
             this.tabPage5.ResumeLayout(false);
             this.tabPage5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.noveltyChart)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -943,6 +967,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox useRestInTraining;
         private System.Windows.Forms.Button btn_PlotExportTasks;
+        private System.Windows.Forms.DataVisualization.Charting.Chart noveltyChart;
     }
 }
 

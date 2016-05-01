@@ -1822,16 +1822,31 @@ namespace Classification_App
             var predictionSet = dataSet.SkipWhile(x => x.Item2 < trainingEnd);
 
             int count = predictionSet.Count();
+            int firstPredcition = predictionSet.First().Item2;
             OneClassClassifier occ = new OneClassClassifier(trainingSet.Select(x => x.Item1).ToList());
             SVMParameter svmP = new SVMParameter();
-            svmP.Kernel = SVMKernelType.SIGMOID;
+            svmP.Kernel = SVMKernelType.RBF;
             svmP.C = 100;
-            svmP.Gamma = 0.1;
+            svmP.Gamma = 0.01;
             svmP.Nu = 0.01;
             svmP.Type = SVMType.ONE_CLASS;
             occ.CreateModel(svmP);
             List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
+
+            noveltyChart.Series.Add(new Series("test"));
+            foreach (int index in indexes)
+            {
+                noveltyChart.Series["test"].Points.AddXY(predictionSet.ElementAt(index).Item2- firstPredcition, 1);
+            }
+
+            noveltyChart.Series.Add(new Series("test2"));
+            for (int i = 0; i < events.Length; i++)
+            {
+                noveltyChart.Series["test2"].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
+            }
+                noveltyChart.Series["test2"].Color = Color.Blue;
             int k = 0;
+
         }
     }
 }
