@@ -101,6 +101,7 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.button1 = new System.Windows.Forms.Button();
             this.useRestInTraining = new System.Windows.Forms.CheckBox();
+            this.btn_PlotExportTasks = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -326,6 +327,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.btn_PlotExportTasks);
             this.tabPage4.Controls.Add(this.btn_PlotExportExcel);
             this.tabPage4.Controls.Add(this.txt_ExportTo);
             this.tabPage4.Controls.Add(this.txt_ExportFrom);
@@ -826,6 +828,14 @@
             this.useRestInTraining.TabIndex = 1;
             this.useRestInTraining.Text = "Use rest period in training";
             this.useRestInTraining.UseVisualStyleBackColor = true;
+            // btn_PlotExportTasks
+            // 
+            this.btn_PlotExportTasks.Location = new System.Drawing.Point(7, 154);
+            this.btn_PlotExportTasks.Name = "btn_PlotExportTasks";
+            this.btn_PlotExportTasks.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotExportTasks.TabIndex = 40;
+            this.btn_PlotExportTasks.Text = "Export Tasks";
+            this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -932,6 +942,7 @@
         private System.Windows.Forms.TabPage tabPage5;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox useRestInTraining;
+        private System.Windows.Forms.Button btn_PlotExportTasks;
     }
 }
 
