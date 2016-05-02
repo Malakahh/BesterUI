@@ -1773,8 +1773,35 @@ namespace Classification_App
             }
         }
 
+
+        private Color Event2Color(string eventName)
+        {
+            if (eventName.Contains("AddAttachmentButtonClick:") ||
+                eventName.Contains("CreateDraft, language changed to") ||
+                eventName.Contains("Text Changed"))
+            {
+                return Color.FromArgb(255, 255, 255, 100);
+            }
+            else if (eventName.Contains("RemoveContact clicked") ||
+                eventName.Contains("SendDraft error shown") ||
+                eventName.Contains("Task: NotResponding"))
+            {
+                return Color.Red;
+            }
+            else if (eventName.Contains("Add Contact Button click"))
+            {
+                return Color.Green;
+            }
+            else
+            {
+                return Color.Transparent;
+            }
+        }
+
+
         private void button1_Click(object sender, EventArgs e)
         {
+            noveltyChart.ChartAreas.First().BackColor = Color.DarkGray;
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             string[] events = new string[0];
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -1833,18 +1860,38 @@ namespace Classification_App
             occ.CreateModel(svmP);
             List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
 
-            noveltyChart.Series.Add(new Series("test"));
-            foreach (int index in indexes)
-            {
-                noveltyChart.Series["test"].Points.AddXY(predictionSet.ElementAt(index).Item2- firstPredcition, 1);
-            }
-
-            noveltyChart.Series.Add(new Series("test2"));
+            
             for (int i = 0; i < events.Length; i++)
             {
-                noveltyChart.Series["test2"].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
+                try
+                {
+                    noveltyChart.Series.Add(new Series(events[i].Split('#')[1]));
+                    noveltyChart.Series[events[i].Split('#')[1]].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
+                    noveltyChart.Series[events[i].Split('#')[1]].Color = Event2Color(events[i].Split('#')[1]);
+                    noveltyChart.Series[events[i].Split('#')[1]].IsVisibleInLegend = false;
+                }
+                catch { }
             }
-                noveltyChart.Series["test2"].Color = Color.Blue;
+        
+            noveltyChart.Series.Add(new Series("test"));
+            noveltyChart.Series["test"].IsVisibleInLegend = false;
+            List<int> timestampsOutliers = new List<int>();
+            foreach (int index in indexes)
+            {
+                timestampsOutliers.Add(predictionSet.ElementAt(index).Item2 - firstPredcition + 180000+4000);
+            }
+            for (int i = 0; i < int.Parse(events.Last().Split('#')[0]); i++)
+            {
+                if (timestampsOutliers.Contains(i))
+                {
+                    noveltyChart.Series["test"].Points.AddXY(i, 0.5);
+                }
+                else
+                {
+                    noveltyChart.Series["test"].Points.AddXY(i, 0);
+                }
+            }
+            
             int k = 0;
 
         }

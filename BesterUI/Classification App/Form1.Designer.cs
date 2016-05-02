@@ -96,6 +96,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.btn_ExportPNG = new System.Windows.Forms.Button();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.noveltyChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.useRestInTraining = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
@@ -105,7 +106,6 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
-            this.noveltyChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -760,6 +760,24 @@
             this.tabPage5.Text = "Novelty Detection";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
+            // noveltyChart
+            // 
+            this.noveltyChart.BackColor = System.Drawing.Color.Transparent;
+            chartArea2.Name = "ChartArea1";
+            this.noveltyChart.ChartAreas.Add(chartArea2);
+            this.noveltyChart.Cursor = System.Windows.Forms.Cursors.Default;
+            legend1.Name = "Legend1";
+            this.noveltyChart.Legends.Add(legend1);
+            this.noveltyChart.Location = new System.Drawing.Point(20, 36);
+            this.noveltyChart.Name = "noveltyChart";
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.noveltyChart.Series.Add(series2);
+            this.noveltyChart.Size = new System.Drawing.Size(606, 232);
+            this.noveltyChart.TabIndex = 2;
+            this.noveltyChart.Text = "chart1";
+            // 
             // useRestInTraining
             // 
             this.useRestInTraining.AutoSize = true;
@@ -843,22 +861,6 @@
             this.btn_CalculateResults.Text = "Calculate All Results";
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
-            // 
-            // noveltyChart
-            // 
-            chartArea2.Name = "ChartArea1";
-            this.noveltyChart.ChartAreas.Add(chartArea2);
-            legend1.Name = "Legend1";
-            this.noveltyChart.Legends.Add(legend1);
-            this.noveltyChart.Location = new System.Drawing.Point(181, 36);
-            this.noveltyChart.Name = "noveltyChart";
-            series2.ChartArea = "ChartArea1";
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            this.noveltyChart.Series.Add(series2);
-            this.noveltyChart.Size = new System.Drawing.Size(445, 209);
-            this.noveltyChart.TabIndex = 2;
-            this.noveltyChart.Text = "chart1";
             // 
             // Form1
             // 
