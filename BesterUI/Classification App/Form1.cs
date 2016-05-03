@@ -1778,7 +1778,7 @@ namespace Classification_App
         {
             if (eventName.Contains("AddAttachmentButtonClick:") ||
                 eventName.Contains("CreateDraft, language changed to") ||
-                eventName.Contains("Text Changed"))
+                eventName.Contains("Changed"))
             {
                 return Color.FromArgb(255, 255, 255, 100);
             }
@@ -1865,7 +1865,7 @@ namespace Classification_App
             {
                 try
                 {
-                    noveltyChart.Series.Add(new Series(events[i].Split('#')[1]));
+                    noveltyChart.Series.Add(new Series(events[i].Split('#')[1]));  
                     noveltyChart.Series[events[i].Split('#')[1]].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
                     noveltyChart.Series[events[i].Split('#')[1]].Color = Event2Color(events[i].Split('#')[1]);
                     noveltyChart.Series[events[i].Split('#')[1]].IsVisibleInLegend = false;
