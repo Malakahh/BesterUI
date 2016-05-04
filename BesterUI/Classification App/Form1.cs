@@ -16,6 +16,11 @@ using System.Threading;
 using System.Diagnostics;
 using Excel = Microsoft.Office.Interop.Excel;
 
+using System.Windows.Forms.DataVisualization.Charting;
+
+using OxyPlot;
+using OxyPlot.WindowsForms;
+
 namespace Classification_App
 {
     public partial class Form1 : Form
@@ -26,6 +31,8 @@ namespace Classification_App
         List<SVMConfiguration> svmConfs = new List<SVMConfiguration>();
         List<MetaSVMConfiguration> metaConfs = new List<MetaSVMConfiguration>();
 
+        FusionData fdTest = new FusionData();
+        FusionData fdRecall = new FusionData();
 
         public Form1()
         {
@@ -36,6 +43,94 @@ namespace Classification_App
 
             Log.LogBox = richTextBox1;
             this.FormClosing += Form1_FormClosing;
+
+            chart_TestData.Series.Clear();
+            chart_TestData.Series.Add(new Series() { Color = Color.Red, ChartType = SeriesChartType.Line });
+            chart_TestData.Series.Add(new Series() { Color = Color.Blue, ChartType = SeriesChartType.Line });
+
+            var area = chart_TestData.ChartAreas.First();
+            area.AxisX.MajorGrid.Enabled = false;
+            area.AxisY.MajorGrid.Enabled = false;
+            area.AxisY.Minimum = 0;
+            area.AxisY.Maximum = 1;
+
+            dataInterpreters.Add("GSR Raw", (dat) =>
+            {
+                List<long> xs = dat.gsrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.gsrData.Select(x => (double)x.resistance).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("HR Raw", (dat) =>
+            {
+                List<long> xs = dat.hrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.hrData.Select(x => (double)x.signal).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("HR IBI", (dat) =>
+            {
+                List<long> xs = dat.hrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.hrData.Select(x => (double)x.IBI).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("HR BPM", (dat) =>
+            {
+                List<long> xs = dat.hrData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.hrData.Select(x => (double)x.BPM).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG F3 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["F3"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG F4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["F4"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG AF3 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["AF3"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG AF4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => (double)x.data["F3"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG F3-F4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => x.data["F3"] - x.data["F4"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            dataInterpreters.Add("EEG AF3-AF4 Raw", (dat) =>
+            {
+                List<long> xs = dat.eegData.Select(x => x.timestamp).ToList();
+                List<double> ys = dat.eegData.Select(x => x.data["AF3"] - x.data["AF4"]).ToList();
+                return Tuple.Create(xs, ys);
+            });
+
+            foreach (var item in dataInterpreters)
+            {
+                cmb_PlotDataType.Items.Add(item.Key);
+            }
+
+            cmb_PlotDataType.Text = (string)cmb_PlotDataType.Items[0];
+
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -163,7 +258,7 @@ namespace Classification_App
             }
         }
 
-        bool LoadData(string path)
+        bool LoadData(string path, FusionData fd)
         {
             currentPath = path;
             Log.LogMessage("Selected folder: " + path);
@@ -175,7 +270,7 @@ namespace Classification_App
                 Log.LogMessage(temp);
                 return false;
             }
-            shouldRun = _fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
+            shouldRun = fd.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, samData.startTime);
             //Slicing
             List<SAMDataPoint> throwaway = new List<SAMDataPoint>();
             foreach (SAMDataPoint samD in samData.dataPoints)
@@ -209,13 +304,13 @@ namespace Classification_App
             Log.LogMessage("Applying data to features..");
 
 
-            FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.gsrData.ToList<DataReading>()));
-            FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-            FeatureCreator.HRValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.hrData.ToList<DataReading>()));
-            FeatureCreator.EEGArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-            FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.eegData.ToList<DataReading>()));
-            FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
-            FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(_fd.faceData.ToList<DataReading>()));
+            FeatureCreator.GSRArousalOptimizationFeatures.ForEach(x => x.SetData(fd.gsrData.ToList<DataReading>()));
+            FeatureCreator.HRArousalOptimizationFeatures.ForEach(x => x.SetData(fd.hrData.ToList<DataReading>()));
+            FeatureCreator.HRValenceOptimizationFeatures.ForEach(x => x.SetData(fd.hrData.ToList<DataReading>()));
+            FeatureCreator.EEGArousalOptimizationFeatures.ForEach(x => x.SetData(fd.eegData.ToList<DataReading>()));
+            FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(fd.eegData.ToList<DataReading>()));
+            FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
+            FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
 
             Log.LogMessage("Looking for configurations...");
 
@@ -332,7 +427,7 @@ namespace Classification_App
                         curDat++;
                         continue;
                     }
-                    if (!LoadData(item))
+                    if (!LoadData(item, _fd))
                     {
                         Log.LogMessage(item.Split('-').Last() + " is not classifiable");
                         continue;
@@ -590,7 +685,7 @@ namespace Classification_App
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
 
-                    LoadData(item);
+                    LoadData(item, _fd);
                     foreach (var feel in feelings)
                     {
                         statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
@@ -818,7 +913,860 @@ namespace Classification_App
                 Log.LogMessage("Closing Excel");
             }
         }
+
+        private void btn_Anova_Click(object sender, EventArgs e)
+        {
+            var files = lst_excel_files.Items.Cast<string>().ToList();
+            if (files.Count(x => x.Contains("Stacking")) == 0 ||
+                files.Count(x => x.Contains("Voting")) == 0 ||
+                files.Count(x => x.Contains("GSR")) == 0 ||
+                files.Count(x => x.Contains("HR")) == 0 ||
+                files.Count(x => x.Contains("EEG")) == 0 ||
+                files.Count(x => x.Contains("FACE")) == 0)
+            {
+                Log.LogMessage("You must use all data files");
+                return;
+            }
+
+            SaveFileDialog sd = new SaveFileDialog();
+            sd.FileName = "anova.xlsx";
+            sd.Filter = "xlsx|*.xlsx";
+
+            //feeling type < test subject <  sensor type < value >>>
+            var values = new Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Dictionary<string, double>>>();
+            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+            {
+                values.Add(feel, new Dictionary<string, Dictionary<string, double>>());
+            }
+
+
+            if (sd.ShowDialog() == DialogResult.OK)
+            {
+                Log.LogMessage("Starting Excel");
+                Excel.Application exc = new Excel.Application() { Visible = false };
+
+                foreach (var path in files)
+                {
+                    string fileType = path.Split('\\').Last().Split('.').First();
+                    Excel.Workbook current = exc.Workbooks.Open(path, ExcelHandler.missingValue,
+                                                            false,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            true,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            true,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue);
+
+                    foreach (Excel.Worksheet sheit in current.Sheets)
+                    {
+                        if (sheit.Name == "First" || sheit.Name == "Last" || sheit.Name == "Overview")
+                        {
+                            continue;
+                        }
+
+                        string tpName = "tp" + sheit.Name.Split(' ').Last();
+
+                        var accuracies = new Dictionary<SAMDataPoint.FeelingModel, double>();
+                        foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                        {
+                            accuracies.Add(feel, -1);
+                        }
+
+                        #region TryValues
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Arousal2High] = sheit.Cells[2, 3].Value;
+                        }
+                        catch { };
+
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Arousal2Low] = sheit.Cells[15, 3].Value;
+                        }
+                        catch { };
+
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Arousal3] = sheit.Cells[28, 3].Value;
+                        }
+                        catch { };
+
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Valence2High] = sheit.Cells[44, 3].Value;
+                        }
+                        catch { };
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Valence2Low] = sheit.Cells[57, 3].Value;
+                        }
+                        catch { };
+                        try
+                        {
+                            accuracies[SAMDataPoint.FeelingModel.Valence3] = sheit.Cells[70, 3].Value;
+                        }
+                        catch { };
+                        #endregion
+
+                        foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                        {
+                            if (accuracies[feel] == -1) continue;
+
+                            if (!values[feel].ContainsKey(tpName))
+                            {
+                                values[feel].Add(tpName, new Dictionary<string, double>());
+                            }
+
+                            if (!values[feel][tpName].ContainsKey(fileType))
+                            {
+                                values[feel][tpName].Add(fileType, accuracies[feel]);
+                            }
+                        }
+                    }
+
+                    current.Close();
+                }
+
+
+                Dictionary<string, int> columns = new Dictionary<string, int>()
+                {
+                    ["Stacking"] = 0,
+                    ["Voting"] = 1,
+                    ["EEG"] = 2,
+                    ["HR"] = 3,
+                    ["FACE"] = 4,
+                    ["GSR"] = 5,
+                };
+
+                foreach (var feelValue in values)
+                {
+                    Excel.Workbook anova = exc.Workbooks.Add(ExcelHandler.missingValue);
+                    Dictionary<int, List<double>> anovals = new Dictionary<int, List<double>>();
+
+                    foreach (var testSubject in feelValue.Value)
+                    {
+                        foreach (var sensorType in testSubject.Value)
+                        {
+                            if (!anovals.ContainsKey(columns[sensorType.Key]))
+                            {
+                                anovals.Add(columns[sensorType.Key], new List<double>());
+                            }
+
+                            anovals[columns[sensorType.Key]].Add(sensorType.Value);
+                        }
+                    }
+
+                    anova.Sheets[1].Cells[1, 1] = "Machine";
+                    anova.Sheets[1].Cells[1, 2] = "DataPoint";
+
+                    int currentRow = 2;
+                    foreach (var item in anovals)
+                    {
+                        for (int i = 0; i < item.Value.Count; i++)
+                        {
+                            anova.Sheets[1].Cells[currentRow, 1] = item.Key;
+                            anova.Sheets[1].Cells[currentRow, 2] = item.Value[i];
+                            currentRow++;
+                        }
+                    }
+
+                    anova.SaveCopyAs(sd.FileName.Replace(".xlsx", $"_{feelValue.Key.ToString()}.xlsx"));
+                    Log.LogMessage("Done with " + feelValue.Key);
+                    anova.Close(false);
+                }
+
+
+                exc.Quit();
+                Log.LogMessage("Closing Excel");
+            }
+        }
+
         #endregion
+
+        #region Plotting
+        private void btn_ExportPNG_Click(object sender, EventArgs e)
+        {
+            int height = 0;
+            if (!int.TryParse(txt_height.Text, out height))
+            {
+                Log.LogMessage("Height must be an integer");
+                return;
+            }
+
+            int width = 0;
+            if (!int.TryParse(txt_width.Text, out width))
+            {
+                Log.LogMessage("Width must be an integer");
+                return;
+            }
+
+            int offset = 0;
+            if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
+            {
+                Log.LogMessage("Offset must be an integer");
+                return;
+            }
+
+            double pointSize = 0;
+            if (!double.TryParse(txt_PlotPointSize.Text.Replace(".", ","), out pointSize))
+            {
+                Log.LogMessage("Point size must be a double");
+                return;
+            }
+
+            int from = -1;
+            if (!int.TryParse(txt_ExportFrom.Text, out from) || txt_ExportFrom.Text == "")
+            {
+                Log.LogMessage("Export from not valid integer, using 0");
+                from = -1;
+            }
+
+            int to = -1;
+            if (!int.TryParse(txt_ExportTo.Text, out to) || txt_ExportTo.Text == "")
+            {
+                Log.LogMessage("Export to not valid integer, using max");
+                to = -1;
+            }
+
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.DefaultExt = ".png";
+            sfd.Filter = "png|*.png";
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                PngExporter pngify = new PngExporter();
+                pngify.Width = width;
+                pngify.Height = height;
+
+                var xy = GetXY(from, to);
+
+                var test = xy.Item1;
+                var recall = xy.Item2;
+
+                FitPlot(test, recall);
+
+                var model = new PlotModel() { Title = $"Slope:{slope.ToString("0.000")} RSquared:{rsquared.ToString("0.000")}" };
+                var dataSeries = new OxyPlot.Series.ScatterSeries() { MarkerType = MarkerType.Circle, MarkerStroke = OxyColors.Red };
+                for (int i = 0; i < test.Count; i++)
+                {
+                    dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i], recall[i]) { Size = pointSize });
+                }
+
+                var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.001) { Color = OxyColors.Blue };
+
+                model.Series.Add(dataSeries);
+                model.Series.Add(fitSeries);
+
+                model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
+                model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
+
+
+                pngify.ExportToFile(model, sfd.FileName);
+                Log.LogMessage("Saved " + sfd.FileName + "!");
+            }
+        }
+
+        double intercept = 0;
+        double slope = 0;
+        double rsquared = 0;
+        void FitPlot(List<double> xs, List<double> ys)
+        {
+            if (xs.Count > ys.Count)
+            {
+                xs = xs.Take(ys.Count).ToList();
+            }
+            else if (ys.Count > xs.Count)
+            {
+                ys = ys.Take(xs.Count).ToList();
+            }
+
+            var fit = MathNet.Numerics.Fit.Line(xs.ToArray(), ys.ToArray());
+            intercept = fit.Item1;
+            slope = fit.Item2;
+            rsquared = MathNet.Numerics.GoodnessOfFit.RSquared(xs.Select(x => intercept + slope * x), ys);
+
+            txt_intercept.Text = intercept.ToString("0.000");
+            txt_slope.Text = slope.ToString("0.000");
+            txt_rsquared.Text = rsquared.ToString("0.000");
+        }
+
+        private void btn_PlotLoadTest_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                fdTest.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                txt_TestDataName.Text = fbd.SelectedPath.Split('\\').Last();
+
+                var xs = fdTest.gsrData.Select(x => x.timestamp).ToList();
+                var ys = fdTest.gsrData.Select(y => (double)y.resistance).ToList();
+
+                LoadDataSeries(xs, ys, 0);
+            }
+        }
+
+        private void btn_PlotLoadRecall_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string path = fbd.SelectedPath;
+                fdRecall.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                txt_RecallDataName.Text = fbd.SelectedPath.Split('\\').Last();
+
+                var xs = fdRecall.gsrData.Select(x => x.timestamp).ToList();
+                var ys = fdRecall.gsrData.Select(y => (double)y.resistance).ToList();
+
+                LoadDataSeries(xs, ys, 1);
+            }
+        }
+
+        List<int> loaded = new List<int>();
+        void LoadDataSeries(List<long> xs, List<double> ys, int seriesId)
+        {
+            var ser = chart_TestData.Series[seriesId];
+            ser.Points.Clear();
+
+            long first = xs[0];
+            for (int i = 0; i < xs.Count; i++)
+            {
+                xs[i] -= first;
+            }
+
+            double max = ys.Max();
+            for (int i = 0; i < ys.Count; i++)
+            {
+                ser.Points.AddXY(xs[i], ys[i] / max);
+            }
+
+            scroll_PlotView.Maximum = (int)xs.Last() - chartMsToShow;
+            UpdateChart();
+            if (!loaded.Contains(seriesId))
+            {
+                loaded.Add(seriesId);
+            }
+            if (loaded.Count > 1)
+            {
+                enableFitting = true;
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+            }
+        }
+
+        bool enableFitting = false;
+        int chartMsToShow = 20000;
+        void UpdateChart()
+        {
+            var area = chart_TestData.ChartAreas.First();
+
+            area.AxisX.Minimum = scroll_PlotView.Value;
+            area.AxisX.Maximum = scroll_PlotView.Value + chartMsToShow;
+        }
+
+
+        private void scroll_PlotView_Scroll(object sender, ScrollEventArgs e)
+        {
+            UpdateChart();
+        }
+
+        int oldOffset = 0;
+        void PlotSetNewOffset(int offset)
+        {
+            var diff = oldOffset - offset;
+
+            var test = chart_TestData.Series[0];
+            var recall = chart_TestData.Series[1];
+
+            for (int i = 0; i < recall.Points.Count; i++)
+            {
+                recall.Points[i].XValue += diff;
+            }
+
+            oldOffset = offset;
+
+            if (enableFitting)
+            {
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+            }
+        }
+
+        private void txt_PlotDataOffset_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                int offset = 0;
+                if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
+                {
+                    Log.LogMessage("Offset must be an integer");
+                    return;
+                }
+
+                PlotSetNewOffset(offset);
+            }
+        }
+
+        Tuple<List<double>, List<double>> GetXY(int from = -1, int to = -1)
+        {
+            var test = chart_TestData.Series[0].Points.ToList();
+            var testMax = test.Max(x => x.XValue);
+
+            var recall = chart_TestData.Series[1].Points.Where(p => p.XValue >= 0 && p.XValue <= testMax).ToList();
+            var recallMin = recall.Min(p => p.XValue);
+            test = test.Where(p => p.XValue >= recallMin).ToList();
+
+            if (from != -1 && to != -1)
+            {
+                test = test.Where(p => p.XValue >= from && p.XValue <= to).ToList();
+                recall = recall.Where(p => p.XValue >= from && p.XValue <= to).ToList();
+            }
+
+
+            if (test.Count > recall.Count)
+            {
+                test = test.Take(recall.Count).ToList();
+            }
+            else if (recall.Count > test.Count)
+            {
+                recall = recall.Take(test.Count).ToList();
+            }
+
+
+            return Tuple.Create(test.Select(p => p.YValues[0]).ToList(), recall.Select(p => p.YValues[0]).ToList());
+
+        }
+
+        Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>> dataInterpreters = new Dictionary<string, Func<FusionData, Tuple<List<long>, List<double>>>>();
+        private void cmb_PlotDataType_SelectedValueChanged(object sender, EventArgs e)
+        {
+
+            if (cmb_PlotDataType.SelectedItem == null || !dataInterpreters.ContainsKey((string)cmb_PlotDataType.SelectedItem))
+            {
+                Log.LogMessage("Something wrong was selected in the dropdown menu");
+                return;
+            }
+
+            if (fdTest.Loaded)
+            {
+                var newData = dataInterpreters[(string)cmb_PlotDataType.SelectedItem](fdTest);
+                LoadDataSeries(newData.Item1, newData.Item2, 0);
+            }
+
+            if (fdRecall.Loaded)
+            {
+                var newData = dataInterpreters[(string)cmb_PlotDataType.SelectedItem](fdRecall);
+                LoadDataSeries(newData.Item1, newData.Item2, 1);
+            }
+
+            Log.LogMessage($"Switched to new data [{(string)cmb_PlotDataType.SelectedItem}]");
+        }
+
+        private void txt_PlotWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                var oldValue = chartMsToShow;
+                if (!int.TryParse(txt_PlotWindow.Text, out chartMsToShow))
+                {
+                    Log.LogMessage("View window must be integer");
+                }
+                else if (chartMsToShow <= 10)
+                {
+                    Log.LogMessage("View window must be >10");
+                    chartMsToShow = oldValue;
+                }
+                else
+                {
+                    scroll_PlotView.LargeChange = chartMsToShow / 10;
+                    scroll_PlotView.SmallChange = chartMsToShow / 100;
+                    UpdateChart();
+                }
+            }
+        }
+
+        bool searching = false;
+        private void btn_SearchOffset_Click(object sender, EventArgs e)
+        {
+
+            if (!enableFitting)
+            {
+                Log.LogMessage("You must load all data first");
+                return;
+            }
+
+
+            int from = 0;
+            int to = 0;
+            int stepsize = 0;
+
+            if (!int.TryParse(txt_OffsetFrom.Text, out from))
+            {
+                Log.LogMessage("Offset from must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(txt_OffsetTo.Text, out to))
+            {
+                Log.LogMessage("Offset to must be an integer");
+                return;
+            }
+
+            if (!int.TryParse(txt_OffsetStep.Text, out stepsize))
+            {
+                Log.LogMessage("offset stepsize must be integer");
+                return;
+            }
+
+            txt_PlotDataOffset.Enabled = false;
+
+            Log.LogMessage($"Search for offset between {from} and {to}, stepsize {stepsize}...");
+
+            int slopeIdx = 0;
+            int rIdx = 0;
+            double bestSlope = double.MaxValue;
+            double bestR = 0;
+            Log.LogMessage("...");
+            searching = true;
+            btn_StopSearch.Visible = true;
+            for (int offset = from; offset <= to && searching; offset += stepsize)
+            {
+                txt_PlotDataOffset.Text = offset.ToString();
+
+                PlotSetNewOffset(offset);
+                var xy = GetXY();
+                FitPlot(xy.Item1, xy.Item2);
+
+                var newSlope = Math.Abs(slope - 1);
+                if (newSlope < bestSlope)
+                {
+                    bestSlope = newSlope;
+                    slopeIdx = offset;
+                }
+
+                if (rsquared > bestR)
+                {
+                    bestR = rsquared;
+                    rIdx = offset;
+                }
+
+                Log.LogMessageSameLine($"At {offset}, best slope: {bestSlope.ToString("0.000")} best rsquared: {bestR.ToString("0.000")}");
+                Application.DoEvents();
+            }
+            //Log.LogMessageSameLine($"At {to}, best slope: {bestSlope.ToString("0.000")} best rsquared: {bestR.ToString("0.000")}");
+
+            Log.LogMessage($"Best slope found at offset {slopeIdx}");
+            Log.LogMessage($"Best RSquared found was {bestR.ToString("0.000")} at offset {rIdx}");
+
+            txt_PlotDataOffset.Enabled = true;
+            searching = false;
+            btn_StopSearch.Visible = false;
+        }
+
+        private void btn_StopSearch_Click(object sender, EventArgs e)
+        {
+            searching = false;
+            btn_StopSearch.Visible = false;
+        }
+        #endregion
+
+        void btn_CalculateResults_Click(Object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                FolderBrowserDialog sfd = new FolderBrowserDialog() { Description = "Select folder to load excel sheets from" };
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    new Thread(() => Threaded_Calc(fbd.SelectedPath, sfd.SelectedPath)).Start();
+                }
+            }
+        }
+
+        private void Threaded_Calc(string fbdPath, string sfdPath)
+        {
+            fbdPath = @"D:\temp\DataReadings";
+            sfdPath = @"D:\temp\Excels";
+
+            Log.LogMessage("Starting huge calc");
+            Excel.Application exc = new Excel.Application() { Visible = false };
+
+            List<string> singles = new List<string>()
+                    {
+                        "EEG",
+                        "FACE",
+                        "GSR",
+                        "HR"
+                    };
+
+            List<string> fusion = new List<string>()
+                    {
+                        "Stacking",
+                        "Voting"
+                    };
+
+            Dictionary<SAMDataPoint.FeelingModel, int> cellOffsets = new Dictionary<SAMDataPoint.FeelingModel, int>()
+            {
+                [SAMDataPoint.FeelingModel.Arousal2High] = 11,
+                [SAMDataPoint.FeelingModel.Arousal2Low] = 24,
+                [SAMDataPoint.FeelingModel.Arousal3] = 40,
+                [SAMDataPoint.FeelingModel.Valence2High] = 53,
+                [SAMDataPoint.FeelingModel.Valence2Low] = 66,
+                [SAMDataPoint.FeelingModel.Valence3] = 82
+            };
+
+            //test subject[SAMModel[machineType]]
+            //items: C, Gamma, Kernel
+            var configs = new Dictionary<string, Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>>();
+
+
+            foreach (var configBook in singles.Concat(fusion))
+            {
+                Log.LogMessage($"Reading {configBook}...");
+                Excel.Workbook dataBook = exc.Workbooks.Open(sfdPath + $"/{configBook}.xlsx", ExcelHandler.missingValue,
+                                                            false,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            true,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            true,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue,
+                                                            ExcelHandler.missingValue);
+
+                foreach (Excel.Worksheet sheet in dataBook.Sheets)
+                {
+                    if (sheet.Name == "Overview" || sheet.Name == "First" || sheet.Name == "Last") continue;
+
+                    string newName = sheet.Name.Split(' ').Last();
+
+                    if (!configs.ContainsKey(newName))
+                    {
+                        configs.Add(newName, new Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>());
+                    }
+
+                    if (configs[newName].Count == 0)
+                    {
+                        foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                        {
+                            configs[newName].Add(feel, new Dictionary<string, Tuple<double, double, int>>());
+
+                            singles.ForEach(x => configs[newName][feel].Add(x, null));
+                            fusion.ForEach(x => configs[newName][feel].Add(x, null));
+
+                            if (feel.ToString().Contains("Valence"))
+                            {
+                                configs[newName][feel].Remove("GSR");
+                            }
+                        }
+                    }
+
+
+                    foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                    {
+                        if (configBook == "GSR" && feel.ToString().Contains("Valence")) continue;
+
+                        Excel.Range c = (Excel.Range)sheet.Cells[cellOffsets[feel], 3];
+                        Excel.Range gamma = (Excel.Range)sheet.Cells[cellOffsets[feel] + 1, 3];
+                        Excel.Range kernel = (Excel.Range)sheet.Cells[cellOffsets[feel] + 2, 3];
+
+                        if (c.Value != null && gamma.Value != null && kernel.Value != null)
+                        {
+                            configs[newName][feel][configBook] = Tuple.Create(c.Value, gamma.Value, (int)kernel.Value);
+                        }
+
+                    }
+
+                }
+
+                dataBook.Close();
+            }
+
+            List<string> skippedList = new List<string>();
+            foreach (var subject in configs)
+            {
+                foreach (var feel in subject.Value)
+                {
+                    foreach (var machine in feel.Value)
+                    {
+                        if (machine.Value == null)
+                        {
+                            if (!skippedList.Contains(subject.Key + "(no machine)"))
+                            {
+                                skippedList.Add(subject.Key + "(no machine)");
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (var skipped in skippedList)
+            {
+                configs.Remove(skipped.Split('(')[0]);
+                Log.LogMessage($"Skipped {skipped}");
+            }
+
+            Log.LogMessage("Total: " + skippedList.Count);
+
+            var resultsList = new Dictionary<string, Dictionary<string, List<int>>>();
+            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+            {
+                resultsList.Add(feel.ToString(), new Dictionary<string, List<int>>());
+                resultsList[feel.ToString()].Add("SAM", new List<int>());
+                resultsList[feel.ToString()].Add("NAIVE", new List<int>());
+                foreach (var item in singles.Concat(fusion))
+                {
+                    resultsList[feel.ToString()].Add(item, new List<int>());
+                }
+            }
+
+            Log.LogMessage("Getting results...");
+            int currentStatus = 0;
+            foreach (var subject in configs)
+            {
+                Invoke((Action)(() => { statusLabel.Text = $"Calculating answers {currentStatus++} of {configs.Count}"; }));
+                if (LoadData(fbdPath + $"/{subject.Key}", _fd))
+                {
+                    foreach (var feel in subject.Value)
+                    {
+                        var sams = samData.dataPoints.Select(x => x.ToAVCoordinate(feel.Key)).ToList();
+                        var machines = new List<List<double>>();
+                        resultsList[feel.Key.ToString()]["SAM"].AddRange(sams);
+
+                        if (sams.Count != 30)
+                        {
+                            Log.LogMessage("found bad SAM! " + subject.Key + " - " + feel.Key);
+                            throw new Exception("found bad SAM! " + subject.Key + " - " + feel.Key);
+                        }
+
+                        int currentMost = 0;
+                        int currentMostCount = 0;
+
+                        foreach (var answer in sams.Distinct())
+                        {
+                            var cnt = sams.Count(x => x == answer);
+                            if (cnt > currentMostCount)
+                            {
+                                currentMostCount = cnt;
+                                currentMost = answer;
+                            }
+                        }
+
+                        for (int i = 0; i < sams.Count; i++)
+                        {
+                            resultsList[feel.Key.ToString()]["NAIVE"].Add(currentMost);
+                        }
+
+                        foreach (var machine in feel.Value)
+                        {
+                            Log.LogMessage($"Calculating {subject.Key} / {feel.Key} / {machine.Key}");
+
+                            var param = new SVMParameter()
+                            {
+                                C = machine.Value.Item1,
+                                Gamma = machine.Value.Item2,
+                                Kernel = (SVMKernelType)machine.Value.Item3
+                            };
+
+                            if (singles.Contains(machine.Key))
+                            {
+                                var classifier = new StdClassifier(new SVMConfiguration(param, FeatureCreator.GetFeatures(machine.Key, feel.Key)), samData);
+
+                                var results = classifier.OldCrossValidate(feel.Key, 1);
+                                foreach (var res in results[0].guesses)
+                                {
+                                    resultsList[feel.Key.ToString()][machine.Key].Add(res);
+                                }
+
+                                machines.Add(new List<double>(results[0].guesses.Select(x => (double)x)));
+                            }
+                            else
+                            {
+                                var classifier = new MetaClassifier(machine.Key, param, samData, null);
+
+                                PredictionResult pred;
+
+                                if (machine.Key == "Stacking")
+                                {
+                                    pred = classifier.DoStackingMachineless(feel.Key, 1, machines);
+                                }
+                                else
+                                {
+                                    pred = classifier.DoVotingMachineless(feel.Key, 1, machines);
+                                }
+
+                                if (pred == null)
+                                {
+                                    Log.LogMessage($"Skipped {subject.Key} due to bad meta");
+                                    skippedList.Add(subject.Key + "(bad meta)");
+                                    continue;
+                                }
+
+                                resultsList[feel.Key.ToString()][machine.Key].AddRange(pred.guesses);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Log.LogMessage($"Skipped {subject.Key} due to bad data");
+                    skippedList.Add(subject.Key + "(bad data)");
+                }
+            }
+
+
+            Log.LogMessage("Creating excel file");
+            Excel.Workbook resultBook = exc.Workbooks.Add(ExcelHandler.missingValue);
+
+            Log.LogMessage("Writing results");
+            foreach (var category in resultsList)
+            {
+                Log.LogMessage("Writing " + category.Key);
+                Excel.Worksheet feelSheet = resultBook.Sheets.Add();
+                feelSheet.Name = category.Key;
+
+
+                int column = 1;
+                foreach (var answerList in category.Value)
+                {
+                    if (answerList.Value.Count == 0) continue;
+                    int row = 1;
+                    feelSheet.Cells[row++, column] = answerList.Key;
+
+                    foreach (var item in answerList.Value)
+                    {
+                        feelSheet.Cells[row++, column] = item;
+                    }
+
+                    column++;
+                }
+            }
+
+            Excel.Worksheet metaSheet = resultBook.Sheets.Add();
+            metaSheet.Name = "Meta";
+
+            metaSheet.Cells[1, 1] = "Skipped " + skippedList.Count;
+            for (int i = 0; i < skippedList.Count; i++)
+            {
+                metaSheet.Cells[i + 2, 1] = skippedList[i];
+            }
+
+            Log.LogMessage("Saving...");
+            resultBook.SaveCopyAs(sfdPath + "/allAnswers.xlsx");
+
+            resultBook.Close(false);
+
+            Log.LogMessage("Done!");
+
+            exc.Quit();
+        }
 
     }
 }

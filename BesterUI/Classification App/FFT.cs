@@ -65,10 +65,10 @@ namespace Classification_App
                 }
             }
         }
-        
+
         private void ComputeFrequencyPowerSamples()
         {
-            
+
             FrequencyPowerSampling = new double[rawFFTOutput.Length / 2];
 
             for (int i = 0; i < FrequencyPowerSampling.Length; i++)
@@ -85,6 +85,11 @@ namespace Classification_App
 
             for (int i = def.LowerLimit; i <= def.UpperLimit; i++)
             {
+                if (i >= rawFFTOutput.Length)
+                {
+                    BesterUI.Helpers.Log.LogMessage($"Not enough FFT samples {rawFFTOutput.Length} vs {def.UpperLimit}");
+                    break;
+                }
                 complex c = rawFFTOutput[i];
                 double magnitude = Math.Sqrt(c.real * c.real + c.imag * c.imag);
                 bandPower += Math.Pow(magnitude, 2);

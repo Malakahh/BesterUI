@@ -142,7 +142,7 @@ namespace SecondTest
 
                 for (int i = 0; i < InputLanguage.InstalledInputLanguages.Count; i++)
                 {
-                    if (InputLanguage.InstalledInputLanguages[i].LayoutName == "US")
+                    if (InputLanguage.InstalledInputLanguages[i].LayoutName == "US" || InputLanguage.InstalledInputLanguages[i].LayoutName == "Amerikansk")
                     {
                         l = InputLanguage.InstalledInputLanguages[i];
                         break;

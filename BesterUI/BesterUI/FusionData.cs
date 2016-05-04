@@ -18,6 +18,11 @@ namespace BesterUI
         public List<GSRDataReading> gsrData = new List<GSRDataReading>();
         public List<FaceDataReading> faceData = new List<FaceDataReading>();
 
+        public bool Loaded
+        {
+            get { return hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || faceData.Count != 0; }
+        }
+
         public FusionData()
         {
 
@@ -130,7 +135,7 @@ namespace BesterUI
                         if (!checkSize || size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading GSR data");
-                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 15);
+                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 1);
                             shouldRun.Add(s, true);
                         }
                         else
@@ -159,15 +164,8 @@ namespace BesterUI
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
 
-                            int shit = hrData.Count(x => x.isBeat);
-                            if (hrData.Count(x => x.isBeat) > 1000)
-                            {
-                                shouldRun.Add(s, true);
-                            }
-                            else
-                            {
-                                shouldRun.Add(s, false);
-                            }
+                            hrData = hrData.Where(x => x.signal < 2000).ToList();
+                            shouldRun.Add(s, true);
                         }
                         else
                         {
@@ -206,16 +204,10 @@ namespace BesterUI
         {
             Log.LogMessage("Doing median filter on GSR data");
             List<GSRDataReading> newValues = new List<GSRDataReading>();
-            GSRDataReading LastValue = null;
             for (int i = 0; i < data.Count - windowSize; i++)
             {
-                List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).ToList();
-                tempValues = tempValues.OrderBy(x => x.resistance).ToList();
-                if (LastValue != null || tempValues.ElementAt((int)Math.Round((double)windowSize / 2)) != LastValue)
-                {
-                    newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
-                    LastValue = tempValues.ElementAt((int)Math.Round((double)windowSize / 2));
-                }
+                List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).OrderBy(x => x.resistance).ToList();
+                newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
             }
             newValues = newValues.Distinct().ToList();
             newValues = newValues.OrderBy(x => x.timestamp).ToList();
@@ -281,11 +273,13 @@ namespace BesterUI
 
         }
 
+
         public void ExportGRF(string inpath = "")
         {
             if (inpath == "") inpath = Directory.GetCurrentDirectory() + DataReading.GetWritePath();
             var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
             string path = inpath + @"\Graph.grf";
+
 
             int TextLabelCount = 0;
             int FuncCount = 1;
@@ -306,8 +300,8 @@ namespace BesterUI
 
             Func<string, Color, double, double, string> AddShade = (label, color, from, to) =>
             {
-                from = from / 60000;
-                to = to / 60000;
+                from = from / 1000;
+                to = to / 1000;
 
                 ShadeCount++;
                 StringBuilder sb = new StringBuilder();
@@ -329,7 +323,7 @@ namespace BesterUI
 
             Func<string, Color, List<double>, List<double>, string> AddPointSeries = (label, color, xs, ys) =>
             {
-                xs = xs.Select(curX => curX / 60000).ToList();
+                xs = xs.Select(curX => curX / 1000).ToList();
                 StringBuilder sb = new StringBuilder();
                 PointSeriesCount++;
                 sb.AppendLine(@"[PointSeries" + PointSeriesCount + "]");
@@ -363,40 +357,102 @@ namespace BesterUI
                 Directory.CreateDirectory(DataReading.GetWritePath());
             }
 
+            List<string> pointSeries = new List<string>();
             List<string> shades = new List<string>();
-            int last = 0;
-            for (int eventId = 0; eventId < events.Length - 1; eventId++)
+            for (int eventId = 1; eventId < events.Length; eventId++)
             {
                 string[] evnt = events[eventId].Split('#');
-                if (evnt[1].Contains("BogusMessage:")) continue;
+                if (evnt[1].Contains("Bogus"))
+                {
+                    continue;
+                }
+                shades.Add(AddShade(events[eventId - 1], e2c(evnt[1]), int.Parse(events[eventId - 1].Split('#')[0]), int.Parse(evnt[0])));
 
-                shades.Add(AddShade(evnt[1], e2c(evnt[1]), last, int.Parse(events[eventId].Split('#')[0])));
-                last = int.Parse(evnt[0]);
+                pointSeries.Add(AddPointSeries("Splitter", Color.Black, new List<double>() { int.Parse(events[eventId - 1].Split('#')[0]), int.Parse(events[eventId - 1].Split('#')[0]) },
+                    new List<double>() { 0, 10000 }));
             }
 
-
             //actual data
-            List<string> pointSeries = new List<string>();
             List<double> x = new List<double>();
             List<double> y = new List<double>();
             #region GSR
-            gsrData.ForEach(gsr => { x.Add(gsr.timestamp - gsrData[0].timestamp); y.Add(gsr.resistance); });
+            //gsrData = gsrData.OrderBy(n => n.timestamp).ToList();
+            //gsrData.ForEach(signal => { x.Add(signal.timestamp - hrData[0].timestamp); y.Add(signal.resistance); });
+            //gsrData.ForEach(signal => { x.Add(signal.timestamp - hrData[0].timestamp); y.Add(signal.resistance); });
+            /*  int windowSize = 20;
+              long startTime = gsrData.First().timestamp;
+              long endTime = gsrData.Last().timestamp - gsrData.First().timestamp;
+              for (int i = 0; i < gsrData.Count - windowSize; i++)
+              {
+                  //Standarddeviation/variance
+
+                  List<GSRDataReading> datReadings = gsrData.Skip(i).Take(windowSize).ToList();
+                  double avg = datReadings.Average(k => k.resistance);
+                  double variance = Math.Sqrt(datReadings.Sum(u => Math.Pow(u.resistance - avg, 2)) / datReadings.Count);
+
+                      y.Add(variance);
+                      x.Add(datReadings[0].timestamp - startTime);
+              }
+
+              double maxValue = y.Max();
+              double minValue = y.Min();
+              y = y.Select(e => (e - minValue) / (maxValue - minValue)).ToList();*/
+
             #endregion
             #region HR
-            hrData = hrData.Where(dat => dat.signal < 2000).ToList();
+            hrData = hrData.Where(e => e.isBeat).ToList().Where(dat => dat.signal < 2000).ToList();
+            /*  int windowSize = 20;
+              long startTime = hrData.First().timestamp;
+              long endTime = hrData.Last().timestamp - gsrData.First().timestamp;
+              for (int i = 0; i < hrData.Count - windowSize; i++)
+              {
+                  //Standarddeviation/variance
+
+                  List<HRDataReading> datReadings = hrData.Skip(i).Take(windowSize).ToList();
+                  double avg = (double)datReadings.Average(k => k.IBI);
+                  double variance = Math.Sqrt(datReadings.Sum(u => Math.Pow((double)u.IBI - avg, 2)) / datReadings.Count);
+
+                  y.Add(variance);
+                  x.Add(datReadings[0].timestamp - startTime);
+              }
+
+              double maxValue = y.Max();
+              double minValue = y.Min();
+              y = y.Select(e => (e - minValue) / (maxValue - minValue)).ToList();
+
+      */
             //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.signal); });
-            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
-            hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+            // hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.BPM); });
+            //hrData.ForEach(hr => { x.Add(hr.timestamp - hrData[0].timestamp); y.Add(hr.IBI.Value); });
+
             #endregion
             #region EEG
+            /*   int windowSize = 64;
+              long startTime = eegData.First().timestamp;
+              long endTime = eegData.Last().timestamp - gsrData.First().timestamp;
+              for (int i = 0; i < hrData.Count - windowSize; i++)
+              {
+                  //Standarddeviation/variance
+
+                  List<HRDataReading> datReadings = hrData.Skip(i).Take(windowSize).ToList();
+                  double avg = (double)datReadings.Average(k => k.IBI);
+                  double variance = Math.Sqrt(datReadings.Sum(u => Math.Pow((double)u.IBI - avg, 2)) / datReadings.Count);
+
+                  y.Add(variance);
+                  x.Add(datReadings[0].timestamp - startTime);
+              }
+
+              double maxValue = y.Max();
+              double minValue = y.Min();
+              y = y.Select(e => (e - minValue) / (maxValue - minValue)).ToList();*/
             //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.AF3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.AF4.ToString()]); });
-            //eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.F3.ToString()] - eeg.data[EEGDataReading.ELECTRODE.F4.ToString()]); });
+            eegData.ForEach(eeg => { x.Add(eeg.timestamp - eegData[0].timestamp); y.Add(eeg.data[EEGDataReading.ELECTRODE.F3.ToString()] /*- eeg.data[EEGDataReading.ELECTRODE.F4.ToString()]*/); });
             #endregion
             #region Kinect
             //nothing to see here, move along
             #endregion
 
-            pointSeries.Add(AddPointSeries("Data", Color.Magenta, x, y));
+            pointSeries.Add(AddPointSeries("Data", Color.Black, x, y));
 
             using (var f = File.CreateText(path))
             {
@@ -464,19 +520,18 @@ namespace BesterUI
         {
             if (evnt.Contains("TaskWizard - BtnCompleteClicked")) return Color.Green;
             if (evnt.Contains("TaskWizard - BtnIncompleteClicked")) return Color.Red;
-            if (evnt == "SendDraft error shown") return Color.Purple;
-            if (evnt == "CreateDraft, language changed to: US") return Color.Purple;
-            if (evnt == "AddAttachmentButtonClick: 1") return Color.Turquoise;
-            if (evnt == "AddAttachmentButtonClick: 2") return Color.Teal;
-            if (evnt == "AddAttachmentButtonClick: 3") return Color.Blue;
-            if (evnt == "AddAttachment complete") return Color.BlueViolet;
-            if (evnt == "Add Contact Button click: 1") return Color.PaleVioletRed;
-            if (evnt == "Add Contact Button click: 2") return Color.MediumVioletRed;
-            if (evnt == "Add Contact Button click: 3") return Color.IndianRed;
-            if (evnt == "AddContact complete") return Color.HotPink;
-            if (evnt == "RemoveContact clicked") return Color.GreenYellow;
-
-            return Color.Black;
+            if (evnt.Contains("SendDraft error shown")) return Color.Purple;
+            if (evnt.Contains("CreateDraft, language changed to: US")) return Color.Purple;
+            if (evnt.Contains("AddAttachmentButtonClick: 1")) return Color.Turquoise;
+            if (evnt.Contains("AddAttachmentButtonClick: 2")) return Color.Teal;
+            if (evnt.Contains("AddAttachmentButtonClick: 3")) return Color.Blue;
+            if (evnt.Contains("AddAttachment complete")) return Color.BlueViolet;
+            if (evnt.Contains("Add Contact Button click: 1")) return Color.PaleVioletRed;
+            if (evnt.Contains("Add Contact Button click: 2")) return Color.MediumVioletRed;
+            if (evnt.Contains("Add Contact Button click: 3")) return Color.IndianRed;
+            if (evnt.Contains("AddContact complete")) return Color.HotPink;
+            if (evnt.Contains("RemoveContact clicked")) return Color.GreenYellow;
+            return Color.DarkMagenta;
         }
     }
 }

@@ -129,6 +129,64 @@ namespace Classification_App
             return finalResults;
         }
 
+        public PredictionResult DoStackingMachineless(SAMDataPoint.FeelingModel feelingsmodel, int nFold, List<List<double>> machineAnswers, bool useIAPSratings = false)
+        {
+            List<List<double>> featureList = new List<List<double>>();
+            //Create a List of list of answers from each machine
+            for (int i = 0; i < samData.dataPoints.Count; i++)
+            {
+                List<double> featuresToDataPoint = new List<double>();
+                foreach (List<double> classifier in machineAnswers)
+                {
+                    featuresToDataPoint.Add(classifier[i]);
+                }
+                featureList.Add(featuresToDataPoint);
+            }
+
+            //Split into nfold problems
+            List<Tuple<SVMProblem, SVMProblem>> problems = featureList.GetCrossValidationSets<double>(samData, feelingsmodel, nFold, useIAPSratings);
+
+            //Get correct results
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+
+            if (answers.Distinct().Count() <= 1)
+            {
+                return null;
+            }
+
+            List<double> guesses = new List<double>();
+            //model and predict each nfold
+            try
+            {
+
+                foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problems)
+                {
+                    SVMModel trainingModel = tupleProblem.Item1.Train(Parameters[0]);
+                    if (trainingModel.ClassCount <= 1)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        guesses.AddRange(tupleProblem.Item2.Predict(trainingModel));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+            int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+            //Calculate scoring results
+            double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
+            List<double> pres = CalculatePrecision(confus, numberOfLabels);
+            List<double> recall = CalculateRecall(confus, numberOfLabels);
+            List<double> fscore = CalculateFScore(pres, recall);
+            PredictionResult pR = new PredictionResult(confus, recall, pres, fscore, null, new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x => (int)x));
+
+            return pR;
+        }
+
         public PredictionResult DoVoting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizeFormat = Normalize.OneMinusOne)
         {
             List<PredictionResult> classifiers = new List<PredictionResult>();
@@ -229,6 +287,91 @@ namespace Classification_App
             List<double> fscore = CalculateFScore(pres, recall);
             return new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x => (int)x));
 
+        }
+
+        public PredictionResult DoVotingMachineless(SAMDataPoint.FeelingModel feelingsmodel, int nFold, List<List<double>> machineAnswers, bool useIAPSratings = false)
+        {
+            int labelCount = SAMData.GetNumberOfLabels(feelingsmodel);
+
+            //Full List of indicies
+            List<int> counter = new List<int>();
+            for (int k = 0; k < samData.dataPoints.Count(); k++)
+            {
+                counter.Add(k);
+            }
+            //Divide indicies into correct nfold
+            List<List<int>> trainIndicies = new List<List<int>>();
+            List<List<int>> predictIndicies = new List<List<int>>();
+            for (int i = 0; i < samData.dataPoints.Count(); i += nFold)
+            {
+                var temp = counter.Skip(i).Take(nFold).ToList();
+                predictIndicies.Add(temp);
+                trainIndicies.Add(counter.Except(temp).ToList());
+            }
+
+
+            List<Dictionary<int, double>> weightedGuesses = new List<Dictionary<int, double>>();
+            //Fill up weightedGuesses List
+            for (int nGuesses = 0; nGuesses < samData.dataPoints.Count; nGuesses++)
+            {
+                Dictionary<int, double> tempGuess = new Dictionary<int, double>();
+                for (int indexClass = 0; indexClass < labelCount; indexClass++)
+                {
+                    tempGuess.Add(indexClass, 0);
+                }
+                weightedGuesses.Add(tempGuess);
+            }
+
+            //Split classifiers
+            for (int i = 0; i < trainIndicies.Count; i++)
+            {
+                foreach (var predictResult in machineAnswers)
+                {
+                    double correct = 0;
+                    //calculate weights
+                    for (int trainingIndex = 0; trainingIndex < trainIndicies[i].Count; trainingIndex++)
+                    {
+                        if (predictResult[trainIndicies[i][trainingIndex]] == samData.dataPoints[trainIndicies[i][trainingIndex]].ToAVCoordinate(feelingsmodel))
+                        {
+                            correct++;
+                        }
+                    }
+
+                    //Add weight from the trainingset to each of the guesses
+                    weightedGuesses[i][(int)predictResult[i]] += (correct / trainIndicies.Count);
+                }
+            }
+
+            //Calculate final answers
+            List<double> guesses = new List<double>();
+
+            foreach (Dictionary<int, double> answer in weightedGuesses)
+            {
+                int tempKey = -1;
+                double tempMax = -1;
+                foreach (int key in answer.Keys)
+                {
+                    if (answer[key] > tempMax)
+                    {
+                        tempKey = key;
+                        tempMax = answer[key];
+                    }
+                }
+                guesses.Add(tempKey);
+            }
+
+
+            //Get correct results
+            int[] answers = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingsmodel, useIAPSratings)).ToArray();
+            int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+
+
+            //Calculate scoring results
+            double[,] confus = CalculateConfusion(guesses.ToArray(), answers, numberOfLabels);
+            List<double> pres = CalculatePrecision(confus, numberOfLabels);
+            List<double> recall = CalculateRecall(confus, numberOfLabels);
+            List<double> fscore = CalculateFScore(pres, recall);
+            return new PredictionResult(confus, recall, pres, fscore, new SVMParameter(), new List<Feature> { }, answers.ToList(), guesses.ConvertAll(x => (int)x));
         }
 
 
