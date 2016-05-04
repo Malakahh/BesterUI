@@ -1799,16 +1799,75 @@ namespace Classification_App
         }
 
 
+        private void updateChart()
+        {
+            noveltyChart.Series.Clear();
+            for (int i = 0; i < events.Length; i++)
+            {
+                try
+                {
+                    noveltyChart.Series.Add(new Series(events[i].Split('#')[1]));
+                    noveltyChart.Series[events[i].Split('#')[1]].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
+                    noveltyChart.Series[events[i].Split('#')[1]].Color = Event2Color(events[i].Split('#')[1]);
+                    noveltyChart.Series[events[i].Split('#')[1]].IsVisibleInLegend = false;
+                }
+                catch { }
+            }
+            int includedSevents = 0;
+            if (samEvents.Checked)
+            {
+                for (int i = 0; i < sEvents.Count; i++)
+                {
+                    string arVal = (samEventsFilterArousal.Text.Length > 0) ? samEventsFilterArousal.Text : "0";
+                    string vaVal = (samEventsFilterValence.Text.Length > 0) ? samEventsFilterValence.Text : "0";
+
+                    if (sEvents[i].valence <= int.Parse(vaVal) && sEvents[i].arousal <= int.Parse(arVal) || !samEventsFilter.Checked)
+                    {
+                        noveltyChart.Series.Add(new Series("UserSAM" + i));
+                        noveltyChart.Series["UserSAM" + i].Points.AddXY(sEvents[i].timestamp, 1.1);
+                        noveltyChart.Series["UserSAM" + i].Color = Color.Magenta;
+                        noveltyChart.Series["UserSAM" + i].IsVisibleInLegend = false;
+                        includedSevents++;
+                    }
+                }
+            }
+
+            Series tmpS = new Series("test");
+            noveltyChart.Series.Add(tmpS);
+            tmpS.ChartType = SeriesChartType.StackedColumn;
+            noveltyChart.Series["test"].IsVisibleInLegend = false;
+
+            foreach (var outlier in timestampsOutliers)
+            {
+                noveltyChart.Series["test"].Points.AddXY(outlier, 0.5);
+            }
+
+            Log.LogMessage("Included SAM Events: " + includedSevents + "/" + sEvents.Count);
+        }
+
+        string[] events = new string[0];
+        List<samEvents> sEvents = new List<samEvents>();
+        List<int> timestampsOutliers = new List<int>();
+
         private void button1_Click(object sender, EventArgs e)
         {
             noveltyChart.ChartAreas.First().BackColor = Color.DarkGray;
             FolderBrowserDialog fbd = new FolderBrowserDialog();
-            string[] events = new string[0];
-            if (fbd.ShowDialog() == DialogResult.OK)
+            if (fbd.ShowDialog() == DialogResult.
+                OK)
             {
                 string path = fbd.SelectedPath;
+                string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+
                 fdNovelty.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
                 events = File.ReadAllLines(path + @"\SecondTest.dat");
+
+                string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
+                foreach (string ev in tmpSevents)
+                {
+                    sEvents.Add(new samEvents(int.Parse(ev.Split(':')[0]), int.Parse(ev.Split(':')[1]), int.Parse(ev.Split(':')[2])));
+                }
+
             }
             if (events.Length == 0)
             {
@@ -1829,8 +1888,8 @@ namespace Classification_App
             for (int i = 0; i < fdNovelty.gsrData.Last().timestamp - fdNovelty.gsrData.First().timestamp - windowSize; i += stepSize)
             {
                 List<double> featureVector = new List<double>();
-                List<double> data = fdNovelty.gsrData.SkipWhile(x => (x.timestamp - fdNovelty.gsrData.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - fdNovelty.gsrData.First().timestamp)).Select(x=>(double)x.resistance).ToList();
-                if(data.Count == 0)
+                List<double> data = fdNovelty.gsrData.SkipWhile(x => (x.timestamp - fdNovelty.gsrData.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - fdNovelty.gsrData.First().timestamp)).Select(x => (double)x.resistance).ToList();
+                if (data.Count == 0)
                 { continue; }
                 featureVector.Add(data.Average());
                 featureVector.Add(data.Max());
@@ -1860,40 +1919,38 @@ namespace Classification_App
             occ.CreateModel(svmP);
             List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
 
-            
-            for (int i = 0; i < events.Length; i++)
-            {
-                try
-                {
-                    noveltyChart.Series.Add(new Series(events[i].Split('#')[1]));  
-                    noveltyChart.Series[events[i].Split('#')[1]].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
-                    noveltyChart.Series[events[i].Split('#')[1]].Color = Event2Color(events[i].Split('#')[1]);
-                    noveltyChart.Series[events[i].Split('#')[1]].IsVisibleInLegend = false;
-                }
-                catch { }
-            }
-        
-            noveltyChart.Series.Add(new Series("test"));
-            noveltyChart.Series["test"].IsVisibleInLegend = false;
-            List<int> timestampsOutliers = new List<int>();
             foreach (int index in indexes)
             {
-                timestampsOutliers.Add(predictionSet.ElementAt(index).Item2 - firstPredcition + 180000+4000);
+                timestampsOutliers.Add(predictionSet.ElementAt(index).Item2 - firstPredcition + 180000 + 4000);
             }
-            for (int i = 0; i < int.Parse(events.Last().Split('#')[0]); i++)
-            {
-                if (timestampsOutliers.Contains(i))
-                {
-                    noveltyChart.Series["test"].Points.AddXY(i, 0.5);
-                }
-                else
-                {
-                    noveltyChart.Series["test"].Points.AddXY(i, 0);
-                }
-            }
-            
+
+
+            updateChart();
+
             int k = 0;
 
+        }
+
+        private void samEvents_CheckedChanged(object sender, EventArgs e)
+        {
+            updateChart();
+        }
+
+        private void samEventsFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            updateChart();
+        }
+
+        private void samEventsFilterArousal_TextChanged(object sender, EventArgs e)
+        {
+            if (samEventsFilter.Checked)
+                updateChart();
+        }
+
+        private void samEventsFilterValence_TextChanged(object sender, EventArgs e)
+        {
+            if (samEventsFilter.Checked)
+                updateChart();
         }
     }
 }
