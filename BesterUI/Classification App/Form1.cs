@@ -961,14 +961,14 @@ namespace Classification_App
                                                             ExcelHandler.missingValue,
                                                             ExcelHandler.missingValue);
 
-                    foreach (Excel.Worksheet sheit in current.Sheets)
+                    foreach (Excel.Worksheet currentSheet in current.Sheets)
                     {
-                        if (sheit.Name == "First" || sheit.Name == "Last" || sheit.Name == "Overview")
+                        if (currentSheet.Name == "First" || currentSheet.Name == "Last" || currentSheet.Name == "Overview")
                         {
                             continue;
                         }
 
-                        string tpName = "tp" + sheit.Name.Split(' ').Last();
+                        string tpName = "tp" + currentSheet.Name.Split(' ').Last();
 
                         var accuracies = new Dictionary<SAMDataPoint.FeelingModel, double>();
                         foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
@@ -979,35 +979,35 @@ namespace Classification_App
                         #region TryValues
                         try
                         {
-                            accuracies[SAMDataPoint.FeelingModel.Arousal2High] = sheit.Cells[2, 3].Value;
+                            accuracies[SAMDataPoint.FeelingModel.Arousal2High] = currentSheet.Cells[2, 3].Value;
                         }
                         catch { };
 
                         try
                         {
-                            accuracies[SAMDataPoint.FeelingModel.Arousal2Low] = sheit.Cells[15, 3].Value;
+                            accuracies[SAMDataPoint.FeelingModel.Arousal2Low] = currentSheet.Cells[15, 3].Value;
                         }
                         catch { };
 
                         try
                         {
-                            accuracies[SAMDataPoint.FeelingModel.Arousal3] = sheit.Cells[28, 3].Value;
+                            accuracies[SAMDataPoint.FeelingModel.Arousal3] = currentSheet.Cells[28, 3].Value;
                         }
                         catch { };
 
                         try
                         {
-                            accuracies[SAMDataPoint.FeelingModel.Valence2High] = sheit.Cells[44, 3].Value;
+                            accuracies[SAMDataPoint.FeelingModel.Valence2High] = currentSheet.Cells[44, 3].Value;
                         }
                         catch { };
                         try
                         {
-                            accuracies[SAMDataPoint.FeelingModel.Valence2Low] = sheit.Cells[57, 3].Value;
+                            accuracies[SAMDataPoint.FeelingModel.Valence2Low] = currentSheet.Cells[57, 3].Value;
                         }
                         catch { };
                         try
                         {
-                            accuracies[SAMDataPoint.FeelingModel.Valence3] = sheit.Cells[70, 3].Value;
+                            accuracies[SAMDataPoint.FeelingModel.Valence3] = currentSheet.Cells[70, 3].Value;
                         }
                         catch { };
                         #endregion
