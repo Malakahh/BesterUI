@@ -311,27 +311,26 @@ namespace Classification_App
             FeatureCreator.EEGValenceOptimizationFeatures.ForEach(x => x.SetData(fd.eegData.ToList<DataReading>()));
             FeatureCreator.FACEArousalOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
             FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
-
-            Log.LogMessage("Looking for configurations...");
-
             svmConfs.Clear();
-            if (Directory.Exists(path + @"\STD"))
-            {
-                var files = Directory.GetFiles(path + @"\STD");
-                Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
-                foreach (var item in files)
-                {
-                    svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                }
 
-            }
+            /*     Log.LogMessage("Looking for configurations...");
 
-            if (Directory.Exists(path + @"\META"))
-            {
-                var files = Directory.GetFiles(path + @"\META");
-                Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
-                /* same procedure?? */
-                foreach (var item in files)
+                 if (Directory.Exists(path + @"\STD"))
+                 {
+                     var files = Directory.GetFiles(path + @"\STD");
+                     Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
+                     foreach (var item in files)
+                     {
+                         svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                     }
+
+                 }
+
+                 if (Directory.Exists(path + @"\META"))
+                 {
+                     var files = Directory.GetFiles(path + @"\META");
+                     Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
+            foreach (var item in files)
                 {
                     metaConfs.Add(MetaSVMConfiguration.Deserialize(File.ReadAllText(item)));
                 }
@@ -340,7 +339,7 @@ namespace Classification_App
             if (svmConfs.Count == 0 && metaConfs.Count == 0)
             {
                 Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
-            }
+            }*/
             return true;
         }
 

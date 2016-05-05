@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Web.Script.Serialization;
+using System.Globalization;
 
 namespace BesterUI.Data
 {
@@ -67,7 +68,8 @@ namespace BesterUI.Data
             foreach (var item in bits)
             {
                 var dat = item.Split(':');
-                 data.Add(dat[0], double.Parse(dat[1].Replace(',','.')));
+                var temp = dat[1].Replace(',', '.');
+                data.Add(dat[0], double.Parse(temp, CultureInfo.InvariantCulture));
             }
 
             return this;
