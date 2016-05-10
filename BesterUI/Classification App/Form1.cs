@@ -313,33 +313,33 @@ namespace Classification_App
             FeatureCreator.FACEValenceOptimizationFeatures.ForEach(x => x.SetData(fd.faceData.ToList<DataReading>()));
             svmConfs.Clear();
 
-            /*     Log.LogMessage("Looking for configurations...");
+            Log.LogMessage("Looking for configurations...");
 
-                 if (Directory.Exists(path + @"\STD"))
-                 {
-                     var files = Directory.GetFiles(path + @"\STD");
-                     Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
-                     foreach (var item in files)
-                     {
-                         svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-                     }
+            //if (Directory.Exists(path + @"\STD"))
+            //{
+            //    var files = Directory.GetFiles(path + @"\STD");
+            //    Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
+            //    foreach (var item in files)
+            //    {
+            //        svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+            //    }
 
-                 }
+            //}
 
-                 if (Directory.Exists(path + @"\META"))
-                 {
-                     var files = Directory.GetFiles(path + @"\META");
-                     Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
-            foreach (var item in files)
-                {
-                    metaConfs.Add(MetaSVMConfiguration.Deserialize(File.ReadAllText(item)));
-                }
-            }
+            //if (Directory.Exists(path + @"\META"))
+            //{
+            //    var files = Directory.GetFiles(path + @"\META");
+            //    Log.LogMessage("Found META! Contains " + files.Length + " configurations.");
+            //    foreach (var item in files)
+            //    {
+            //        metaConfs.Add(MetaSVMConfiguration.Deserialize(File.ReadAllText(item)));
+            //    }
+            //}
 
-            if (svmConfs.Count == 0 && metaConfs.Count == 0)
-            {
-                Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
-            }*/
+            //if (svmConfs.Count == 0 && metaConfs.Count == 0)
+            //{
+            //    Log.LogMessage("No configurations found, maybe you should run some optimizations on some features.");
+            //}
             return true;
         }
 
@@ -649,13 +649,13 @@ namespace Classification_App
                     SAMDataPoint.FeelingModel.Valence3
                 };
 
+
                 eh = new ExcelHandler(fbd.SelectedPath);
                 if (!eh.BooksOpen)
                 {
                     Log.LogMessage("Cannot open or write to books");
                     return;
                 }
-
 
                 var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
                 List<SVMParameter> parameters = GenerateSVMParameters();
@@ -681,10 +681,15 @@ namespace Classification_App
                         continue;
                     }
 
+                    if (!LoadData(item, _fd))
+                    {
+                        Log.LogMessage(item.Split('-').Last() + " is not classifiable");
+                        continue;
+                    }
+
                     string personName = item.Split('\\').Last();
                     eh.AddPersonToBooks(personName);
 
-                    LoadData(item, _fd);
                     foreach (var feel in feelings)
                     {
                         statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
@@ -1614,15 +1619,15 @@ namespace Classification_App
 
             Log.LogMessage("Total: " + skippedList.Count);
 
-            var resultsList = new Dictionary<string, Dictionary<string, List<int>>>();
+            var resultsList = new Dictionary<string, Dictionary<string, List<double>>>();
             foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
             {
-                resultsList.Add(feel.ToString(), new Dictionary<string, List<int>>());
-                resultsList[feel.ToString()].Add("SAM", new List<int>());
-                resultsList[feel.ToString()].Add("NAIVE", new List<int>());
+                resultsList.Add(feel.ToString(), new Dictionary<string, List<double>>());
+                resultsList[feel.ToString()].Add("SAM", new List<double>());
+                resultsList[feel.ToString()].Add("NAIVE", new List<double>());
                 foreach (var item in singles.Concat(fusion))
                 {
-                    resultsList[feel.ToString()].Add(item, new List<int>());
+                    resultsList[feel.ToString()].Add(item, new List<double>());
                 }
             }
 
@@ -1637,12 +1642,13 @@ namespace Classification_App
                     {
                         var sams = samData.dataPoints.Select(x => x.ToAVCoordinate(feel.Key)).ToList();
                         var machines = new List<List<double>>();
-                        resultsList[feel.Key.ToString()]["SAM"].AddRange(sams);
+                        //resultsList[feel.Key.ToString()]["SAM"].AddRange(sams);
+                        resultsList[feel.Key.ToString()]["SAM"].Add(1);
 
                         if (sams.Count != 30)
                         {
                             Log.LogMessage("found bad SAM! " + subject.Key + " - " + feel.Key);
-                            throw new Exception("found bad SAM! " + subject.Key + " - " + feel.Key);
+                            //throw new Exception("found bad SAM! " + subject.Key + " - " + feel.Key);
                         }
 
                         int currentMost = 0;
@@ -1658,10 +1664,11 @@ namespace Classification_App
                             }
                         }
 
-                        for (int i = 0; i < sams.Count; i++)
-                        {
-                            resultsList[feel.Key.ToString()]["NAIVE"].Add(currentMost);
-                        }
+                        resultsList[feel.Key.ToString()]["NAIVE"].Add((double)currentMostCount / sams.Count);
+                        //for (int i = 0; i < sams.Count; i++)
+                        //{
+                        //    resultsList[feel.Key.ToString()]["NAIVE"].Add(currentMost);
+                        //}
 
                         foreach (var machine in feel.Value)
                         {
@@ -1679,10 +1686,12 @@ namespace Classification_App
                                 var classifier = new StdClassifier(new SVMConfiguration(param, FeatureCreator.GetFeatures(machine.Key, feel.Key)), samData);
 
                                 var results = classifier.OldCrossValidate(feel.Key, 1);
-                                foreach (var res in results[0].guesses)
-                                {
-                                    resultsList[feel.Key.ToString()][machine.Key].Add(res);
-                                }
+                                //foreach (var res in results[0].guesses)
+                                //{
+                                //    resultsList[feel.Key.ToString()][machine.Key].Add(res);
+                                //}
+
+                                resultsList[feel.Key.ToString()][machine.Key].Add(results[0].GetAccuracy());
 
                                 machines.Add(new List<double>(results[0].guesses.Select(x => (double)x)));
                             }
@@ -1708,7 +1717,8 @@ namespace Classification_App
                                     continue;
                                 }
 
-                                resultsList[feel.Key.ToString()][machine.Key].AddRange(pred.guesses);
+                                //resultsList[feel.Key.ToString()][machine.Key].AddRange(pred.guesses);
+                                resultsList[feel.Key.ToString()][machine.Key].Add(pred.GetAccuracy());
                             }
                         }
                     }
