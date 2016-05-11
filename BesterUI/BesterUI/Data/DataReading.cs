@@ -132,8 +132,10 @@ namespace BesterUI.Data
                             startTime.Value.AddMilliseconds(500);
                         }
                         TimeSpan DifferenceOffset = new TimeSpan(1, 0, 180);
+
                         offset = startTime.Value.Subtract(dT);
                         offset = offset.Add(DifferenceOffset);
+
                         first = false;
                     }
                     else
@@ -141,7 +143,11 @@ namespace BesterUI.Data
                         progress += curLine.Length;
                         var datBits = curLine.Split('#');
                         DataReading t = new T();
-                        t.timestamp = long.Parse(datBits[0]) - (long)offset.TotalMilliseconds;
+                        t.timestamp = long.Parse(datBits[0]);
+                        if (dT != DateTime.MinValue)
+                        {
+                            t.timestamp -= (long)offset.TotalMilliseconds;
+                        }
                         retVal.Add((T)t.Deserialize(datBits[1]));
 
                         if ((progress / 1024) > next)

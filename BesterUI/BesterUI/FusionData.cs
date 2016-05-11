@@ -114,12 +114,17 @@ namespace BesterUI
         private const int MINIMUM_EEG_FILE_SIZE = 45000;
         private const int EEG_FILTER_MIN_VALUE = 700;
 
+        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad)
+        {
+            return LoadFromFile(filesToLoad, DateTime.MinValue, false);
+        }
+
         public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT, bool checkSize = true)
         {
             Dictionary<string, bool> shouldRun = new Dictionary<string, bool>();
             foreach (string file in filesToLoad)
             {
-                string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                string s = file.Split(new string[] { "\\", "/" }, StringSplitOptions.RemoveEmptyEntries).Last();
                 double size;
                 try
                 {
@@ -213,13 +218,13 @@ namespace BesterUI
             return newValues;
 
         }
-        
+
         public void ExportGRF(string inpath = "")
         {
             if (inpath == "") inpath = Directory.GetCurrentDirectory() + DataReading.GetWritePath();
             var events = File.ReadAllLines(inpath + @"\SecondTest.dat");
             string path = inpath + @"\Graph.grf";
-            
+
 
             int TextLabelCount = 0;
             int FuncCount = 1;
@@ -304,16 +309,16 @@ namespace BesterUI
             for (int eventId = 0; eventId < events.Length; eventId++)
             {
                 string[] evnt = events[eventId].Split('#');
-                
+
                 if (evnt[1].Contains("Bogus"))
                 {
                     continue;
                 }
-                shades.Add(AddShade(evnt[1],e2c(evnt[1]), lastTime,int.Parse(evnt[0])));
+                shades.Add(AddShade(evnt[1], e2c(evnt[1]), lastTime, int.Parse(evnt[0])));
                 lastTime = int.Parse(evnt[0]);
 
                 pointSeries.Add(AddPointSeries("Splitter", Color.Black, new List<double>() { int.Parse(events[eventId].Split('#')[0]), int.Parse(events[eventId].Split('#')[0]) },
-                    new List<double>() { 0, 10000}));
+                    new List<double>() { 0, 10000 }));
             }
             List<Tuple<double, string>> timestamps = new List<Tuple<double, string>>();
             List<Tuple<double, string>> timestampsProspects = new List<Tuple<double, string>>();
@@ -328,7 +333,7 @@ namespace BesterUI
             }
 
             var gsrResult = GetInterrestingTimeStamp(datGSR, 40, MinMaxDifference, int.Parse(events[2].Split('#')[0]), true, 4000);
-            timestamps.AddRange(gsrResult.Item1.Select(x=>Tuple.Create(x,"GSR")));
+            timestamps.AddRange(gsrResult.Item1.Select(x => Tuple.Create(x, "GSR")));
             timestampsProspects.AddRange(gsrResult.Item2.Select(x => Tuple.Create(x, "GSR")));
             //gsrData.ForEach(signal => { x.Add(signal.timestamp - hrData[0].timestamp); y.Add(signal.resistance); });
             //gsrData.ForEach(signal => { x.Add(signal.timestamp - hrData[0].timestamp); y.Add(signal.resistance); });
@@ -348,15 +353,15 @@ namespace BesterUI
             #endregion
             #region EEG
             List<Tuple<long, double>> datEEG = new List<Tuple<long, double>>();
-            
+
 
             #endregion
             #region Kinect
             List<Tuple<long, double>> datKinect = new List<Tuple<long, double>>();
             foreach (FaceDataReading f in faceData)
             {
-                datKinect.Add(Tuple.Create(f.timestamp, (double)(f.data[Microsoft.Kinect.Face.FaceShapeAnimations.RighteyebrowLowerer] 
-                    + f.data[Microsoft.Kinect.Face.FaceShapeAnimations.LefteyebrowLowerer])/2));
+                datKinect.Add(Tuple.Create(f.timestamp, (double)(f.data[Microsoft.Kinect.Face.FaceShapeAnimations.RighteyebrowLowerer]
+                    + f.data[Microsoft.Kinect.Face.FaceShapeAnimations.LefteyebrowLowerer]) / 2));
             }
             var kinectResult = GetInterrestingTimeStamp(datKinect, 15, Variance, int.Parse(events[2].Split('#')[0]), true, 500);
             timestamps.AddRange(kinectResult.Item1.Select(x => Tuple.Create(x, "FACE1")));
@@ -381,7 +386,7 @@ namespace BesterUI
             double windowSize = 1000;
             int tsCount = timestamps.Count;
             int tspCount = timestampsProspects.Count;
-            timestamps = timestamps.OrderBy(x=>x).ToList();
+            timestamps = timestamps.OrderBy(x => x).ToList();
             timestampsProspects = timestampsProspects.OrderBy(x => x).ToList();
             int lastIndex = 0;
             int prospectsLastIndex = 0;
@@ -406,7 +411,7 @@ namespace BesterUI
                             inThisWindow.Add(temp[counter].Item2);
                             value += outlierWeight;
                         }
-                            
+
                     }
                     else
                     {
@@ -419,7 +424,7 @@ namespace BesterUI
                 int prosCounter = 0;
                 while (true)
                 {
-                    if (tempPros.Count > prosCounter && tempPros[prosCounter].Item1 -i < windowSize)
+                    if (tempPros.Count > prosCounter && tempPros[prosCounter].Item1 - i < windowSize)
                     {
                         if (!inThisWindow.Contains(tempPros[prosCounter].Item2))
                         {
@@ -560,5 +565,5 @@ namespace BesterUI
             return new Tuple<List<double>, List<double>>(timestamps, timestampsProspects);
         }
     }
-  
+
 }
