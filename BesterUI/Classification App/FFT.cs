@@ -48,7 +48,7 @@ namespace Classification_App
                 ILRetArray<complex> output = ILMath.fft(inArr);
                 rawFFTOutput = output.ToArray();
             }
-
+            
             ComputeFrequencyPowerSamples();
 
             //FrequencyBands

@@ -52,6 +52,7 @@
             this.btn_excel_merge = new System.Windows.Forms.Button();
             this.btn_excel_add = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_PlotExportTasks = new System.Windows.Forms.Button();
             this.btn_PlotExportExcel = new System.Windows.Forms.Button();
             this.txt_ExportTo = new System.Windows.Forms.TextBox();
             this.txt_ExportFrom = new System.Windows.Forms.TextBox();
@@ -98,13 +99,15 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
-            this.btn_PlotExportTasks = new System.Windows.Forms.Button();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.btn_ExportDataCompare = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).BeginInit();
+            this.tabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -113,6 +116,7 @@
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
+            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -368,6 +372,16 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Plotting";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // btn_PlotExportTasks
+            // 
+            this.btn_PlotExportTasks.Location = new System.Drawing.Point(7, 154);
+            this.btn_PlotExportTasks.Name = "btn_PlotExportTasks";
+            this.btn_PlotExportTasks.Size = new System.Drawing.Size(116, 23);
+            this.btn_PlotExportTasks.TabIndex = 40;
+            this.btn_PlotExportTasks.Text = "Export Tasks";
+            this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
+            this.btn_PlotExportTasks.Click += new System.EventHandler(this.btn_PlotExportTasks_Click);
             // 
             // btn_PlotExportExcel
             // 
@@ -756,7 +770,7 @@
             // threadBox
             // 
             this.threadBox.FormattingEnabled = true;
-            this.threadBox.Location = new System.Drawing.Point(446, 70);
+            this.threadBox.Location = new System.Drawing.Point(446, 48);
             this.threadBox.Name = "threadBox";
             this.threadBox.Size = new System.Drawing.Size(107, 21);
             this.threadBox.TabIndex = 8;
@@ -765,7 +779,7 @@
             // Label
             // 
             this.Label.AutoSize = true;
-            this.Label.Location = new System.Drawing.Point(443, 54);
+            this.Label.Location = new System.Drawing.Point(443, 34);
             this.Label.Name = "Label";
             this.Label.Size = new System.Drawing.Size(65, 13);
             this.Label.TabIndex = 9;
@@ -774,7 +788,7 @@
             // chk_useControlValues
             // 
             this.chk_useControlValues.AutoSize = true;
-            this.chk_useControlValues.Location = new System.Drawing.Point(269, 70);
+            this.chk_useControlValues.Location = new System.Drawing.Point(271, 52);
             this.chk_useControlValues.Name = "chk_useControlValues";
             this.chk_useControlValues.Size = new System.Drawing.Size(143, 17);
             this.chk_useControlValues.TabIndex = 16;
@@ -791,15 +805,26 @@
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
-            // btn_PlotExportTasks
+            // tabPage5
             // 
-            this.btn_PlotExportTasks.Location = new System.Drawing.Point(7, 154);
-            this.btn_PlotExportTasks.Name = "btn_PlotExportTasks";
-            this.btn_PlotExportTasks.Size = new System.Drawing.Size(116, 23);
-            this.btn_PlotExportTasks.TabIndex = 40;
-            this.btn_PlotExportTasks.Text = "Export Tasks";
-            this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
-            this.btn_PlotExportTasks.Click += new System.EventHandler(this.btn_PlotExportTasks_Click);
+            this.tabPage5.Controls.Add(this.btn_ExportDataCompare);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(657, 292);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Data Compare";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // btn_ExportDataCompare
+            // 
+            this.btn_ExportDataCompare.Location = new System.Drawing.Point(6, 6);
+            this.btn_ExportDataCompare.Name = "btn_ExportDataCompare";
+            this.btn_ExportDataCompare.Size = new System.Drawing.Size(75, 23);
+            this.btn_ExportDataCompare.TabIndex = 0;
+            this.btn_ExportDataCompare.Text = "Export xlxs";
+            this.btn_ExportDataCompare.UseVisualStyleBackColor = true;
+            this.btn_ExportDataCompare.Click += new System.EventHandler(this.btn_ExportDataCompare_Click);
             // 
             // Form1
             // 
@@ -826,6 +851,7 @@
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).EndInit();
+            this.tabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -902,6 +928,8 @@
         private System.Windows.Forms.Button btn_CalculateResults;
         private System.Windows.Forms.Button btn_PlotExportExcel;
         private System.Windows.Forms.Button btn_PlotExportTasks;
+        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.Button btn_ExportDataCompare;
     }
 }
 

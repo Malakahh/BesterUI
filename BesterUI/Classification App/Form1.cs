@@ -1863,6 +1863,106 @@ namespace Classification_App
             }
         }
 
+        private void btn_ExportDataCompare_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            List<string> files = new List<string>()
+            {
+                "EEG",
+                "GSR",
+                "HR",
+                "KINECT"
+            };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                foreach (var dirPath in Directory.GetDirectories(fbd.SelectedPath))
+                {
+                    var metaLines = File.ReadAllLines(dirPath + "/meta.txt");
+                    var fdTestStatus = fdTest.LoadFromFile(files.Select(x => dirPath + "/test/" + x).ToArray(), DateTime.Now);
+                    var fdRecallStatus = fdRecall.LoadFromFile(files.Select(x => dirPath + "/recall/" + x).ToArray(), DateTime.Now);
+                    var testEvents = File.ReadAllLines(dirPath + "/test/SecondTest.dat");
+
+                    int offset = int.Parse(metaLines.ToList().Find(x => x.StartsWith("sync=")).Split('=').Last());
+
+                    var watch = Stopwatch.StartNew();
+                    var result = FilterData(fdTest.gsrData.Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(), fdRecall.gsrData.Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList());
+                    Log.LogMessage($"Filtered in {watch.ElapsedMilliseconds}ms, {result.Item1.ToString("0.0")}% data removed");
+                    watch.Stop();
+
+                    var resA = MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item3);
+                    Log.LogMessage($"Best case pearson correlation: {resA.ToString("0.000")}");
+                    var resB = MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item4);
+                    Log.LogMessage($"Second best case pearson correlation: {resB.ToString("0.000")}");
+
+                    break;
+                }
+            }
+        }
+
+        Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> A, List<Tuple<long, double>> B, int msPerReading = -1)
+        {
+            int removed = 0;
+
+            //step 1, filter gaps
+            if (msPerReading > 0)
+            {
+                for (int i = 0; i < A.Count - 1; i++)
+                {
+                    if (A[i + 1].Item1 - A[i].Item1 > 2 * msPerReading)
+                    {
+                        removed += B.RemoveAll(x => A[i].Item1 < x.Item1 && A[i + 1].Item1 > x.Item1);
+                    }
+                }
+
+                for (int i = 0; i < B.Count; i++)
+                {
+                    if (B[i + 1].Item1 - B[i].Item1 > 2 * msPerReading)
+                    {
+                        removed += A.RemoveAll(x => B[i].Item1 < x.Item1 && B[i + 1].Item1 > x.Item1);
+                    }
+                }
+            }
+
+            //step 2, do pair pointer analysis thingy
+            List<double> As = new List<double>();
+            List<double> closestB = new List<double>();
+            List<double> secondClosestB = new List<double>();
+
+
+            for (int i = 0; i < A.Count; i++)
+            {
+                long bestDist = int.MaxValue;
+                long bestDistId = 0;
+                long secondBestDist = int.MaxValue;
+                long secondBestDistId = 0;
+
+                for (int j = 0; j < B.Count; j++)
+                {
+                    long dist = A[i].Item1 - B[j].Item1;
+
+                    if (dist < bestDist)
+                    {
+                        secondBestDist = bestDist;
+                        secondBestDistId = bestDistId;
+                        bestDist = dist;
+                        bestDistId = j;
+                    }
+                    else if (dist < secondBestDist)
+                    {
+                        secondBestDist = dist;
+                        secondBestDistId = j;
+                    }
+                }
+
+                As.Add(A[i].Item2);
+                closestB.Add(B[(int)bestDistId].Item2);
+                secondClosestB.Add(B[(int)secondBestDistId].Item2);
+            }
+
+            return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
+        }
 
     }
 }
