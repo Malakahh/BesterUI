@@ -33,6 +33,7 @@ namespace Classification_App
 
         FusionData fdTest = new FusionData();
         FusionData fdRecall = new FusionData();
+        FusionData fdNovelty = new FusionData();
 
         public Form1()
         {
@@ -804,6 +805,11 @@ namespace Classification_App
         }
 
         #region MERGING
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btn_excel_add_Click(object sender, EventArgs e)
         {
             OpenFileDialog fd = new OpenFileDialog();
@@ -1264,101 +1270,6 @@ namespace Classification_App
             }
         }
 
-        private void btn_PlotExportTasks_Click(object sender, EventArgs e)
-        {
-            if (loaded.Count < 2)
-            {
-                Log.LogMessage("You must load all data before exporting!");
-                return;
-            }
-
-            int height = 0;
-            if (!int.TryParse(txt_height.Text, out height))
-            {
-                Log.LogMessage("Height must be an integer");
-                return;
-            }
-
-            int width = 0;
-            if (!int.TryParse(txt_width.Text, out width))
-            {
-                Log.LogMessage("Width must be an integer");
-                return;
-            }
-
-            int offset = 0;
-            if (!int.TryParse(txt_PlotDataOffset.Text, out offset))
-            {
-                Log.LogMessage("Offset must be an integer");
-                return;
-            }
-
-            double pointSize = 0;
-            if (!double.TryParse(txt_PlotPointSize.Text.Replace(".", ","), out pointSize))
-            {
-                Log.LogMessage("Point size must be a double");
-                return;
-            }
-
-            OpenFileDialog ofd = new OpenFileDialog();
-
-            if (ofd.ShowDialog() == DialogResult.OK)
-            {
-                PngExporter pngify = new PngExporter();
-                pngify.Width = width;
-                pngify.Height = height;
-
-                var lines = File.ReadAllLines(ofd.FileName);
-                List<int> points = new List<int>();
-                foreach (var item in lines)
-                {
-                    if (item == "") continue;
-                    var split = item.Split('#');
-                    if (split[1].Contains("ompleteClicked"))
-                    {
-                        int stamp = int.Parse(split[0]);
-                        if (points.Count == 0 || stamp - points.Last() > 3000)
-                        {
-                            points.Add(stamp);
-                        }
-                    }
-                }
-
-                string savepath = ofd.FileName.Replace(ofd.SafeFileName, "");
-                Log.LogMessage("Total: " + (points.Count - 1));
-                for (int j = 0; j < points.Count - 1; j++)
-                {
-                    var xy = GetXY(points[j], points[j + 1]);
-
-                    var test = xy.Item1;
-                    var recall = xy.Item2;
-
-                    FitPlot(test, recall);
-
-                    var model = new PlotModel() { Title = $"Slope:{slope.ToString("0.000")} RSquared:{rsquared.ToString("0.000")}" };
-                    var dataSeries = new OxyPlot.Series.ScatterSeries() { MarkerType = MarkerType.Circle, MarkerStroke = OxyColors.Red };
-                    for (int i = 0; i < test.Count; i++)
-                    {
-                        dataSeries.Points.Add(new OxyPlot.Series.ScatterPoint(test[i], recall[i]) { Size = pointSize });
-                    }
-
-                    var fitSeries = new OxyPlot.Series.FunctionSeries((x) => intercept + slope * x, test.Min(), test.Max(), 0.001) { Color = OxyColors.Blue };
-
-                    model.Series.Add(dataSeries);
-                    model.Series.Add(fitSeries);
-
-                    model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
-                    model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
-
-
-
-                    pngify.ExportToFile(model, $"{savepath}{j}.png");
-                    Log.LogMessage("Saved " + $"{savepath}{j}.png" + "!");
-                }
-                Log.LogMessage("DonnoDK");
-            }
-        }
-
         double intercept = 0;
         double slope = 0;
         double rsquared = 0;
@@ -1455,7 +1366,6 @@ namespace Classification_App
 
             area.AxisX.Minimum = scroll_PlotView.Value;
             area.AxisX.Maximum = scroll_PlotView.Value + chartMsToShow;
-
         }
 
 
@@ -1964,5 +1874,183 @@ namespace Classification_App
             return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
         }
 
+        private Color Event2Color(string eventName)
+        {
+            if (eventName.Contains("AddAttachmentButtonClick:") ||
+                eventName.Contains("CreateDraft, language changed to") ||
+                eventName.Contains("Changed"))
+            {
+                return Color.FromArgb(255, 255, 255, 100);
+            }
+            else if (eventName.Contains("RemoveContact clicked") ||
+                eventName.Contains("SendDraft error shown") ||
+                eventName.Contains("Task: NotResponding"))
+            {
+                return Color.Red;
+            }
+            else if (eventName.Contains("Add Contact Button click"))
+            {
+                return Color.Green;
+            }
+            else
+            {
+                return Color.Transparent;
+            }
+        }
+
+
+        private void updateChart()
+        {
+            noveltyChart.Series.Clear();
+            for (int i = 0; i < events.Length; i++)
+            {
+                try
+                {
+                    noveltyChart.Series.Add(new Series(events[i].Split('#')[1]));
+                    noveltyChart.Series[events[i].Split('#')[1]].Points.AddXY(int.Parse(events[i].Split('#')[0]), 1.1);
+                    noveltyChart.Series[events[i].Split('#')[1]].Color = Event2Color(events[i].Split('#')[1]);
+                    noveltyChart.Series[events[i].Split('#')[1]].IsVisibleInLegend = false;
+                }
+                catch { }
+            }
+            int includedSevents = 0;
+            if (samEvents.Checked)
+            {
+                for (int i = 0; i < sEvents.Count; i++)
+                {
+                    string arVal = (samEventsFilterArousal.Text.Length > 0) ? samEventsFilterArousal.Text : "0";
+                    string vaVal = (samEventsFilterValence.Text.Length > 0) ? samEventsFilterValence.Text : "0";
+
+                    if (sEvents[i].valence <= int.Parse(vaVal) && sEvents[i].arousal <= int.Parse(arVal) || !samEventsFilter.Checked)
+                    {
+                        noveltyChart.Series.Add(new Series("UserSAM" + i));
+                        noveltyChart.Series["UserSAM" + i].Points.AddXY(sEvents[i].timestamp, 1.1);
+                        noveltyChart.Series["UserSAM" + i].Color = Color.Magenta;
+                        noveltyChart.Series["UserSAM" + i].IsVisibleInLegend = false;
+                        includedSevents++;
+                    }
+                }
+            }
+
+            Series tmpS = new Series("test");
+            noveltyChart.Series.Add(tmpS);
+            tmpS.ChartType = SeriesChartType.StackedColumn;
+            noveltyChart.Series["test"].IsVisibleInLegend = false;
+
+            foreach (var outlier in timestampsOutliers)
+            {
+                noveltyChart.Series["test"].Points.AddXY(outlier, 0.5);
+            }
+
+            Log.LogMessage("Included SAM Events: " + includedSevents + "/" + sEvents.Count);
+        }
+
+        string[] events = new string[0];
+        List<samEvents> sEvents = new List<samEvents>();
+        List<int> timestampsOutliers = new List<int>();
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            noveltyChart.ChartAreas.First().BackColor = Color.DarkGray;
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.
+                OK)
+            {
+                string path = fbd.SelectedPath;
+                string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+
+                fdNovelty.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                events = File.ReadAllLines(path + @"\SecondTest.dat");
+
+                string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
+                foreach (string ev in tmpSevents)
+                {
+                    sEvents.Add(new samEvents(int.Parse(ev.Split(':')[0]), int.Parse(ev.Split(':')[1]), int.Parse(ev.Split(':')[2])));
+                }
+
+            }
+            if (events.Length == 0)
+            {
+                //if events is not assigned with second test data
+                return;
+            }
+            int start = (useRestInTraining.Checked) ? 180000 : 0;
+            int trainingEnd = int.Parse(events[2].Split('#')[0]);
+            int windowSize = 5000;
+            int stepSize = 100;
+            int delay = 2000;
+
+
+            //Split into training & prediction set
+            List<List<double>> featureVectors = new List<List<double>>();
+            List<int> timeStamps = new List<int>();
+
+            for (int i = 0; i < fdNovelty.gsrData.Last().timestamp - fdNovelty.gsrData.First().timestamp - windowSize; i += stepSize)
+            {
+                List<double> featureVector = new List<double>();
+                List<double> data = fdNovelty.gsrData.SkipWhile(x => (x.timestamp - fdNovelty.gsrData.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - fdNovelty.gsrData.First().timestamp)).Select(x => (double)x.resistance).ToList();
+                if (data.Count == 0)
+                { continue; }
+                featureVector.Add(data.Average());
+                featureVector.Add(data.Max());
+                featureVector.Add(data.Min());
+                double avg = data.Average();
+                double sd = Math.Sqrt(data.Average(x => Math.Pow(x - avg, 2)));
+                featureVector.Add(sd);
+                featureVectors.Add(featureVector);
+                timeStamps.Add(i);
+            }
+
+            featureVectors = featureVectors.NormalizeFeatureList<double>(Normalize.OneMinusOne).ToList();
+            var dataSet = featureVectors.Zip(timeStamps, (first, second) => { return Tuple.Create(first, second); });
+
+            var trainingSet = dataSet.SkipWhile(x => x.Item2 < start).TakeWhile(x => x.Item2 < trainingEnd);
+            var predictionSet = dataSet.SkipWhile(x => x.Item2 < trainingEnd);
+
+            int count = predictionSet.Count();
+            int firstPredcition = predictionSet.First().Item2;
+            OneClassClassifier occ = new OneClassClassifier(trainingSet.Select(x => x.Item1).ToList());
+            SVMParameter svmP = new SVMParameter();
+            svmP.Kernel = SVMKernelType.RBF;
+            svmP.C = 100;
+            svmP.Gamma = 0.01;
+            svmP.Nu = 0.01;
+            svmP.Type = SVMType.ONE_CLASS;
+            occ.CreateModel(svmP);
+            List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
+
+            foreach (int index in indexes)
+            {
+                timestampsOutliers.Add(predictionSet.ElementAt(index).Item2 - firstPredcition + 180000 + 4000);
+            }
+
+
+            updateChart();
+
+            int k = 0;
+
+        }
+
+        private void samEvents_CheckedChanged(object sender, EventArgs e)
+        {
+            updateChart();
+        }
+
+        private void samEventsFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            updateChart();
+        }
+
+        private void samEventsFilterArousal_TextChanged(object sender, EventArgs e)
+        {
+            if (samEventsFilter.Checked)
+                updateChart();
+        }
+
+        private void samEventsFilterValence_TextChanged(object sender, EventArgs e)
+        {
+            if (samEventsFilter.Checked)
+                updateChart();
+        }
     }
 }

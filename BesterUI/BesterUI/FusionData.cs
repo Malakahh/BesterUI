@@ -213,66 +213,7 @@ namespace BesterUI
             return newValues;
 
         }
-
-        public void CreateDummyData()
-        {
-            //EEG
-            EEGDataReading test = new EEGDataReading();
-            test.data.Add("stuff", 2.1243);
-            test.data.Add("stuff2", 3.1243);
-            //  test.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.1);
-            //  test.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.1);
-            test.Write();
-            eegData.Add(test);
-
-            EEGDataReading test2 = new EEGDataReading();
-            //  test2.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 1.2);
-            //  test2.data.Add(EEGDataReading.ELECTRODE.AF4.GetName(), 2.2);
-            test2.Write();
-            eegData.Add(test2);
-
-            EEGDataReading test3 = new EEGDataReading();
-            //  test3.data.Add(EEGDataReading.ELECTRODE.AF3.GetName(), 13337.0);
-            test3.Write();
-            eegData.Add(test3);
-
-
-            //GSR
-            for (int i = 0; i < 200; i++)
-            {
-                GSRDataReading gsr = new GSRDataReading();
-                gsr.resistance = 4;
-                gsr.Write();
-                gsrData.Add(gsr);
-            }
-
-            GSRDataReading gsr6 = new GSRDataReading();
-            gsr6.resistance = 66666;
-            gsr6.Write();
-            gsrData.Add(gsr6);
-
-
-
-            //Band
-            for (int i = 0; i < 200; i++)
-            {
-                HRDataReading band = new HRDataReading();
-                band.signal = 5;
-                band.isBeat = false;
-                band.Write();
-                hrData.Add(band);
-            }
-
-            HRDataReading band1 = new HRDataReading();
-            band1.signal = 1337;
-            band1.isBeat = true;
-            band1.Write();
-            hrData.Add(band1);
-
-
-        }
-
-
+        
         public void ExportGRF(string inpath = "")
         {
             if (inpath == "") inpath = Directory.GetCurrentDirectory() + DataReading.GetWritePath();

@@ -30,6 +30,9 @@
         {
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -92,6 +95,18 @@
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.btn_ExportPNG = new System.Windows.Forms.Button();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.label21 = new System.Windows.Forms.Label();
+            this.samEventsFilterValence = new System.Windows.Forms.TextBox();
+            this.label20 = new System.Windows.Forms.Label();
+            this.samEventsFilterArousal = new System.Windows.Forms.TextBox();
+            this.samEventsFilter = new System.Windows.Forms.CheckBox();
+            this.samEvents = new System.Windows.Forms.CheckBox();
+            this.noveltyChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.useRestInTraining = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.btn_ExportDataCompare = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
@@ -99,8 +114,6 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.btn_ExportDataCompare = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -108,6 +121,8 @@
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).BeginInit();
             this.tabPage5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.noveltyChart)).BeginInit();
+            this.tabPage6.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -117,10 +132,12 @@
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage5);
+            this.tabControl1.Controls.Add(this.tabPage6);
+            this.tabControl1.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(665, 318);
+            this.tabControl1.Size = new System.Drawing.Size(665, 366);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -137,7 +154,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(657, 292);
+            this.tabPage1.Size = new System.Drawing.Size(657, 340);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Normal";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -228,7 +245,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(657, 292);
+            this.tabPage2.Size = new System.Drawing.Size(657, 340);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Meta";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -269,7 +286,7 @@
             this.tabPage3.Controls.Add(this.btn_excel_add);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(657, 292);
+            this.tabPage3.Size = new System.Drawing.Size(657, 340);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Excel Merger";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -368,7 +385,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(657, 292);
+            this.tabPage4.Size = new System.Drawing.Size(657, 340);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Plotting";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -381,7 +398,6 @@
             this.btn_PlotExportTasks.TabIndex = 40;
             this.btn_PlotExportTasks.Text = "Export Tasks";
             this.btn_PlotExportTasks.UseVisualStyleBackColor = true;
-            this.btn_PlotExportTasks.Click += new System.EventHandler(this.btn_PlotExportTasks_Click);
             // 
             // btn_PlotExportExcel
             // 
@@ -741,9 +757,146 @@
             this.btn_ExportPNG.UseVisualStyleBackColor = true;
             this.btn_ExportPNG.Click += new System.EventHandler(this.btn_ExportPNG_Click);
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.label21);
+            this.tabPage5.Controls.Add(this.samEventsFilterValence);
+            this.tabPage5.Controls.Add(this.label20);
+            this.tabPage5.Controls.Add(this.samEventsFilterArousal);
+            this.tabPage5.Controls.Add(this.samEventsFilter);
+            this.tabPage5.Controls.Add(this.samEvents);
+            this.tabPage5.Controls.Add(this.noveltyChart);
+            this.tabPage5.Controls.Add(this.useRestInTraining);
+            this.tabPage5.Controls.Add(this.button1);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(657, 340);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Novelty Detection";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(443, 36);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(55, 13);
+            this.label21.TabIndex = 8;
+            this.label21.Text = "Valence <";
+            // 
+            // samEventsFilterValence
+            // 
+            this.samEventsFilterValence.Location = new System.Drawing.Point(500, 33);
+            this.samEventsFilterValence.Name = "samEventsFilterValence";
+            this.samEventsFilterValence.ShortcutsEnabled = false;
+            this.samEventsFilterValence.Size = new System.Drawing.Size(35, 20);
+            this.samEventsFilterValence.TabIndex = 7;
+            this.samEventsFilterValence.Text = "4";
+            this.samEventsFilterValence.TextChanged += new System.EventHandler(this.samEventsFilterValence_TextChanged);
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(443, 13);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(51, 13);
+            this.label20.TabIndex = 6;
+            this.label20.Text = "Arousal <";
+            // 
+            // samEventsFilterArousal
+            // 
+            this.samEventsFilterArousal.Location = new System.Drawing.Point(500, 10);
+            this.samEventsFilterArousal.Name = "samEventsFilterArousal";
+            this.samEventsFilterArousal.Size = new System.Drawing.Size(35, 20);
+            this.samEventsFilterArousal.TabIndex = 5;
+            this.samEventsFilterArousal.Text = "4";
+            this.samEventsFilterArousal.TextChanged += new System.EventHandler(this.samEventsFilterArousal_TextChanged);
+            // 
+            // samEventsFilter
+            // 
+            this.samEventsFilter.AutoSize = true;
+            this.samEventsFilter.Location = new System.Drawing.Point(303, 36);
+            this.samEventsFilter.Name = "samEventsFilter";
+            this.samEventsFilter.Size = new System.Drawing.Size(77, 17);
+            this.samEventsFilter.TabIndex = 4;
+            this.samEventsFilter.Text = "Apply Filter";
+            this.samEventsFilter.UseVisualStyleBackColor = true;
+            this.samEventsFilter.CheckedChanged += new System.EventHandler(this.samEventsFilter_CheckedChanged);
+            // 
+            // samEvents
+            // 
+            this.samEvents.AutoSize = true;
+            this.samEvents.Location = new System.Drawing.Point(303, 13);
+            this.samEvents.Name = "samEvents";
+            this.samEvents.Size = new System.Drawing.Size(123, 17);
+            this.samEvents.TabIndex = 3;
+            this.samEvents.Text = "Include SAM Events";
+            this.samEvents.UseVisualStyleBackColor = true;
+            this.samEvents.CheckedChanged += new System.EventHandler(this.samEvents_CheckedChanged);
+            // 
+            // noveltyChart
+            // 
+            this.noveltyChart.BackColor = System.Drawing.Color.Transparent;
+            chartArea2.Name = "ChartArea1";
+            this.noveltyChart.ChartAreas.Add(chartArea2);
+            this.noveltyChart.Cursor = System.Windows.Forms.Cursors.Default;
+            legend1.Name = "Legend1";
+            this.noveltyChart.Legends.Add(legend1);
+            this.noveltyChart.Location = new System.Drawing.Point(16, 102);
+            this.noveltyChart.Name = "noveltyChart";
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.noveltyChart.Series.Add(series2);
+            this.noveltyChart.Size = new System.Drawing.Size(606, 232);
+            this.noveltyChart.TabIndex = 2;
+            this.noveltyChart.Text = "chart1";
+            // 
+            // useRestInTraining
+            // 
+            this.useRestInTraining.AutoSize = true;
+            this.useRestInTraining.Location = new System.Drawing.Point(151, 13);
+            this.useRestInTraining.Name = "useRestInTraining";
+            this.useRestInTraining.Size = new System.Drawing.Size(145, 17);
+            this.useRestInTraining.TabIndex = 1;
+            this.useRestInTraining.Text = "Use rest period in training";
+            this.useRestInTraining.UseVisualStyleBackColor = true;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(6, 6);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(139, 29);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "SVM One Class";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // tabPage6
+            // 
+            this.tabPage6.Controls.Add(this.btn_ExportDataCompare);
+            this.tabPage6.Location = new System.Drawing.Point(4, 22);
+            this.tabPage6.Name = "tabPage6";
+            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage6.Size = new System.Drawing.Size(657, 340);
+            this.tabPage6.TabIndex = 4;
+            this.tabPage6.Text = "Data Compare";
+            this.tabPage6.UseVisualStyleBackColor = true;
+            // 
+            // btn_ExportDataCompare
+            // 
+            this.btn_ExportDataCompare.Location = new System.Drawing.Point(6, 6);
+            this.btn_ExportDataCompare.Name = "btn_ExportDataCompare";
+            this.btn_ExportDataCompare.Size = new System.Drawing.Size(75, 23);
+            this.btn_ExportDataCompare.TabIndex = 0;
+            this.btn_ExportDataCompare.Text = "Comapre";
+            this.btn_ExportDataCompare.UseVisualStyleBackColor = true;
+            this.btn_ExportDataCompare.Click += new System.EventHandler(this.btn_ExportDataCompare_Click);
+            // 
             // richTextBox1
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(12, 395);
+            this.richTextBox1.Location = new System.Drawing.Point(16, 447);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.Size = new System.Drawing.Size(661, 98);
             this.richTextBox1.TabIndex = 3;
@@ -805,32 +958,11 @@
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
-            // tabPage5
-            // 
-            this.tabPage5.Controls.Add(this.btn_ExportDataCompare);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(657, 292);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Data Compare";
-            this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // btn_ExportDataCompare
-            // 
-            this.btn_ExportDataCompare.Location = new System.Drawing.Point(6, 6);
-            this.btn_ExportDataCompare.Name = "btn_ExportDataCompare";
-            this.btn_ExportDataCompare.Size = new System.Drawing.Size(75, 23);
-            this.btn_ExportDataCompare.TabIndex = 0;
-            this.btn_ExportDataCompare.Text = "Export xlxs";
-            this.btn_ExportDataCompare.UseVisualStyleBackColor = true;
-            this.btn_ExportDataCompare.Click += new System.EventHandler(this.btn_ExportDataCompare_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(689, 505);
+            this.ClientSize = new System.Drawing.Size(689, 557);
             this.Controls.Add(this.btn_CalculateResults);
             this.Controls.Add(this.chk_useControlValues);
             this.Controls.Add(this.Label);
@@ -852,6 +984,9 @@
             this.tabPage4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).EndInit();
             this.tabPage5.ResumeLayout(false);
+            this.tabPage5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.noveltyChart)).EndInit();
+            this.tabPage6.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -927,9 +1062,22 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.Button btn_CalculateResults;
         private System.Windows.Forms.Button btn_PlotExportExcel;
-        private System.Windows.Forms.Button btn_PlotExportTasks;
         private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox useRestInTraining;
+        private System.Windows.Forms.Button btn_PlotExportTasks;
+
+        private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Button btn_ExportDataCompare;
+
+        private System.Windows.Forms.DataVisualization.Charting.Chart noveltyChart;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.TextBox samEventsFilterValence;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.TextBox samEventsFilterArousal;
+        private System.Windows.Forms.CheckBox samEventsFilter;
+        private System.Windows.Forms.CheckBox samEvents;
+
     }
 }
 

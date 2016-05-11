@@ -98,6 +98,44 @@ namespace Classification_App
             return completeProblem;
         }
 
+        public static SVMProblem CreateCompleteProblemOneClass(this IEnumerable<List<double>> original)
+        {
+            SVMProblem completeProblem = new SVMProblem();
+            for (int i = 0; i < original.Count(); i++)
+            {
+                SVMNode[] nodeSet = new SVMNode[original.ElementAt(i).Count];
+                for (int j = 0; j < original.ElementAt(i).Count; j++)
+                {
+                    SVMNode currentNode = new SVMNode();
+                    currentNode.Index = j + 1;
+                    currentNode.Value = original.ElementAt(i)[j];
+                    nodeSet[j] = currentNode;
+                }
+                completeProblem.Add(nodeSet, 1);
+            }
+
+            return completeProblem;
+        }
+
+        public static List<SVMNode[]> CreateNodesFromData(this IEnumerable<List<double>> original)
+        {
+            List<SVMNode[]> svmNodeList = new List<SVMNode[]>();
+            for (int i = 0; i < original.Count(); i++)
+            {
+                SVMNode[] nodeSet = new SVMNode[original.ElementAt(i).Count];
+                for (int j = 0; j < original.ElementAt(i).Count; j++)
+                {
+                    SVMNode currentNode = new SVMNode();
+                    currentNode.Index = j + 1;
+                    currentNode.Value = original.ElementAt(i)[j];
+                    nodeSet[j] = currentNode;
+                }
+                svmNodeList.Add(nodeSet);
+            }
+
+            return svmNodeList;
+        }
+
         public static IEnumerable<List<double>> NormalizeFeatureList<T>(this IEnumerable<List<double>> original, Normalize nMethod)
         {
             double maxNormalize = 0;
