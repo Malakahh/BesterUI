@@ -1773,6 +1773,180 @@ namespace Classification_App
             }
         }
 
+        #region Data Compare
+        private void btn_ExportDataCompare_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            List<string> files = new List<string>()
+            {
+            //    "EEG.dat",
+                "GSR.dat"
+             //   "HR.dat",
+              //  "KINECT.dat"
+            };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                foreach (var dirPath in Directory.GetDirectories(fbd.SelectedPath))
+                {
+                    var metaLines = File.ReadAllLines(dirPath + "/meta.txt");
+                    fdTest = new FusionData();
+                    fdRecall = new FusionData();
+                    var fdTestStatus = fdTest.LoadFromFile(files.Select(f => dirPath + "/test/" + f).ToArray());
+                    if (!fdTest.Loaded)
+                    {
+                        throw new Exception("I crashed because bad loading of fdTest");
+                    }
+                    var fdRecallStatus = fdRecall.LoadFromFile(files.Select(x => dirPath + "/recall/" + x).ToArray());
+                    if (!fdRecall.Loaded)
+                    {
+                        throw new Exception("I crashed because bad loading of fdRecall");
+                    }
+                    var testEvents = File.ReadAllLines(dirPath + "/test/SecondTest.dat");
+                    //fix waiting period offset til at være første event i testevents
+                    int offset = int.Parse(metaLines.ToList().First(x => x.StartsWith("sync")).Split(':', '=').Last());
+
+                    var watch = Stopwatch.StartNew();
+                    Log.LogMessage("Starting filter");
+                    var result = FilterData(fdTest.gsrData.SkipWhile(x => x.timestamp < 180000).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(), fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < 180000).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList());
+                    Log.LogMessage($"Filtered in {watch.ElapsedMilliseconds}ms, {result.Item1.ToString("0.0")}% data removed");
+                    watch.Stop();
+
+                    File.WriteAllLines("tralala.csv", result.Item2.Zip(result.Item3, (x, y) => x.ToString() + ";" + y.ToString()));
+
+                    //student's t test???
+                    var test1 = 2 * (1 - MathNet.Numerics.Distributions.StudentT.CDF(0, 1, result.Item2.Count - 1, 0.95));
+
+
+
+                    var resA = Pearson(result.Item2, result.Item3);//MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item3);
+                    Log.LogMessage($"Best case pearson correlation: {resA.ToString("0.000")}");
+                    var resB = Pearson(result.Item2, result.Item4);//MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item4);
+                    Log.LogMessage($"Second best case pearson correlation: {resB.ToString("0.000")}");
+                    File.AppendAllText("results.txt", $"[{dirPath.Split('\\').Last()}]{Environment.NewLine}Data removed={result.Item1}{Environment.NewLine}Pearson closest={resA}{Environment.NewLine}Pearson second closest={resB}{Environment.NewLine}{Environment.NewLine}");
+                }
+            }
+        }
+
+        public static double Pearson(IEnumerable<double> dataA, IEnumerable<double> dataB)
+        {
+            int n = 0;
+            double r = 0.0;
+
+            double meanA = 0;
+            double meanB = 0;
+            double varA = 0;
+            double varB = 0;
+
+            // WARNING: do not try to "optimize" by summing up products instead of using differences.
+            // It would indeed be faster, but numerically much less robust if large mean + low variance.
+
+            using (IEnumerator<double> ieA = dataA.GetEnumerator())
+            using (IEnumerator<double> ieB = dataB.GetEnumerator())
+            {
+                while (ieA.MoveNext())
+                {
+                    if (!ieB.MoveNext())
+                    {
+                        //throw new ArgumentOutOfRangeException("dataB", Resources.ArgumentArraysSameLength);
+                        throw new NotImplementedException();
+                    }
+
+                    double currentA = ieA.Current;
+                    double currentB = ieB.Current;
+
+                    double deltaA = currentA - meanA;
+                    double scaleDeltaA = deltaA / ++n;
+
+                    double deltaB = currentB - meanB;
+                    double scaleDeltaB = deltaB / n;
+
+                    meanA += scaleDeltaA;
+                    meanB += scaleDeltaB;
+
+                    varA += scaleDeltaA * deltaA * (n - 1);
+                    varB += scaleDeltaB * deltaB * (n - 1);
+                    r += (deltaA * deltaB * (n - 1)) / n;
+                }
+
+                if (ieB.MoveNext())
+                {
+                    //throw new ArgumentOutOfRangeException("dataA", Resources.ArgumentArraysSameLength);
+                    throw new NotImplementedException();
+                }
+            }
+
+            double denom = Math.Sqrt(varA * varB);
+
+            if (denom != 0)
+                return r / denom;
+            else
+                return 0;
+        }
+
+        Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> A, List<Tuple<long, double>> B, int msPerReading = -1)
+        {
+            int removed = 0;
+
+            //step 1, filter gaps
+            if (msPerReading > 0)
+            {
+                for (int i = 0; i < A.Count - 1; i++)
+                {
+                    if (A[i + 1].Item1 - A[i].Item1 > 2 * msPerReading)
+                    {
+                        removed += B.RemoveAll(x => A[i].Item1 < x.Item1 && A[i + 1].Item1 > x.Item1);
+                    }
+                }
+
+                for (int i = 0; i < B.Count; i++)
+                {
+                    if (B[i + 1].Item1 - B[i].Item1 > 2 * msPerReading)
+                    {
+                        removed += A.RemoveAll(x => B[i].Item1 < x.Item1 && B[i + 1].Item1 > x.Item1);
+                    }
+                }
+            }
+
+            //step 2, do pair pointer analysis thingy
+            List<double> As = new List<double>();
+            List<double> closestB = new List<double>();
+            List<double> secondClosestB = new List<double>();
+
+            for (int i = 0; i < A.Count; i++)
+            {
+                long bestDist = int.MaxValue;
+                long bestDistId = 0;
+                long secondBestDist = int.MaxValue;
+                long secondBestDistId = 0;
+
+                for (int j = 0; j < B.Count; j++)
+                {
+                    long dist = Math.Abs(A[i].Item1 - B[j].Item1);
+
+                    if (dist < bestDist)
+                    {
+                        secondBestDist = bestDist;
+                        secondBestDistId = bestDistId;
+                        bestDist = dist;
+                        bestDistId = j;
+                    }
+                    else if (dist < secondBestDist)
+                    {
+                        secondBestDist = dist;
+                        secondBestDistId = j;
+                    }
+                }
+
+                As.Add(A[i].Item2);
+                closestB.Add(B[(int)bestDistId].Item2);
+                secondClosestB.Add(B[(int)secondBestDistId].Item2);
+            }
+
+            return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
+        }
+        #endregion
 
         private Color Event2Color(string eventName)
         {

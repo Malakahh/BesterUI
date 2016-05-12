@@ -141,12 +141,17 @@ namespace BesterUI
         private const int MINIMUM_EEG_FILE_SIZE = 45000;
         private const int EEG_FILTER_MIN_VALUE = 700;
 
+        public Dictionary<string, bool> LoadFromFile(string[] filesToLoad)
+        {
+            return LoadFromFile(filesToLoad, DateTime.MinValue, false);
+        }
+
         public Dictionary<string, bool> LoadFromFile(string[] filesToLoad, DateTime dT, bool checkSize = true)
         {
             Dictionary<string, bool> shouldRun = new Dictionary<string, bool>();
             foreach (string file in filesToLoad)
             {
-                string s = file.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries).Last();
+                string s = file.Split(new string[] { "\\", "/" }, StringSplitOptions.RemoveEmptyEntries).Last();
                 double size;
                 try
                 {

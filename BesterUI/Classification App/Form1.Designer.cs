@@ -105,6 +105,8 @@
             this.noveltyChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.useRestInTraining = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.btn_ExportDataCompare = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
@@ -121,6 +123,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).BeginInit();
             this.tabPage5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.noveltyChart)).BeginInit();
+            this.tabPage6.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -130,6 +133,7 @@
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage5);
+            this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
@@ -870,6 +874,27 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // tabPage6
+            // 
+            this.tabPage6.Controls.Add(this.btn_ExportDataCompare);
+            this.tabPage6.Location = new System.Drawing.Point(4, 22);
+            this.tabPage6.Name = "tabPage6";
+            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage6.Size = new System.Drawing.Size(657, 340);
+            this.tabPage6.TabIndex = 4;
+            this.tabPage6.Text = "Data Compare";
+            this.tabPage6.UseVisualStyleBackColor = true;
+            // 
+            // btn_ExportDataCompare
+            // 
+            this.btn_ExportDataCompare.Location = new System.Drawing.Point(6, 6);
+            this.btn_ExportDataCompare.Name = "btn_ExportDataCompare";
+            this.btn_ExportDataCompare.Size = new System.Drawing.Size(75, 23);
+            this.btn_ExportDataCompare.TabIndex = 0;
+            this.btn_ExportDataCompare.Text = "Comapre";
+            this.btn_ExportDataCompare.UseVisualStyleBackColor = true;
+            this.btn_ExportDataCompare.Click += new System.EventHandler(this.btn_ExportDataCompare_Click);
+            // 
             // richTextBox1
             // 
             this.richTextBox1.Location = new System.Drawing.Point(16, 447);
@@ -899,7 +924,7 @@
             // threadBox
             // 
             this.threadBox.FormattingEnabled = true;
-            this.threadBox.Location = new System.Drawing.Point(446, 70);
+            this.threadBox.Location = new System.Drawing.Point(446, 48);
             this.threadBox.Name = "threadBox";
             this.threadBox.Size = new System.Drawing.Size(107, 21);
             this.threadBox.TabIndex = 8;
@@ -908,7 +933,7 @@
             // Label
             // 
             this.Label.AutoSize = true;
-            this.Label.Location = new System.Drawing.Point(443, 54);
+            this.Label.Location = new System.Drawing.Point(443, 34);
             this.Label.Name = "Label";
             this.Label.Size = new System.Drawing.Size(65, 13);
             this.Label.TabIndex = 9;
@@ -917,7 +942,7 @@
             // chk_useControlValues
             // 
             this.chk_useControlValues.AutoSize = true;
-            this.chk_useControlValues.Location = new System.Drawing.Point(282, 50);
+            this.chk_useControlValues.Location = new System.Drawing.Point(271, 52);
             this.chk_useControlValues.Name = "chk_useControlValues";
             this.chk_useControlValues.Size = new System.Drawing.Size(143, 17);
             this.chk_useControlValues.TabIndex = 16;
@@ -973,6 +998,7 @@
             this.tabPage5.ResumeLayout(false);
             this.tabPage5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.noveltyChart)).EndInit();
+            this.tabPage6.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1052,6 +1078,10 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox useRestInTraining;
         private System.Windows.Forms.Button btn_PlotExportTasks;
+
+        private System.Windows.Forms.TabPage tabPage6;
+        private System.Windows.Forms.Button btn_ExportDataCompare;
+
         private System.Windows.Forms.DataVisualization.Charting.Chart noveltyChart;
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.TextBox samEventsFilterValence;
