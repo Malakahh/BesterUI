@@ -28,11 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -112,6 +112,7 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
+            this.btn_anomalyDetection = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -625,13 +626,13 @@
             // chart_TestData
             // 
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
-            chartArea6.Name = "ChartArea1";
-            this.chart_TestData.ChartAreas.Add(chartArea6);
+            chartArea1.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea1);
             this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
-            series6.ChartArea = "ChartArea1";
-            series6.Name = "Series1";
-            this.chart_TestData.Series.Add(series6);
+            series1.ChartArea = "ChartArea1";
+            series1.Name = "Series1";
+            this.chart_TestData.Series.Add(series1);
             this.chart_TestData.Size = new System.Drawing.Size(362, 201);
             this.chart_TestData.TabIndex = 13;
             this.chart_TestData.Text = "chart1";
@@ -834,17 +835,17 @@
             // noveltyChart
             // 
             this.noveltyChart.BackColor = System.Drawing.Color.Transparent;
-            chartArea5.Name = "ChartArea1";
-            this.noveltyChart.ChartAreas.Add(chartArea5);
+            chartArea2.Name = "ChartArea1";
+            this.noveltyChart.ChartAreas.Add(chartArea2);
             this.noveltyChart.Cursor = System.Windows.Forms.Cursors.Default;
-            legend3.Name = "Legend1";
-            this.noveltyChart.Legends.Add(legend3);
+            legend1.Name = "Legend1";
+            this.noveltyChart.Legends.Add(legend1);
             this.noveltyChart.Location = new System.Drawing.Point(16, 102);
             this.noveltyChart.Name = "noveltyChart";
-            series5.ChartArea = "ChartArea1";
-            series5.Legend = "Legend1";
-            series5.Name = "Series1";
-            this.noveltyChart.Series.Add(series5);
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.noveltyChart.Series.Add(series2);
             this.noveltyChart.Size = new System.Drawing.Size(606, 232);
             this.noveltyChart.TabIndex = 2;
             this.noveltyChart.Text = "chart1";
@@ -933,11 +934,22 @@
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
             // 
+            // btn_anomalyDetection
+            // 
+            this.btn_anomalyDetection.Location = new System.Drawing.Point(559, 13);
+            this.btn_anomalyDetection.Name = "btn_anomalyDetection";
+            this.btn_anomalyDetection.Size = new System.Drawing.Size(113, 23);
+            this.btn_anomalyDetection.TabIndex = 17;
+            this.btn_anomalyDetection.Text = "Anomaly Detection";
+            this.btn_anomalyDetection.UseVisualStyleBackColor = true;
+            this.btn_anomalyDetection.Click += new System.EventHandler(this.btn_anomalyDetection_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(689, 557);
+            this.Controls.Add(this.btn_anomalyDetection);
             this.Controls.Add(this.btn_CalculateResults);
             this.Controls.Add(this.chk_useControlValues);
             this.Controls.Add(this.Label);
@@ -1047,6 +1059,7 @@
         private System.Windows.Forms.TextBox samEventsFilterArousal;
         private System.Windows.Forms.CheckBox samEventsFilter;
         private System.Windows.Forms.CheckBox samEvents;
+        private System.Windows.Forms.Button btn_anomalyDetection;
     }
 }
 
