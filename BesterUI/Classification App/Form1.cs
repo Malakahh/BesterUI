@@ -1780,53 +1780,123 @@ namespace Classification_App
 
             List<string> files = new List<string>()
             {
-            //    "EEG.dat",
-                "GSR.dat"
-             //   "HR.dat",
-              //  "KINECT.dat"
+                "EEG.dat",
+                "GSR.dat",
+                "HR.dat",
+                "KINECT.dat"
             };
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 foreach (var dirPath in Directory.GetDirectories(fbd.SelectedPath))
                 {
+                    string subject = dirPath.Split('\\').Last();
+                    string csvPath = "csv/" + subject + "/";
+
                     var metaLines = File.ReadAllLines(dirPath + "/meta.txt");
                     fdTest = new FusionData();
                     fdRecall = new FusionData();
                     var fdTestStatus = fdTest.LoadFromFile(files.Select(f => dirPath + "/test/" + f).ToArray());
                     if (!fdTest.Loaded)
                     {
-                        throw new Exception("I crashed because bad loading of fdTest");
+                        //throw new Exception("I crashed because bad loading of fdTest");
+                        Log.LogMessage("ERROR in " + dirPath + " couldn't load test data");
+                        continue;
                     }
                     var fdRecallStatus = fdRecall.LoadFromFile(files.Select(x => dirPath + "/recall/" + x).ToArray());
                     if (!fdRecall.Loaded)
                     {
-                        throw new Exception("I crashed because bad loading of fdRecall");
+                        //throw new Exception("I crashed because bad loading of fdRecall");
+                        Log.LogMessage("ERROR in " + dirPath + " couldn't load recall data");
+                        continue;
                     }
                     var testEvents = File.ReadAllLines(dirPath + "/test/SecondTest.dat");
                     //fix waiting period offset til at være første event i testevents
                     int offset = int.Parse(metaLines.ToList().First(x => x.StartsWith("sync")).Split(':', '=').Last());
+                    int waitPeriodDone = 180000;
 
-                    var watch = Stopwatch.StartNew();
-                    Log.LogMessage("Starting filter");
-                    var result = FilterData(fdTest.gsrData.SkipWhile(x => x.timestamp < 180000).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(), fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < 180000).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList());
-                    Log.LogMessage($"Filtered in {watch.ElapsedMilliseconds}ms, {result.Item1.ToString("0.0")}% data removed");
-                    watch.Stop();
-
-                    File.WriteAllLines("tralala.csv", result.Item2.Zip(result.Item3, (x, y) => x.ToString() + ";" + y.ToString()));
-
-                    //student's t test???
-                    var test1 = 2 * (1 - MathNet.Numerics.Distributions.StudentT.CDF(0, 1, result.Item2.Count - 1, 0.95));
+                    Directory.CreateDirectory(csvPath);
 
 
 
-                    var resA = Pearson(result.Item2, result.Item3);//MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item3);
-                    Log.LogMessage($"Best case pearson correlation: {resA.ToString("0.000")}");
-                    var resB = Pearson(result.Item2, result.Item4);//MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item4);
-                    Log.LogMessage($"Second best case pearson correlation: {resB.ToString("0.000")}");
-                    File.AppendAllText("results.txt", $"[{dirPath.Split('\\').Last()}]{Environment.NewLine}Data removed={result.Item1}{Environment.NewLine}Pearson closest={resA}{Environment.NewLine}Pearson second closest={resB}{Environment.NewLine}{Environment.NewLine}");
+                    Log.LogMessage("Starting GSR");
+                    var gsr = FilterData(
+                        fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(),
+                        fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList()
+                        );
+                    SaveZip(csvPath + "GSR.csv", gsr.Item2, gsr.Item3);
+                    Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
+
+                    Log.LogMessage("Starting EEG");
+                    foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
+                    {
+                        var eeg = FilterData(
+                            fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                            fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                            8
+                            );
+
+                        Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
+                        SaveZip(csvPath + "EEG_" + item + ".csv", eeg.Item2, eeg.Item3);
+                    }
+                    Log.LogMessage("EEG done");
+
+                    Log.LogMessage("Starting HR");
+                    var hr = FilterData(
+                        fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
+                        fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
+                        20
+                        );
+                    SaveZip(csvPath + "HR.csv", hr.Item2, hr.Item3);
+                    Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
+
+                    Log.LogMessage("Starting Kinect");
+                    foreach (Microsoft.Kinect.Face.FaceShapeAnimations item in Enum.GetValues(typeof(Microsoft.Kinect.Face.FaceShapeAnimations)))
+                    {
+                        if (item == Microsoft.Kinect.Face.FaceShapeAnimations.Count) continue;
+
+                        var kinect = FilterData(
+                            fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                            fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                            34
+                            );
+
+                        Log.LogMessage($"{item.ToString()}, data filtered: {kinect.Item1.ToString("0.0")}%");
+                        SaveZip(csvPath + "FACE_" + item + ".csv", kinect.Item2, kinect.Item3);
+                    }
+                    Log.LogMessage("Kinect done");
+
+
+
+
+
+
+                    //var resA = Pearson(result.Item2, result.Item3);//MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item3);
+                    //var sigA = Significance(resA, result.Item2.Count);
+                    //Log.LogMessage($"Best case pearson correlation: {resA.ToString("0.000")}");
+
+                    //var resB = Pearson(result.Item2, result.Item4);//MathNet.Numerics.Statistics.Correlation.Pearson(result.Item2, result.Item4);
+                    //var sigB = Significance(resB, result.Item2.Count);
+                    //Log.LogMessage($"Second best case pearson correlation: {resB.ToString("0.000")}");
+
+                    //List<string> toWrite = new List<string>();
+                    //toWrite.Add($"[{dirPath.Split('\\').Last()}]");
+                    //toWrite.Add($"Data removed={result.Item1}");
+                    //toWrite.Add($"Pearson closest={resA}");
+                    //toWrite.Add($"Significance={sigA}");
+                    //toWrite.Add($"Pearson second closest={resB}");
+                    //toWrite.Add($"Significance={sigB}");
+                    //toWrite.Add("");
+                    //File.AppendAllLines("results.txt", toWrite);
                 }
+
+                Log.LogMessage("DonnoDK!");
             }
+        }
+
+        static void SaveZip(string path, List<double> A, List<double> B)
+        {
+            File.WriteAllLines(path, A.Zip(B, (a, b) => a + ";" + b));
         }
 
         public static double Pearson(IEnumerable<double> dataA, IEnumerable<double> dataB)
@@ -1885,8 +1955,11 @@ namespace Classification_App
                 return 0;
         }
 
-        Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> A, List<Tuple<long, double>> B, int msPerReading = -1)
+        Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin, int msPerReading = -1)
         {
+            List<Tuple<long, double>> A = new List<Tuple<long, double>>(Ain);
+            List<Tuple<long, double>> B = new List<Tuple<long, double>>(Bin);
+
             int removed = 0;
 
             //step 1, filter gaps
@@ -1900,7 +1973,7 @@ namespace Classification_App
                     }
                 }
 
-                for (int i = 0; i < B.Count; i++)
+                for (int i = 0; i < B.Count - 1; i++)
                 {
                     if (B[i + 1].Item1 - B[i].Item1 > 2 * msPerReading)
                     {
@@ -1914,14 +1987,17 @@ namespace Classification_App
             List<double> closestB = new List<double>();
             List<double> secondClosestB = new List<double>();
 
+            int furthestB = 0;
             for (int i = 0; i < A.Count; i++)
             {
                 long bestDist = int.MaxValue;
-                long bestDistId = 0;
+                int bestDistId = 0;
                 long secondBestDist = int.MaxValue;
-                long secondBestDistId = 0;
+                int secondBestDistId = 0;
 
-                for (int j = 0; j < B.Count; j++)
+                long prevDist = int.MaxValue;
+
+                for (int j = furthestB; j < B.Count; j++)
                 {
                     long dist = Math.Abs(A[i].Item1 - B[j].Item1);
 
@@ -1937,12 +2013,23 @@ namespace Classification_App
                         secondBestDist = dist;
                         secondBestDistId = j;
                     }
+
+                    if (prevDist < dist)
+                    {
+                        break;
+                    }
+
+                    prevDist = dist;
                 }
+
+                furthestB = Math.Max(0, bestDistId - 1);
 
                 As.Add(A[i].Item2);
                 closestB.Add(B[(int)bestDistId].Item2);
                 secondClosestB.Add(B[(int)secondBestDistId].Item2);
             }
+
+            removed += Math.Abs(A.Count - B.Count);
 
             return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
         }
