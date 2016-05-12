@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 using System.Windows.Forms;
 using BesterUI.Helpers;
 using BesterUI;
@@ -1516,19 +1517,24 @@ namespace Classification_App
 
             Dictionary<SAMDataPoint.FeelingModel, int> cellOffsets = new Dictionary<SAMDataPoint.FeelingModel, int>()
             {
-                [SAMDataPoint.FeelingModel.Arousal2High] = 11,
-                [SAMDataPoint.FeelingModel.Arousal2Low] = 24,
-                [SAMDataPoint.FeelingModel.Arousal3] = 40,
-                [SAMDataPoint.FeelingModel.Valence2High] = 53,
-                [SAMDataPoint.FeelingModel.Valence2Low] = 66,
-                [SAMDataPoint.FeelingModel.Valence3] = 82
+                [SAMDataPoint.FeelingModel.Arousal2High] = 2,
+                [SAMDataPoint.FeelingModel.Arousal2Low] = 15,
+                [SAMDataPoint.FeelingModel.Arousal3] = 28,
+                [SAMDataPoint.FeelingModel.Valence2High] = 44,
+                [SAMDataPoint.FeelingModel.Valence2Low] = 57,
+                [SAMDataPoint.FeelingModel.Valence3] = 70
             };
 
             //test subject[SAMModel[machineType]]
-            //items: C, Gamma, Kernel
-            var configs = new Dictionary<string, Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>>();
+            //feeling, List of persons(name, results for each sensor) 
+            Dictionary<SAMDataPoint.FeelingModel, List<Tuple<string, Dictionary<string, double>>>> results = new Dictionary<SAMDataPoint.FeelingModel, List<Tuple<string, Dictionary<string, double>>>>();
+            //Add Lists 
+            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+            {
+                results.Add(feel, new List<Tuple<string, Dictionary<string, double>>>());
+            }
 
-
+            #region [Data from books]
             foreach (var configBook in singles.Concat(fusion))
             {
                 Log.LogMessage($"Reading {configBook}...");
@@ -1550,232 +1556,103 @@ namespace Classification_App
                     if (sheet.Name == "Overview" || sheet.Name == "First" || sheet.Name == "Last") continue;
 
                     string newName = sheet.Name.Split(' ').Last();
-
-                    if (!configs.ContainsKey(newName))
-                    {
-                        configs.Add(newName, new Dictionary<SAMDataPoint.FeelingModel, Dictionary<string, Tuple<double, double, int>>>());
-                    }
-
-                    if (configs[newName].Count == 0)
+                    if (configBook == "GSR")
                     {
                         foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
                         {
-                            configs[newName].Add(feel, new Dictionary<string, Tuple<double, double, int>>());
-
-                            singles.ForEach(x => configs[newName][feel].Add(x, null));
-                            fusion.ForEach(x => configs[newName][feel].Add(x, null));
-
-                            if (feel.ToString().Contains("Valence"))
+                            if (!feel.ToString().Contains("Valence"))
                             {
-                                configs[newName][feel].Remove("GSR");
+                                Excel.Range accuracy = (Excel.Range)sheet.Cells[cellOffsets[feel], 3];
+                                results[feel].First(x => x.Item1 == newName).Item2.Add(configBook, (double)accuracy.Value);
                             }
                         }
                     }
+                    else
+                    {
+
+                        foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
+                        {
+                            Excel.Range accuracy = (Excel.Range)sheet.Cells[cellOffsets[feel], 3];
+                            results[feel].First(x => x.Item1 == newName).Item2.Add(configBook, (double)accuracy.Value);
+
+                        }
 
 
+                    }
+                    dataBook.Close();
+                }
+
+                #endregion
+
+                #region [Add Naiv results]
+                foreach (var feelingModel in results.Keys)
+                {
+                    foreach (var person in results[feelingModel])
+                    {
+                        samData = SAMData.LoadFromPath(fbdPath + $"/{person.Item1}" + @"\SAM.json");
+                        var sams = samData.dataPoints.Select(x => x.ToAVCoordinate(feelingModel)).ToList();
+                        List<int> classes = sams.Distinct().ToList();
+                        int maxClassCount = 0;
+                        foreach (int i in classes)
+                        {
+                            if (sams.Count(x => x == i) > maxClassCount)
+                            {
+                                maxClassCount = sams.Count(x => x == i);
+                            }
+                        }
+
+                        results[feelingModel].First(x => x.Item1 == person.Item1).Item2.Add("NAIV", (double)(maxClassCount/sams.Count));
+                    }
+                }
+                #endregion
+
+                Log.LogMessage("Creating excel file");
+                Excel.Workbook resultBook = exc.Workbooks.Add(ExcelHandler.missingValue);
+
+                Log.LogMessage("Writing results");
+                foreach (var feelingResult in results)
+                {
+                    Log.LogMessage("Writing " + feelingResult.Key);
+                    Excel.Worksheet feelSheet = resultBook.Sheets.Add();
+                    feelSheet.Name = feelingResult.Key.ToString();
+                    int column = 1;
                     foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
                     {
-                        if (configBook == "GSR" && feel.ToString().Contains("Valence")) continue;
-
-                        Excel.Range c = (Excel.Range)sheet.Cells[cellOffsets[feel], 3];
-                        Excel.Range gamma = (Excel.Range)sheet.Cells[cellOffsets[feel] + 1, 3];
-                        Excel.Range kernel = (Excel.Range)sheet.Cells[cellOffsets[feel] + 2, 3];
-
-                        if (c.Value != null && gamma.Value != null && kernel.Value != null)
-                        {
-                            configs[newName][feel][configBook] = Tuple.Create(c.Value, gamma.Value, (int)kernel.Value);
-                        }
-
+                        feelSheet.Cells[1, column++] = feel.ToString();
                     }
-
-                }
-
-                dataBook.Close();
-            }
-
-            List<string> skippedList = new List<string>();
-            foreach (var subject in configs)
-            {
-                foreach (var feel in subject.Value)
-                {
-                    foreach (var machine in feel.Value)
-                    {
-                        if (machine.Value == null)
-                        {
-                            if (!skippedList.Contains(subject.Key + "(no machine)"))
-                            {
-                                skippedList.Add(subject.Key + "(no machine)");
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach (var skipped in skippedList)
-            {
-                configs.Remove(skipped.Split('(')[0]);
-                Log.LogMessage($"Skipped {skipped}");
-            }
-
-            Log.LogMessage("Total: " + skippedList.Count);
-
-            var resultsList = new Dictionary<string, Dictionary<string, List<double>>>();
-            foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
-            {
-                resultsList.Add(feel.ToString(), new Dictionary<string, List<double>>());
-                resultsList[feel.ToString()].Add("SAM", new List<double>());
-                resultsList[feel.ToString()].Add("NAIVE", new List<double>());
-                foreach (var item in singles.Concat(fusion))
-                {
-                    resultsList[feel.ToString()].Add(item, new List<double>());
-                }
-            }
-
-            Log.LogMessage("Getting results...");
-            int currentStatus = 0;
-            foreach (var subject in configs)
-            {
-                Invoke((Action)(() => { statusLabel.Text = $"Calculating answers {currentStatus++} of {configs.Count}"; }));
-                if (LoadData(fbdPath + $"/{subject.Key}", _fd))
-                {
-                    foreach (var feel in subject.Value)
-                    {
-                        var sams = samData.dataPoints.Select(x => x.ToAVCoordinate(feel.Key)).ToList();
-                        var machines = new List<List<double>>();
-                        //resultsList[feel.Key.ToString()]["SAM"].AddRange(sams);
-                        resultsList[feel.Key.ToString()]["SAM"].Add(1);
-
-                        if (sams.Count != 30)
-                        {
-                            Log.LogMessage("found bad SAM! " + subject.Key + " - " + feel.Key);
-                            //throw new Exception("found bad SAM! " + subject.Key + " - " + feel.Key);
-                        }
-
-                        int currentMost = 0;
-                        int currentMostCount = 0;
-
-                        foreach (var answer in sams.Distinct())
-                        {
-                            var cnt = sams.Count(x => x == answer);
-                            if (cnt > currentMostCount)
-                            {
-                                currentMostCount = cnt;
-                                currentMost = answer;
-                            }
-                        }
-
-                        resultsList[feel.Key.ToString()]["NAIVE"].Add((double)currentMostCount / sams.Count);
-                        //for (int i = 0; i < sams.Count; i++)
-                        //{
-                        //    resultsList[feel.Key.ToString()]["NAIVE"].Add(currentMost);
-                        //}
-
-                        foreach (var machine in feel.Value)
-                        {
-                            Log.LogMessage($"Calculating {subject.Key} / {feel.Key} / {machine.Key}");
-
-                            var param = new SVMParameter()
-                            {
-                                C = machine.Value.Item1,
-                                Gamma = machine.Value.Item2,
-                                Kernel = (SVMKernelType)machine.Value.Item3
-                            };
-
-                            if (singles.Contains(machine.Key))
-                            {
-                                var classifier = new StdClassifier(new SVMConfiguration(param, FeatureCreator.GetFeatures(machine.Key, feel.Key)), samData);
-
-                                var results = classifier.OldCrossValidate(feel.Key, 1);
-                                //foreach (var res in results[0].guesses)
-                                //{
-                                //    resultsList[feel.Key.ToString()][machine.Key].Add(res);
-                                //}
-
-                                resultsList[feel.Key.ToString()][machine.Key].Add(results[0].GetAccuracy());
-
-                                machines.Add(new List<double>(results[0].guesses.Select(x => (double)x)));
-                            }
-                            else
-                            {
-                                var classifier = new MetaClassifier(machine.Key, param, samData, null);
-
-                                PredictionResult pred;
-
-                                if (machine.Key == "Stacking")
-                                {
-                                    pred = classifier.DoStackingMachineless(feel.Key, 1, machines);
-                                }
-                                else
-                                {
-                                    pred = classifier.DoVotingMachineless(feel.Key, 1, machines);
-                                }
-
-                                if (pred == null)
-                                {
-                                    Log.LogMessage($"Skipped {subject.Key} due to bad meta");
-                                    skippedList.Add(subject.Key + "(bad meta)");
-                                    continue;
-                                }
-
-                                //resultsList[feel.Key.ToString()][machine.Key].AddRange(pred.guesses);
-                                resultsList[feel.Key.ToString()][machine.Key].Add(pred.GetAccuracy());
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Log.LogMessage($"Skipped {subject.Key} due to bad data");
-                    skippedList.Add(subject.Key + "(bad data)");
-                }
-            }
-
-
-            Log.LogMessage("Creating excel file");
-            Excel.Workbook resultBook = exc.Workbooks.Add(ExcelHandler.missingValue);
-
-            Log.LogMessage("Writing results");
-            foreach (var category in resultsList)
-            {
-                Log.LogMessage("Writing " + category.Key);
-                Excel.Worksheet feelSheet = resultBook.Sheets.Add();
-                feelSheet.Name = category.Key;
-
-
-                int column = 1;
-                foreach (var answerList in category.Value)
-                {
-                    if (answerList.Value.Count == 0) continue;
                     int row = 1;
-                    feelSheet.Cells[row++, column] = answerList.Key;
-
-                    foreach (var item in answerList.Value)
+                    foreach (var person in feelingResult.Value)
                     {
-                        feelSheet.Cells[row++, column] = item;
+                        column = 1;
+                        if (person.Item2.Values.Count == 0) continue;
+                        feelSheet.Cells[row, column++] = person.Item1;
+                        foreach (var sensor in person.Item2.Keys)
+                        {
+                            feelSheet.Cells[row++, column] = person.Item2[sensor];
+                        }
+
                     }
 
-                    column++;
                 }
+                /*   Excel.Worksheet metaSheet = resultBook.Sheets.Add();
+               metaSheet.Name = "Meta";
+
+               metaSheet.Cells[1, 1] = "Skipped " + skippedList.Count;
+               for (int i = 0; i < skippedList.Count; i++)
+               {
+                   metaSheet.Cells[i + 2, 1] = skippedList[i];
+               }*/
+
+                Log.LogMessage("Saving...");
+                resultBook.SaveCopyAs(sfdPath + "/allAnswers.xlsx");
+
+                resultBook.Close(false);
+
+                Log.LogMessage("Done!");
+
+                exc.Quit();
             }
 
-            Excel.Worksheet metaSheet = resultBook.Sheets.Add();
-            metaSheet.Name = "Meta";
-
-            metaSheet.Cells[1, 1] = "Skipped " + skippedList.Count;
-            for (int i = 0; i < skippedList.Count; i++)
-            {
-                metaSheet.Cells[i + 2, 1] = skippedList[i];
-            }
-
-            Log.LogMessage("Saving...");
-            resultBook.SaveCopyAs(sfdPath + "/allAnswers.xlsx");
-
-            resultBook.Close(false);
-
-            Log.LogMessage("Done!");
-
-            exc.Quit();
         }
-
     }
 }
