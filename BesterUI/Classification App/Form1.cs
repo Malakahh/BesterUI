@@ -2213,5 +2213,11 @@ namespace Classification_App
             if (samEventsFilter.Checked)
                 updateChart();
         }
+
+        private void btn_anomalyDetection_Click(object sender, EventArgs e)
+        {
+            AnomalyDetection a = new AnomalyDetection();
+            a.ShowDialog(this);
+        }
     }
 }

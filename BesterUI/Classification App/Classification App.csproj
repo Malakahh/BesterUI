@@ -116,6 +116,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnomalyDetection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AnomalyDetection.Designer.cs">
+      <DependentUpon>AnomalyDetection.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataProgressHandler.cs" />
     <Compile Include="ExcelHandler.cs" />
     <Compile Include="Feature.cs" />
@@ -139,6 +145,9 @@
     <Compile Include="samEvents.cs" />
     <Compile Include="StdClassifier.cs" />
     <Compile Include="SVMConfiguration.cs" />
+    <EmbeddedResource Include="AnomalyDetection.resx">
+      <DependentUpon>AnomalyDetection.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
