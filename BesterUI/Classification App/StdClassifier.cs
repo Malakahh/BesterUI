@@ -199,6 +199,83 @@ namespace Classification_App
             return predictedResults;
         }
 
+        public List<Tuple<double, int>> CrossValidationForVoting(SAMDataPoint.FeelingModel feelingsmodel, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
+        {
+            //Split into crossvalidations parts
+            List<List<Tuple<SVMProblem, SVMProblem>>> subCrossProblems = new List<List<Tuple<SVMProblem, SVMProblem>>>();
+            List<SVMProblem> subProblems = new List<SVMProblem>();
+            SVMProblem wholeProblem = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).CreateCompleteProblem(samData, feelingsmodel);
+            List<List<double>> normalizedNumbers = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).ToList();
+            for (int i = 0; i < samData.dataPoints.Count; i++)
+            {
+                List<List<double>> problem = normalizedNumbers.Select(x=>x).ToList();
+                problem.RemoveAt(i);
+                subProblems.Add(problem.NormalizeFeatureList<double>(normalizationType).CreateCompleteProblem(samData, feelingsmodel));
+                subCrossProblems.Add(problem.NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, 1));
+            }
+
+            //Split into Sam answers
+            List<List<int>> samAnswers = new List<List<int>>();
+            for (int i = 0; i < samData.dataPoints.Count; i++)
+            {
+                List<int> answers = new List<int>();
+                for (int j = 0; j < samData.dataPoints.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        answers.Add(samData.dataPoints[j].ToAVCoordinate(feelingsmodel));
+                    }
+                }
+            }
+
+            //First tuple guesses on index 0, second on 1 etc. - Tuple(accuracy, answer)
+            List<Tuple<double, int>> result = new List<Tuple<double, int>>();
+            //Do Crossvalidation, calculate accuracy and do prediction
+            int counter = 0;
+            foreach (List<Tuple<SVMProblem, SVMProblem>> problem in subCrossProblems)
+            {
+                List<double> guesses = new List<double>();
+                //model and predict each nfold
+                try
+                {
+                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problem)
+                    {
+                        SVMModel trainingModel = tupleProblem.Item1.Train(Parameters.First());
+                        if (trainingModel.ClassCount <= 1)
+                        {
+                            Log.LogMessage(ONLY_ONE_CLASS_IN_TRAINING);
+                            throw new Exception(ONLY_ONE_CLASS_IN_TRAINING);
+                        }
+                        else
+                        {
+                            double[] d = tupleProblem.Item2.Predict(trainingModel);
+                            guesses.AddRange(d);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    for (int i = 0; i < samData.dataPoints.Count; i++)
+                    {
+                        guesses.Add(-1);
+                    }
+                }
+                int numberOfLabels = SAMData.GetNumberOfLabels(feelingsmodel);
+                //Calculate accuracy
+                int correctGuesses = 0;
+                for (int guessCount = 0; guessCount < samAnswers[counter].Count; guessCount++)
+                {
+                    if (samAnswers[counter][guessCount] == guesses[guessCount])
+                    {
+                        correctGuesses++;
+                    }
+                }
+                result.Add(Tuple.Create(correctGuesses / (double)samAnswers[counter].Count, (int)subProblems[counter].Train(Parameters.First()).Predict(wholeProblem.X[counter])));
+            }
+            return result;
+        }
+
+
         public List<PredictionResult> CrossValidate(SAMDataPoint.FeelingModel feelingsmodel, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             List<PredictionResult> predictedResults = new List<PredictionResult>();

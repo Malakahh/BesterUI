@@ -189,7 +189,7 @@ namespace Classification_App
 
         public PredictionResult DoVoting(SAMDataPoint.FeelingModel feelingsmodel, int nFold, bool useIAPSratings = false, Normalize normalizeFormat = Normalize.OneMinusOne)
         {
-            List<PredictionResult> classifiers = new List<PredictionResult>();
+            List<List<Tuple<double, int>>> classifiers = new List<List<Tuple<double, int>>>();
             //For each classifier run a crossvalidation and find the best params
             int prg = 0;
             foreach (StdClassifier classifier in standardClassifiers)
@@ -198,8 +198,7 @@ namespace Classification_App
                 {
                     UpdateCallback(prg++, standardClassifiers.Count);
                 }
-                List<PredictionResult> results = classifier.OldCrossValidate(feelingsmodel, 1, useIAPSratings, normalizeFormat);
-                classifiers.Add(results.OrderBy(x => x.GetAverageFScore()).First());
+                List<Tuple<double, int>> results = classifier.CrossValidationForVoting(feelingsmodel, useIAPSratings, normalizeFormat);
             }
             if (UpdateCallback != null)
             {
@@ -213,16 +212,6 @@ namespace Classification_App
             {
                 counter.Add(k);
             }
-            //Divide indicies into correct nfold
-            List<List<int>> trainIndicies = new List<List<int>>();
-            List<List<int>> predictIndicies = new List<List<int>>();
-            for (int i = 0; i < samData.dataPoints.Count(); i += nFold)
-            {
-                var temp = counter.Skip(i).Take(nFold).ToList();
-                predictIndicies.Add(temp);
-                trainIndicies.Add(counter.Except(temp).ToList());
-            }
-
 
             List<Dictionary<int, double>> weightedGuesses = new List<Dictionary<int, double>>();
             //Fill up weightedGuesses List
@@ -236,26 +225,15 @@ namespace Classification_App
                 weightedGuesses.Add(tempGuess);
             }
 
-            //Split classifiers
-            for (int i = 0; i < trainIndicies.Count; i++)
+            //Add Answers + weight
+            for (int nGuesses = 0; nGuesses < samData.dataPoints.Count; nGuesses++)
             {
-                foreach (PredictionResult predictResult in classifiers)
+                for (int nClassifiers = 0; nClassifiers < classifiers.Count; nClassifiers++)
                 {
-                    double correct = 0;
-                    //calculate weights
-                    for (int trainingIndex = 0; trainingIndex < trainIndicies[i].Count; trainingIndex++)
-                    {
-                        if (predictResult.guesses[trainIndicies[i][trainingIndex]] == samData.dataPoints[trainIndicies[i][trainingIndex]].ToAVCoordinate(feelingsmodel))
-                        {
-                            correct++;
-                        }
-                    }
-
-                    //Add weight from the trainingset to each of the guesses
-                    weightedGuesses[i][predictResult.guesses[i]] += (correct / trainIndicies.Count);
+                    weightedGuesses[nGuesses][classifiers[nClassifiers][nGuesses].Item2] += classifiers[nClassifiers][nGuesses].Item1;
                 }
             }
-
+            
             //Calculate final answers
             List<double> guesses = new List<double>();
 
