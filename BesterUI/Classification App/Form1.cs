@@ -316,16 +316,16 @@ namespace Classification_App
 
             Log.LogMessage("Looking for configurations...");
 
-            //if (Directory.Exists(path + @"\STD"))
-            //{
-            //    var files = Directory.GetFiles(path + @"\STD");
-            //    Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
-            //    foreach (var item in files)
-            //    {
-            //        svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
-            //    }
+            if (Directory.Exists(path + @"\STD"))
+            {
+                var files = Directory.GetFiles(path + @"\STD");
+                Log.LogMessage("Found STD! Contains " + files.Length + " configurations.");
+                foreach (var item in files)
+                {
+                    svmConfs.Add(SVMConfiguration.Deserialize(File.ReadAllText(item)));
+                }
 
-            //}
+            }
 
             //if (Directory.Exists(path + @"\META"))
             //{
@@ -709,20 +709,40 @@ namespace Classification_App
                         {
                             confs.Add(gsrConf);
                         }
+                        else
+                        {
+                            Log.LogMessage($"Missing GSR configs on person {personName}, skipping..");
+                            continue;
+                        }
 
                         if (eegConf != null)
                         {
                             confs.Add(eegConf);
+                        }
+                        else
+                        {
+                            Log.LogMessage($"Missing EEG configs on person {personName}, skipping..");
+                            continue;
                         }
 
                         if (hrConf != null)
                         {
                             confs.Add(hrConf);
                         }
+                        else
+                        {
+                            Log.LogMessage($"Missing HR configs on person {personName}, skipping..");
+                            continue;
+                        }
 
                         if (faceConf != null)
                         {
                             confs.Add(faceConf);
+                        }
+                        else
+                        {
+                            Log.LogMessage($"Missing Kinect configs on person {personName}, skipping..");
+                            continue;
                         }
 
                         Log.LogMessage("Creating meta machine..");
@@ -1689,6 +1709,75 @@ namespace Classification_App
             exc.Quit();
 
 
+        }
+
+        private void revert_button_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                var dataFolders = Directory.GetDirectories(fbd.SelectedPath);
+                foreach (var item in dataFolders)
+                {
+                    if (item.Split('\\').Last() == "Stats")
+                    {
+                        Log.LogMessage("Stats folder skipping");
+                        continue;
+                    }
+                    DataProgressHandler DPH = new DataProgressHandler(item);
+                    if (gsr_checkbox.Checked)
+                    {
+                        foreach (var gsrKey in DPH.done.Keys.Where(x => x.Contains("GSR")).ToList())
+                        {
+                            DPH.done[gsrKey] = false;
+                        }
+                    }
+
+                    if (eeg_checkbox.Checked)
+                    {
+                        foreach (var eegKey in DPH.done.Keys.Where(x => x.Contains("EEG")).ToList())
+                        {
+                            DPH.done[eegKey] = false;
+                        }
+                    }
+
+                    if (hr_checkbox.Checked)
+                    {
+                        foreach (var hrKey in DPH.done.Keys.Where(x => x.Contains("HR")).ToList())
+                        {
+                            DPH.done[hrKey] = false;
+                        }
+                    }
+
+                    if (face_checkbox.Checked)
+                    {
+                        foreach (var faceKey in DPH.done.Keys.Where(x => x.Contains("Face")).ToList())
+                        {
+                            DPH.done[faceKey] = false;
+                        }
+                    }
+
+                    if (voting_checkbox.Checked)
+                    {
+                        foreach (var votingKey in DPH.done.Keys.Where(x => x.Contains("Voting")).ToList())
+                        {
+                            DPH.done[votingKey] = false;
+                        }
+                    }
+
+                    if (stacking_checkbox.Checked)
+                    {
+                        foreach (var stackingKey in DPH.done.Keys.Where(x => x.Contains("Stacking")).ToList())
+                        {
+                            DPH.done[stackingKey] = false;
+                        }
+                    }
+                    DPH.SaveProgress();
+                }
+
+                Log.LogMessage("Done reverting!");
+            }
         }
     }
 }

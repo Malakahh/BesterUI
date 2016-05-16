@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -97,12 +97,23 @@
             this.Label = new System.Windows.Forms.Label();
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.gsr_checkbox = new System.Windows.Forms.CheckBox();
+            this.eeg_checkbox = new System.Windows.Forms.CheckBox();
+            this.hr_checkbox = new System.Windows.Forms.CheckBox();
+            this.face_checkbox = new System.Windows.Forms.CheckBox();
+            this.voting_checkbox = new System.Windows.Forms.CheckBox();
+            this.stacking_checkbox = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.revert_button = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).BeginInit();
+            this.tabPage5.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -111,6 +122,7 @@
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
+            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Location = new System.Drawing.Point(12, 75);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -585,13 +597,13 @@
             // chart_TestData
             // 
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
-            chartArea2.Name = "ChartArea1";
-            this.chart_TestData.ChartAreas.Add(chartArea2);
+            chartArea1.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea1);
             this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
-            series2.ChartArea = "ChartArea1";
-            series2.Name = "Series1";
-            this.chart_TestData.Series.Add(series2);
+            series1.ChartArea = "ChartArea1";
+            series1.Name = "Series1";
+            this.chart_TestData.Series.Add(series1);
             this.chart_TestData.Size = new System.Drawing.Size(362, 201);
             this.chart_TestData.TabIndex = 13;
             this.chart_TestData.Text = "chart1";
@@ -760,7 +772,7 @@
             // chk_useControlValues
             // 
             this.chk_useControlValues.AutoSize = true;
-            this.chk_useControlValues.Location = new System.Drawing.Point(269, 70);
+            this.chk_useControlValues.Location = new System.Drawing.Point(282, 39);
             this.chk_useControlValues.Name = "chk_useControlValues";
             this.chk_useControlValues.Size = new System.Drawing.Size(143, 17);
             this.chk_useControlValues.TabIndex = 16;
@@ -776,6 +788,103 @@
             this.btn_CalculateResults.Text = "Calculate All Results";
             this.btn_CalculateResults.UseVisualStyleBackColor = true;
             this.btn_CalculateResults.Click += new System.EventHandler(this.btn_CalculateResults_Click);
+            // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.groupBox1);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(657, 292);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "ProgressHandler";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // gsr_checkbox
+            // 
+            this.gsr_checkbox.AutoSize = true;
+            this.gsr_checkbox.Location = new System.Drawing.Point(19, 19);
+            this.gsr_checkbox.Name = "gsr_checkbox";
+            this.gsr_checkbox.Size = new System.Drawing.Size(49, 17);
+            this.gsr_checkbox.TabIndex = 0;
+            this.gsr_checkbox.Text = "GSR";
+            this.gsr_checkbox.UseVisualStyleBackColor = true;
+            // 
+            // eeg_checkbox
+            // 
+            this.eeg_checkbox.AutoSize = true;
+            this.eeg_checkbox.Location = new System.Drawing.Point(19, 42);
+            this.eeg_checkbox.Name = "eeg_checkbox";
+            this.eeg_checkbox.Size = new System.Drawing.Size(48, 17);
+            this.eeg_checkbox.TabIndex = 1;
+            this.eeg_checkbox.Text = "EEG";
+            this.eeg_checkbox.UseVisualStyleBackColor = true;
+            // 
+            // hr_checkbox
+            // 
+            this.hr_checkbox.AutoSize = true;
+            this.hr_checkbox.Location = new System.Drawing.Point(19, 65);
+            this.hr_checkbox.Name = "hr_checkbox";
+            this.hr_checkbox.Size = new System.Drawing.Size(42, 17);
+            this.hr_checkbox.TabIndex = 2;
+            this.hr_checkbox.Text = "HR";
+            this.hr_checkbox.UseVisualStyleBackColor = true;
+            // 
+            // face_checkbox
+            // 
+            this.face_checkbox.AutoSize = true;
+            this.face_checkbox.Location = new System.Drawing.Point(19, 88);
+            this.face_checkbox.Name = "face_checkbox";
+            this.face_checkbox.Size = new System.Drawing.Size(53, 17);
+            this.face_checkbox.TabIndex = 3;
+            this.face_checkbox.Text = "FACE";
+            this.face_checkbox.UseVisualStyleBackColor = true;
+            // 
+            // voting_checkbox
+            // 
+            this.voting_checkbox.AutoSize = true;
+            this.voting_checkbox.Location = new System.Drawing.Point(19, 122);
+            this.voting_checkbox.Name = "voting_checkbox";
+            this.voting_checkbox.Size = new System.Drawing.Size(56, 17);
+            this.voting_checkbox.TabIndex = 4;
+            this.voting_checkbox.Text = "Voting";
+            this.voting_checkbox.UseVisualStyleBackColor = true;
+            // 
+            // stacking_checkbox
+            // 
+            this.stacking_checkbox.AutoSize = true;
+            this.stacking_checkbox.Location = new System.Drawing.Point(19, 145);
+            this.stacking_checkbox.Name = "stacking_checkbox";
+            this.stacking_checkbox.Size = new System.Drawing.Size(68, 17);
+            this.stacking_checkbox.TabIndex = 5;
+            this.stacking_checkbox.Text = "Stacking";
+            this.stacking_checkbox.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.revert_button);
+            this.groupBox1.Controls.Add(this.gsr_checkbox);
+            this.groupBox1.Controls.Add(this.stacking_checkbox);
+            this.groupBox1.Controls.Add(this.eeg_checkbox);
+            this.groupBox1.Controls.Add(this.voting_checkbox);
+            this.groupBox1.Controls.Add(this.hr_checkbox);
+            this.groupBox1.Controls.Add(this.face_checkbox);
+            this.groupBox1.Location = new System.Drawing.Point(6, 6);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(412, 270);
+            this.groupBox1.TabIndex = 6;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Revert to false ";
+            // 
+            // revert_button
+            // 
+            this.revert_button.Location = new System.Drawing.Point(328, 19);
+            this.revert_button.Name = "revert_button";
+            this.revert_button.Size = new System.Drawing.Size(75, 23);
+            this.revert_button.TabIndex = 6;
+            this.revert_button.Text = "Revert";
+            this.revert_button.UseVisualStyleBackColor = true;
+            this.revert_button.Click += new System.EventHandler(this.revert_button_Click);
             // 
             // Form1
             // 
@@ -802,6 +911,9 @@
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart_TestData)).EndInit();
+            this.tabPage5.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -876,6 +988,15 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.Button btn_CalculateResults;
+        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button revert_button;
+        private System.Windows.Forms.CheckBox gsr_checkbox;
+        private System.Windows.Forms.CheckBox stacking_checkbox;
+        private System.Windows.Forms.CheckBox eeg_checkbox;
+        private System.Windows.Forms.CheckBox voting_checkbox;
+        private System.Windows.Forms.CheckBox hr_checkbox;
+        private System.Windows.Forms.CheckBox face_checkbox;
     }
 }
 

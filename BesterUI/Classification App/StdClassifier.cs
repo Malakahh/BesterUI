@@ -226,6 +226,7 @@ namespace Classification_App
                         answers.Add(samData.dataPoints[j].ToAVCoordinate(feelingsmodel));
                     }
                 }
+                samAnswers.Add(answers);
             }
 
             //First tuple guesses on index 0, second on 1 etc. - Tuple(accuracy, answer)
