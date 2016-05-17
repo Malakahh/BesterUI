@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LibSVMsharp;
-
+using BesterUI.Data;
 namespace Classification_App
 {
     public enum Normalize { ZeroOne, OneMinusOne }
@@ -75,14 +75,30 @@ namespace Classification_App
 
                 allSets.Add(new Tuple<SVMProblem, SVMProblem>(trainSVMProblem, predictSVMProblem));
             }
-            
+
             return allSets;
         }
+
+        public static List<DataReading> GetDataFromInterval(List<DataReading> original, int start, int duration)
+        {
+            List<DataReading> splicedData = new List<DataReading>();
+
+            splicedData.AddRange(
+                original.Where(
+                    x => x.timestamp >= (start + original.First().timestamp) &&
+                    x.timestamp <= (start + original.First().timestamp + duration
+                    )
+                )
+            );
+
+            return splicedData;
+        }
+
 
         public static SVMProblem CreateCompleteProblem(this IEnumerable<List<double>> original, SAMData sam, SAMDataPoint.FeelingModel feelingModel)
         {
             SVMProblem completeProblem = new SVMProblem();
-            for(int i = 0; i < original.Count(); i++)
+            for (int i = 0; i < original.Count(); i++)
             {
                 SVMNode[] nodeSet = new SVMNode[original.ElementAt(i).Count];
                 for (int j = 0; j < original.ElementAt(i).Count; j++)
@@ -173,7 +189,7 @@ namespace Classification_App
             }
             catch
             {
-                
+
                 return null;
             }
             return original;

@@ -2063,8 +2063,7 @@ namespace Classification_App
             {
                 List<double> featureVector = new List<double>();
                 List<double> data = fdNovelty.gsrData.SkipWhile(x => (x.timestamp - fdNovelty.gsrData.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - fdNovelty.gsrData.First().timestamp)).Select(x => (double)x.resistance).ToList();
-                if (data.Count == 0)
-                { continue; }
+                if (data.Count == 0) continue;
                 featureVector.Add(data.Average());
                 featureVector.Add(data.Max());
                 featureVector.Add(data.Min());
