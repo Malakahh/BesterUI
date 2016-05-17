@@ -202,17 +202,9 @@ namespace Classification_App
         public List<Tuple<double, int>> CrossValidationForVoting(SAMDataPoint.FeelingModel feelingsmodel, bool useIAPSratings = false, Normalize normalizationType = Normalize.OneMinusOne)
         {
             //Split into crossvalidations parts
-            List<List<Tuple<SVMProblem, SVMProblem>>> subCrossProblems = new List<List<Tuple<SVMProblem, SVMProblem>>>();
-            List<SVMProblem> subProblems = new List<SVMProblem>();
-            SVMProblem wholeProblem = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).CreateCompleteProblem(samData, feelingsmodel);
+            var tempDataSet = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType);
+            List <Tuple<SVMProblem,SVMProblem>> wholeProblem = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, 1);
             List<List<double>> normalizedNumbers = GetFeatureValues(features, samData).NormalizeFeatureList<double>(normalizationType).ToList();
-            for (int i = 0; i < samData.dataPoints.Count; i++)
-            {
-                List<List<double>> problem = normalizedNumbers.Select(x=>x).ToList();
-                problem.RemoveAt(i);
-                subProblems.Add(problem.NormalizeFeatureList<double>(normalizationType).CreateCompleteProblem(samData, feelingsmodel));
-                subCrossProblems.Add(problem.NormalizeFeatureList<double>(normalizationType).GetCrossValidationSets<double>(samData, feelingsmodel, 1));
-            }
 
             //Split into Sam answers
             List<List<int>> samAnswers = new List<List<int>>();
@@ -232,14 +224,13 @@ namespace Classification_App
             //First tuple guesses on index 0, second on 1 etc. - Tuple(accuracy, answer)
             List<Tuple<double, int>> result = new List<Tuple<double, int>>();
             //Do Crossvalidation, calculate accuracy and do prediction
-            int counter = 0;
-            foreach (List<Tuple<SVMProblem, SVMProblem>> problem in subCrossProblems)
+            for(int counter = 0; counter < wholeProblem.Count; counter++)
             {
                 List<double> guesses = new List<double>();
                 //model and predict each nfold
                 try
                 {
-                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in problem)
+                    foreach (Tuple<SVMProblem, SVMProblem> tupleProblem in wholeProblem[counter].Item1.GetCrossValidationSets())
                     {
                         SVMModel trainingModel = tupleProblem.Item1.Train(Parameters.First());
                         if (trainingModel.ClassCount <= 1)
@@ -271,7 +262,9 @@ namespace Classification_App
                         correctGuesses++;
                     }
                 }
-                result.Add(Tuple.Create(correctGuesses / (double)samAnswers[counter].Count, (int)subProblems[counter].Train(Parameters.First()).Predict(wholeProblem.X[counter])));
+                double test = (int)wholeProblem[counter].Item2.Predict(wholeProblem[counter].Item1.Train(Parameters.First()))[0];
+
+                result.Add(Tuple.Create(correctGuesses / (double)samAnswers[counter].Count, (int)test));
             }
             return result;
         }

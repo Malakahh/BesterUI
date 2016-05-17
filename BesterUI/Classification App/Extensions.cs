@@ -79,6 +79,21 @@ namespace Classification_App
             return allSets;
         }
 
+        public static List<Tuple<SVMProblem, SVMProblem>> GetCrossValidationSets(this SVMProblem original)
+        {
+            List<Tuple<SVMProblem, SVMProblem>> returnList = new List<Tuple<SVMProblem, SVMProblem>>();
+
+            for (int i = 0; i < original.Length; i++)
+            {
+                SVMProblem tempTrain = original.Clone();
+                SVMProblem tempPredict = new SVMProblem();
+                tempPredict.Add(tempTrain.X[i], tempTrain.Y[i]);
+                tempTrain.RemoveAt(i);
+                returnList.Add(Tuple.Create(tempTrain, tempPredict));
+            }
+            return returnList;
+        }
+
         public static SVMProblem CreateCompleteProblem(this IEnumerable<List<double>> original, SAMData sam, SAMDataPoint.FeelingModel feelingModel)
         {
             SVMProblem completeProblem = new SVMProblem();

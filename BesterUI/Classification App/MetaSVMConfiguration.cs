@@ -32,8 +32,8 @@ namespace Classification_App
             var bits = input.Split(META_SEPARATOR);
 
             msvmc.Name = bits[0];
-            msvmc.parameter.C = double.Parse(bits[1]);
-            msvmc.parameter.Gamma = double.Parse(bits[2]);
+            msvmc.parameter.C = double.Parse(bits[1].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+            msvmc.parameter.Gamma = double.Parse(bits[2].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
 
             foreach (var item in bits.Skip(3))
             {

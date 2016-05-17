@@ -700,10 +700,10 @@ namespace Classification_App
                         SVMConfiguration hrConf;
                         SVMConfiguration faceConf;
 
-                        gsrConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
-                        hrConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
-                        eegConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
-                        faceConf = svmConfs.OfType<SVMConfiguration>().FirstOrDefault((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
+                        gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
+                        hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                        eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                        faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
 
                         if (gsrConf != null)
                         {
@@ -1518,7 +1518,7 @@ namespace Classification_App
             fbdPath = @"D:\temp\DataReadings";
             sfdPath = @"D:\temp\Excels";
 
-            Log.LogMessage("Starting huge calc, just kidding");
+            Log.LogMessage("Starting huge calc, just kidding, or am I?");
             Excel.Application exc = new Excel.Application() { Visible = false };
 
             List<string> singles = new List<string>()

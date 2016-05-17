@@ -199,6 +199,7 @@ namespace Classification_App
                     UpdateCallback(prg++, standardClassifiers.Count);
                 }
                 List<Tuple<double, int>> results = classifier.CrossValidationForVoting(feelingsmodel, useIAPSratings, normalizeFormat);
+                classifiers.Add(results);
             }
             if (UpdateCallback != null)
             {

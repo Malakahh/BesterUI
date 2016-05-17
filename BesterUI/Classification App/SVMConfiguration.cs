@@ -52,8 +52,8 @@ namespace Classification_App
             string[] bits = input.Split(SEPARATOR);
 
             retVal.Name = bits[0];
-            retVal.parameters.C = double.Parse(bits[1]);
-            retVal.parameters.Gamma = double.Parse(bits[2]);
+            retVal.parameters.C = double.Parse(bits[1].Replace(',','.'), System.Globalization.CultureInfo.InvariantCulture);
+            retVal.parameters.Gamma = double.Parse(bits[2].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
             retVal.parameters.Kernel = (SVMKernelType)Enum.Parse(typeof(SVMKernelType), bits[3]);
             retVal.features = FeatureCreator.GetFeaturesFromString(bits[4]);
 
