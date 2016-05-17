@@ -115,6 +115,7 @@
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
             this.btn_anomalyDetection = new System.Windows.Forms.Button();
+            this.btn_CreateResultTable = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -876,6 +877,7 @@
             // 
             // tabPage6
             // 
+            this.tabPage6.Controls.Add(this.btn_CreateResultTable);
             this.tabPage6.Controls.Add(this.btn_ExportDataCompare);
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
@@ -968,6 +970,16 @@
             this.btn_anomalyDetection.Text = "Anomaly Detection";
             this.btn_anomalyDetection.UseVisualStyleBackColor = true;
             this.btn_anomalyDetection.Click += new System.EventHandler(this.btn_anomalyDetection_Click);
+            // 
+            // btn_CreateResultTable
+            // 
+            this.btn_CreateResultTable.Location = new System.Drawing.Point(87, 6);
+            this.btn_CreateResultTable.Name = "btn_CreateResultTable";
+            this.btn_CreateResultTable.Size = new System.Drawing.Size(130, 23);
+            this.btn_CreateResultTable.TabIndex = 1;
+            this.btn_CreateResultTable.Text = "Create Result Table";
+            this.btn_CreateResultTable.UseVisualStyleBackColor = true;
+            this.btn_CreateResultTable.Click += new System.EventHandler(this.btn_CreateResultTable_Click);
             // 
             // Form1
             // 
@@ -1090,6 +1102,7 @@
         private System.Windows.Forms.CheckBox samEventsFilter;
         private System.Windows.Forms.CheckBox samEvents;
         private System.Windows.Forms.Button btn_anomalyDetection;
+        private System.Windows.Forms.Button btn_CreateResultTable;
     }
 }
 
