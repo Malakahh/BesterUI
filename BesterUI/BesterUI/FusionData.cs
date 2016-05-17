@@ -23,32 +23,6 @@ namespace BesterUI
             get { return hrData.Count != 0 || eegData.Count != 0 || gsrData.Count != 0 || faceData.Count != 0; }
         }
 
-        /// <summary>
-        /// Retrieves all data for a duration of time
-        /// </summary>
-        /// <param name="start">Start time in ms</param>
-        /// <param name="duration">Duration in ms</param>
-        /// <returns></returns>
-        public Tuple<List<HRDataReading>, List<EEGDataReading>, List<GSRDataReading>, List<FaceDataReading>> GetDataFromInterval(int start, int duration)
-        {
-            Tuple<List<HRDataReading>, List<EEGDataReading>, List<GSRDataReading>, List<FaceDataReading>> data;
-            List<HRDataReading> tmpHRData = new List<HRDataReading>();
-            List<EEGDataReading> tmpEEGData = new List<EEGDataReading>();
-            List<GSRDataReading> tmpGSRData = new List<GSRDataReading>();
-            List<FaceDataReading> tmpFaceData = new List<FaceDataReading>();
-
-            tmpHRData.AddRange(hrData.Where(x => x.timestamp >= (start + hrData.First().timestamp) && x.timestamp <= start + hrData.First().timestamp + duration));
-            tmpEEGData.AddRange(eegData.Where(x => x.timestamp >= start + eegData.First().timestamp && x.timestamp <= start + eegData.First().timestamp + duration));
-            tmpGSRData.AddRange(gsrData.Where(x => x.timestamp >= start + gsrData.First().timestamp && x.timestamp <= start + gsrData.First().timestamp + duration));
-            tmpFaceData.AddRange(faceData.Where(x => x.timestamp >= start + faceData.First().timestamp && x.timestamp <= start + faceData.First().timestamp + duration));
-
-
-            data = new Tuple<List<HRDataReading>, List<EEGDataReading>, List<GSRDataReading>, List<FaceDataReading>>(tmpHRData, tmpEEGData, tmpGSRData, tmpFaceData);
-            return data;
-
-        }
-
-
 
         public FusionData()
         {

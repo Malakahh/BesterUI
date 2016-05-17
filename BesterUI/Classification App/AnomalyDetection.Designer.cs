@@ -30,6 +30,7 @@
         {
             this.btn_loadData = new System.Windows.Forms.Button();
             this.btn_getData = new System.Windows.Forms.Button();
+            this.useRestInTraining = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // btn_loadData
@@ -52,16 +53,28 @@
             this.btn_getData.UseVisualStyleBackColor = true;
             this.btn_getData.Click += new System.EventHandler(this.btn_getData_Click);
             // 
+            // useRestInTraining
+            // 
+            this.useRestInTraining.AutoSize = true;
+            this.useRestInTraining.Location = new System.Drawing.Point(122, 18);
+            this.useRestInTraining.Name = "useRestInTraining";
+            this.useRestInTraining.Size = new System.Drawing.Size(113, 17);
+            this.useRestInTraining.TabIndex = 2;
+            this.useRestInTraining.Text = "Use rest in training";
+            this.useRestInTraining.UseVisualStyleBackColor = true;
+            // 
             // AnomalyDetection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(662, 368);
+            this.Controls.Add(this.useRestInTraining);
             this.Controls.Add(this.btn_getData);
             this.Controls.Add(this.btn_loadData);
             this.Name = "AnomalyDetection";
             this.Text = "AnomalyDetection";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -69,5 +82,6 @@
 
         private System.Windows.Forms.Button btn_loadData;
         private System.Windows.Forms.Button btn_getData;
+        private System.Windows.Forms.CheckBox useRestInTraining;
     }
 }

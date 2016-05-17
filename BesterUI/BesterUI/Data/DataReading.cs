@@ -44,6 +44,7 @@ namespace BesterUI.Data
         }
 
 
+
         public static void StaticWrite(string deviceName, DataReading obj, string dir = "PhysData")
         {
             if (!Directory.Exists(dir))
