@@ -224,11 +224,13 @@ namespace BesterUI
         public static List<GSRDataReading> GSRSTDEVFilter(List<GSRDataReading> data)
         {
             Log.LogMessage("Doing stdev filter on GSR data");
-            var descStats = MathNet.Numerics.Statistics.ArrayStatistics.MeanStandardDeviation(data.Select(x => x.resistance).ToArray());
+
+            double avg = data.Average(x => x.resistance);
+            double stdev = Math.Sqrt(data.Average(x => Math.Pow((x.resistance) - avg, 2)));
 
             int stdMult = 5;
 
-            return data.Where(x => x.resistance >= descStats.Item1 - descStats.Item2 * stdMult && x.resistance <= descStats.Item1 + descStats.Item2 * stdMult).ToList();
+            return data.Where(x => x.resistance >= avg - stdev * stdMult && x.resistance <= avg + stdev * stdMult).ToList();
         }
 
         public void ExportGRF(string inpath = "")
