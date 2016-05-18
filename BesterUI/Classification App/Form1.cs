@@ -1788,10 +1788,10 @@ namespace Classification_App
                 {
                     List<string> files = new List<string>()
                     {
-                        "EEG.dat",
+                        //"EEG.dat",
                         "GSR.dat",
-                        "HR.dat",
-                        "KINECT.dat"
+                        //"HR.dat",
+                        //"KINECT.dat"
                     };
 
                     files.RemoveAll(f => !File.Exists($"{dirPath}/test/{f}") || !File.Exists($"{dirPath}/recall/{f}"));
