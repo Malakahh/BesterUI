@@ -16,6 +16,8 @@ using System.Threading;
 using System.Diagnostics;
 using Excel = Microsoft.Office.Interop.Excel;
 
+using NDtw;
+
 using System.Windows.Forms.DataVisualization.Charting;
 
 using OxyPlot;
@@ -2063,7 +2065,7 @@ namespace Classification_App
                     var metaLines = File.ReadAllLines($"{folder}/meta.txt");
                     int time = int.Parse(metaLines[0].Split('=').Last());
                     string stimuli = metaLines[1].Split('=').Last();
-
+                    stimuli = stimuli == "neu" ? "neu" : "nonNeu";
                     if (!times.Contains(time)) times.Add(time);
                     if (!stimulis.Contains(stimuli)) stimulis.Add(stimuli);
 
@@ -2390,6 +2392,9 @@ namespace Classification_App
             a.ShowDialog(this);
         }
 
-
+        private void btn_DTW_Click(object sender, EventArgs e)
+        {
+            
+        }
     }
 }
