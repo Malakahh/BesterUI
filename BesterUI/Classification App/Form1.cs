@@ -1844,7 +1844,7 @@ namespace Classification_App
                         SaveZip(csvPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
-
+                    /*
                     Log.LogMessage("Starting EEG");
                     foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
                     {
@@ -1898,6 +1898,7 @@ namespace Classification_App
                         SaveZip(csvPath + "FACE_" + item + ".csv", kiNorm.Item1, kiNorm.Item2);
                     }
                     Log.LogMessage("Kinect done");
+                    */
 
 
 
