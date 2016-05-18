@@ -1937,7 +1937,7 @@ namespace Classification_App
             var model = new PlotModel() { Title = name };
 
             var aSeries = new OxyPlot.Series.LineSeries() { Color = OxyColors.Blue };
-            var bSeries = new OxyPlot.Series.LineSeries() { MarkerStroke = OxyColors.Red };
+            var bSeries = new OxyPlot.Series.LineSeries() { Color = OxyColors.Red };
 
             for (int i = 0; i < A.Count; i++)
             {
