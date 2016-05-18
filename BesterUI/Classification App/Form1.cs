@@ -16,8 +16,6 @@ using System.Threading;
 using System.Diagnostics;
 using Excel = Microsoft.Office.Interop.Excel;
 
-using NDtw;
-
 using System.Windows.Forms.DataVisualization.Charting;
 
 using OxyPlot;
@@ -1841,6 +1839,8 @@ namespace Classification_App
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
 
+                        SavePng(csvPath + "GSR.png", $"{subject} - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+
                         SaveZip(csvPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
@@ -1925,6 +1925,37 @@ namespace Classification_App
 
                 Log.LogMessage("DonnoDK!");
             }
+        }
+
+        static void SavePng(string path, string name, List<double> A, List<double> B)
+        {
+            PngExporter pngify = new PngExporter();
+            pngify.Width = 1600;
+            pngify.Height = 900;
+
+            var model = new PlotModel() { Title = name };
+
+            var aSeries = new OxyPlot.Series.LineSeries() { Color = OxyColors.Blue };
+            var bSeries = new OxyPlot.Series.LineSeries() { MarkerStroke = OxyColors.Red };
+
+            for (int i = 0; i < A.Count; i++)
+            {
+                aSeries.Points.Add(new OxyPlot.DataPoint(i, A[i]));
+            }
+
+            for (int i = 0; i < B.Count; i++)
+            {
+                bSeries.Points.Add(new OxyPlot.DataPoint(i, B[i]));
+            }
+
+            model.Series.Add(aSeries);
+            model.Series.Add(bSeries);
+
+            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
+            //model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
+
+
+            pngify.ExportToFile(model, path);
         }
 
         static void SaveZip(string path, List<double> A, List<double> B)
@@ -2429,7 +2460,7 @@ namespace Classification_App
 
         private void btn_DTW_Click(object sender, EventArgs e)
         {
-            
+
         }
     }
 }
