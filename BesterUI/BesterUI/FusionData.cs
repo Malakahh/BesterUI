@@ -143,7 +143,8 @@ namespace BesterUI
                             Log.LogMessage("Loading GSR data");
                             //gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             //gsrData = GSRSTDEVFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT));
-                            gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
+                            //gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
+                            gsrData = GSRMoveStdFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             shouldRun.Add(s, true);
                         }
                         else
@@ -232,6 +233,25 @@ namespace BesterUI
             int stdMult = 3;
 
             return data.Where(x => x.resistance >= avg - stdev * stdMult && x.resistance <= avg + stdev * stdMult).ToList();
+        }
+
+        public static List<GSRDataReading> GSRMoveStdFilter(List<GSRDataReading> data, int windowSize)
+        {
+            Log.LogMessage("Doing moving average filter on GSR data");
+            List<GSRDataReading> newValues = new List<GSRDataReading>();
+
+            int stdMult = 1;
+
+            for (int i = 0; i < data.Count - windowSize; i++)
+            {
+                List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).OrderBy(x => x.resistance).ToList();
+                double avg = tempValues.Average(x => x.resistance);
+                double stdev = Math.Sqrt(tempValues.Average(x => Math.Pow((x.resistance) - avg, 2)));
+                newValues.AddRange(tempValues.Where(x => x.resistance >= avg - stdev * stdMult && x.resistance <= avg + stdev * stdMult));
+            }
+            newValues = newValues.Distinct().ToList();
+            newValues = newValues.OrderBy(x => x.timestamp).ToList();
+            return newValues;
         }
 
         public static List<GSRDataReading> GSRMoveAvgFilter(List<GSRDataReading> data, int windowSize)
