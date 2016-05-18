@@ -142,7 +142,8 @@ namespace BesterUI
                         {
                             Log.LogMessage("Loading GSR data");
                             //gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
-                            gsrData = GSRSTDEVFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT));
+                            //gsrData = GSRSTDEVFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT));
+                            gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             shouldRun.Add(s, true);
                         }
                         else
@@ -231,6 +232,20 @@ namespace BesterUI
             int stdMult = 3;
 
             return data.Where(x => x.resistance >= avg - stdev * stdMult && x.resistance <= avg + stdev * stdMult).ToList();
+        }
+
+        public static List<GSRDataReading> GSRMoveAvgFilter(List<GSRDataReading> data, int windowSize)
+        {
+            Log.LogMessage("Doing moving average filter on GSR data");
+            List<GSRDataReading> newValues = new List<GSRDataReading>();
+            for (int i = 0; i < data.Count - windowSize; i++)
+            {
+                List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).OrderBy(x => x.resistance).ToList();
+                newValues.Add(new GSRDataReading(false) { resistance = (int)tempValues.Average(x => x.resistance), timestamp = tempValues[0].timestamp });
+            }
+            //newValues = newValues.Distinct().ToList();
+            newValues = newValues.OrderBy(x => x.timestamp).ToList();
+            return newValues;
         }
 
         public void ExportGRF(string inpath = "")
