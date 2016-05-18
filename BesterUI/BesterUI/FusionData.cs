@@ -141,7 +141,8 @@ namespace BesterUI
                         if (!checkSize || size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading GSR data");
-                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
+                            //gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
+                            gsrData = GSRSTDEVFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT));
                             shouldRun.Add(s, true);
                         }
                         else
@@ -218,6 +219,16 @@ namespace BesterUI
             newValues = newValues.OrderBy(x => x.timestamp).ToList();
             return newValues;
 
+        }
+
+        public static List<GSRDataReading> GSRSTDEVFilter(List<GSRDataReading> data)
+        {
+            Log.LogMessage("Doing stdev filter on GSR data");
+            var descStats = MathNet.Numerics.Statistics.ArrayStatistics.MeanStandardDeviation(data.Select(x => x.resistance).ToArray());
+
+            int stdMult = 5;
+
+            return data.Where(x => x.resistance >= descStats.Item1 - descStats.Item2 * stdMult && x.resistance <= descStats.Item1 + descStats.Item2 * stdMult).ToList();
         }
 
         public void ExportGRF(string inpath = "")
