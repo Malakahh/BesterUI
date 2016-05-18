@@ -1784,7 +1784,9 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                foreach (var dirPath in Directory.GetDirectories(fbd.SelectedPath))
+                int counterino = 1;
+                var dirs = Directory.GetDirectories(fbd.SelectedPath);
+                foreach (var dirPath in dirs)
                 {
                     List<string> files = new List<string>()
                     {
@@ -1798,6 +1800,7 @@ namespace Classification_App
 
                     string subject = dirPath.Split('\\').Last();
                     string csvPath = "csv/" + subject + "_";
+                    statusLabel.Text = $"{counterino++} / {dirs.Length}";
 
                     var metaLines = File.ReadAllLines(dirPath + "/meta.txt");
                     fdTest = new FusionData();
@@ -1833,7 +1836,13 @@ namespace Classification_App
                         fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(),
                         fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList()
                         );
-                    SaveZip(csvPath + "GSR.csv", gsr.Item2, gsr.Item3);
+
+                    if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
+                    {
+                        var gsrNorm = NormalizeFilterData(gsr);
+
+                        SaveZip(csvPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                    }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
 
                     Log.LogMessage("Starting EEG");
@@ -1845,8 +1854,12 @@ namespace Classification_App
                             8
                             );
 
+                        if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
+
+                        var eegNorm = NormalizeFilterData(eeg);
+
                         Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
-                        SaveZip(csvPath + "EEG_" + item + ".csv", eeg.Item2, eeg.Item3);
+                        SaveZip(csvPath + "EEG_" + item + ".csv", eegNorm.Item1, eegNorm.Item2);
                     }
                     Log.LogMessage("EEG done");
 
@@ -1856,7 +1869,14 @@ namespace Classification_App
                         fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
                         20
                         );
-                    SaveZip(csvPath + "HR.csv", hr.Item2, hr.Item3);
+
+
+                    if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
+                    {
+                        var hrNorm = NormalizeFilterData(hr);
+
+                        SaveZip(csvPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
+                    }
                     Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
 
                     Log.LogMessage("Starting Kinect");
@@ -1870,8 +1890,12 @@ namespace Classification_App
                             34
                             );
 
+                        if (kinect.Item2.Count == 0 || kinect.Item3.Count == 0) continue;
+
+                        var kiNorm = NormalizeFilterData(kinect);
+
                         Log.LogMessage($"{item.ToString()}, data filtered: {kinect.Item1.ToString("0.0")}%");
-                        SaveZip(csvPath + "FACE_" + item + ".csv", kinect.Item2, kinect.Item3);
+                        SaveZip(csvPath + "FACE_" + item + ".csv", kiNorm.Item1, kiNorm.Item2);
                     }
                     Log.LogMessage("Kinect done");
 
@@ -1962,6 +1986,17 @@ namespace Classification_App
                 return r / denom;
             else
                 return 0;
+        }
+
+        Tuple<List<double>, List<double>> NormalizeFilterData(Tuple<double, List<double>, List<double>, List<double>> input)
+        {
+            var max2 = input.Item2.Max();
+            var new2 = input.Item2.Select(x => x / max2).ToList();
+
+            var max3 = input.Item3.Max();
+            var new3 = input.Item3.Select(x => x / max3).ToList();
+
+            return Tuple.Create(new2, new3);
         }
 
         Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin, int msPerReading = -1)
