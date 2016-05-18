@@ -1821,6 +1821,8 @@ namespace Classification_App
                     var testEvents = File.ReadAllLines(dirPath + "/test/SecondTest.dat");
                     //fix waiting period offset til at være første event i testevents
                     int offset = int.Parse(metaLines.ToList().First(x => x.StartsWith("sync")).Split(':', '=').Last());
+                    string stimul = metaLines[1].Split('=').Last();
+                    string time = metaLines[0].Split('=').Last();
 
                     int waitPeriodDone = int.Parse(testEvents[0].Split('#')[0]);
                     int wholePeriodDone = int.Parse(testEvents[testEvents.Length - 2].Split('#')[0]);
@@ -1840,7 +1842,7 @@ namespace Classification_App
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
 
-                        SavePng(csvPath + "GSR.png", $"{subject} - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
 
                         SaveZip(csvPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                     }
@@ -1962,7 +1964,7 @@ namespace Classification_App
 
         static void SaveZip(string path, List<double> A, List<double> B)
         {
-            File.WriteAllLines(path, A.Zip(B, (a, b) => a + ";" + b));
+            File.WriteAllLines(path, A.Zip(B, (a, b) => (a + ";" + b).Replace(',', '.')));
         }
 
         public static double Pearson(IEnumerable<double> dataA, IEnumerable<double> dataB)
