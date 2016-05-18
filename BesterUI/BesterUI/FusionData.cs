@@ -228,7 +228,7 @@ namespace BesterUI
             double avg = data.Average(x => x.resistance);
             double stdev = Math.Sqrt(data.Average(x => Math.Pow((x.resistance) - avg, 2)));
 
-            int stdMult = 5;
+            int stdMult = 1;
 
             return data.Where(x => x.resistance >= avg - stdev * stdMult && x.resistance <= avg + stdev * stdMult).ToList();
         }
