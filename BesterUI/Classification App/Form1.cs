@@ -2177,8 +2177,7 @@ namespace Classification_App
                         timeTable[sensor][time].Add(result);
                         stimuliTable[sensor][stimuli].Add(result);
 
-                        if (time == 0)
-                            totalList[sensor].Add(result);
+                        totalList[sensor].Add(result);
                     }
                 }
 
