@@ -1786,6 +1786,7 @@ namespace Classification_App
                 var dirs = Directory.GetDirectories(fbd.SelectedPath);
                 foreach (var dirPath in dirs)
                 {
+                    if (dirPath == "results") continue;
                     List<string> files = new List<string>()
                     {
                         //"EEG.dat",
