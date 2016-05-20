@@ -2180,6 +2180,16 @@ namespace Classification_App
                         big5List.Add("total", new List<Dictionary<Big5, int>>());
                     }
 
+                    if (!big5List.ContainsKey("corr"))
+                    {
+                        big5List.Add("corr", new List<Dictionary<Big5, int>>());
+                    }
+
+                    if (!big5List.ContainsKey("revCorr"))
+                    {
+                        big5List.Add("revCorr", new List<Dictionary<Big5, int>>());
+                    }
+
                     big5List["time" + time].Add(big5);
                     big5List["stim" + stimuli].Add(big5);
                     big5List["total"].Add(big5);
@@ -2225,6 +2235,16 @@ namespace Classification_App
                             stimuliTable[sensor][stimuli].Add(result);
 
                             totalList[sensor].Add(result);
+
+                            if (correlation > 0)
+                            {
+                                big5List["corr"].Add(big5);
+                            }
+                            else
+                            {
+                                big5List["revCorr"].Add(big5);
+
+                            }
                         }
                     }
                 }
@@ -2273,6 +2293,7 @@ namespace Classification_App
                     List<string> correlationTimeToWrite = new List<string>();
                     correlationTimeToWrite.Add("Sensor&Avg Corr&Avg Sig. \\\\");
 
+
                     //Reverse correlation
                     List<string> reverseCorrelationTimeToWrite = new List<string>();
                     reverseCorrelationTimeToWrite.Add("Sensor & Avg Corr & Avg Sig. \\\\");
@@ -2293,6 +2314,12 @@ namespace Classification_App
 
                         correlationTimeToWrite.Add($"{sensor}&{correlationAvgCorrelation.ToString("0.000")}({correlationStdevCorrelation.ToString("0.000")})&{correlationAvgSignificance.ToString("0.000")}({correlationStdevSignificance.ToString("0.000")}) \\\\");
                         reverseCorrelationTimeToWrite.Add($"{sensor}&{reverseCorrelationAvgCorrelation.ToString("0.000")}({reverseCorrelationStdevCorrelation.ToString("0.000")})&{reverseCorrelationAvgSignificance.ToString("0.000")}({reverseCorrelationStdevSignificance.ToString("0.000")}) \\\\");
+                    }
+
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        correlationTimeToWrite.Add(item + " Mean: " + big5List["corr"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["corr"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                        reverseCorrelationTimeToWrite.Add(item + " Mean: " + big5List["revCorr"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["revCorr"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
                     }
 
                     File.WriteAllLines(fbd.SelectedPath + "/correlationTime" + time + ".txt", correlationTimeToWrite);
