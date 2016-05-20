@@ -2131,6 +2131,7 @@ namespace Classification_App
                 var timeTable = new Dictionary<string, Dictionary<int, List<Tuple<double, double>>>>();
                 var stimuliTable = new Dictionary<string, Dictionary<string, List<Tuple<double, double>>>>();
                 var totalList = new Dictionary<string, List<Tuple<double, double>>>();
+                var big5List = new Dictionary<string, List<Dictionary<Big5, int>>>();
                 List<string> sensors = new List<string>();
                 List<int> times = new List<int>();
                 List<string> stimulis = new List<string>();
@@ -2149,6 +2150,7 @@ namespace Classification_App
                     string subject = folder.Split('\\').Last();
 
                     var metaLines = File.ReadAllLines($"{folder}/meta.txt");
+                    var big5 = GetBig5(metaLines);
                     int time = int.Parse(metaLines[0].Split('=').Last());
                     string stimuli = metaLines[1].Split('=').Last();
                     stimuli = stimuli == "neu" ? "low" : "high";
@@ -2162,6 +2164,25 @@ namespace Classification_App
                     {
                         foldersToExamine.Add(fbd.SelectedPath + "\\Stimuli " + stimuli);
                     }
+
+                    if (!big5List.ContainsKey("time" + time))
+                    {
+                        big5List.Add("time" + time, new List<Dictionary<Big5, int>>());
+                    }
+
+                    if (!big5List.ContainsKey("stim" + stimuli))
+                    {
+                        big5List.Add("stim" + stimuli, new List<Dictionary<Big5, int>>());
+                    }
+
+                    if (!big5List.ContainsKey("total"))
+                    {
+                        big5List.Add("total", new List<Dictionary<Big5, int>>());
+                    }
+
+                    big5List["time" + time].Add(big5);
+                    big5List["stim" + stimuli].Add(big5);
+                    big5List["total"].Add(big5);
 
                     foreach (var folderToExamine in foldersToExamine)
                     {
@@ -2220,6 +2241,11 @@ namespace Classification_App
 
                     totalToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                 }
+                foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                {
+                    totalToWrite.Add(item + " Mean: " + big5List["total"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["total"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                }
+
                 File.WriteAllLines(fbd.SelectedPath + "/totals.txt", totalToWrite);
 
                 foreach (var time in times)
@@ -2295,7 +2321,14 @@ namespace Classification_App
                     }
                     timeToWrite.Add("\\bottomrule");
                     timeToWrite.Add("\\end{tabular}");
-                    timeToWrite.Add("\\caption{Results from time " + time + "}");
+                    timeToWrite.Add("\\caption{Results from time " + time + ".");
+
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        timeToWrite.Add(item + " Mean: " + big5List["time" + time].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["time" + time].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                    }
+                    timeToWrite.Add("}");
+
                     timeToWrite.Add("\\label{[TABLE] res time" + time + "}");
                     timeToWrite.Add("\\end{table}");
 
@@ -2324,7 +2357,12 @@ namespace Classification_App
                     }
                     stimuliToWrite.Add("\\bottomrule");
                     stimuliToWrite.Add("\\end{tabular}");
-                    stimuliToWrite.Add("\\caption{Results from stimuli " + stimuli + "}");
+                    stimuliToWrite.Add("\\caption{Results from stimuli " + stimuli + ".");
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        stimuliToWrite.Add(item + " Mean: " + big5List["stim" + stimuli].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["stim" + stimuli].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                    }
+                    stimuliToWrite.Add("}");
                     stimuliToWrite.Add("\\label{[TABLE] res stimuli" + stimuli + "}");
                     stimuliToWrite.Add("\\end{table}");
 
@@ -2522,9 +2560,30 @@ namespace Classification_App
             a.ShowDialog(this);
         }
 
-        private void btn_DTW_Click(object sender, EventArgs e)
+        public enum Big5
         {
+            Extraversion = 1,
+            Agreeableness,
+            Conscientiousness,
+            EmotionalStability,
+            IntellectImagination
+        }
 
+        Dictionary<Big5, int> GetBig5(string[] metaText)
+        {
+            Dictionary<Big5, int> retVal = new Dictionary<Big5, int>();
+
+            foreach (var item in metaText)
+            {
+                if (item.Contains("big"))
+                {
+                    var split = item.Split('=');
+
+                    retVal.Add((Big5)int.Parse(split[0].Replace("big", "")), int.Parse(split[1]));
+                }
+            }
+
+            return retVal;
         }
     }
 }

@@ -116,7 +116,6 @@
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
             this.btn_anomalyDetection = new System.Windows.Forms.Button();
-            this.btn_DTW = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -878,7 +877,6 @@
             // 
             // tabPage6
             // 
-            this.tabPage6.Controls.Add(this.btn_DTW);
             this.tabPage6.Controls.Add(this.btn_CreateResultTable);
             this.tabPage6.Controls.Add(this.btn_ExportDataCompare);
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
@@ -982,16 +980,6 @@
             this.btn_anomalyDetection.Text = "Anomaly Detection";
             this.btn_anomalyDetection.UseVisualStyleBackColor = true;
             this.btn_anomalyDetection.Click += new System.EventHandler(this.btn_anomalyDetection_Click);
-            // 
-            // btn_DTW
-            // 
-            this.btn_DTW.Location = new System.Drawing.Point(224, 7);
-            this.btn_DTW.Name = "btn_DTW";
-            this.btn_DTW.Size = new System.Drawing.Size(116, 23);
-            this.btn_DTW.TabIndex = 2;
-            this.btn_DTW.Text = "Dynamic Time Warp";
-            this.btn_DTW.UseVisualStyleBackColor = true;
-            this.btn_DTW.Click += new System.EventHandler(this.btn_DTW_Click);
             // 
             // Form1
             // 
@@ -1115,7 +1103,6 @@
         private System.Windows.Forms.CheckBox samEvents;
         private System.Windows.Forms.Button btn_anomalyDetection;
         private System.Windows.Forms.Button btn_CreateResultTable;
-        private System.Windows.Forms.Button btn_DTW;
     }
 }
 
