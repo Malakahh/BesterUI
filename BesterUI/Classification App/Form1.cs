@@ -2071,12 +2071,12 @@ namespace Classification_App
 
             List<Tuple<int, int>> pairing = new List<Tuple<int, int>>();
 
-            for (int i = window; i < Ain.Count - window; i++)
+            for (int i = 0; i < Ain.Count; i++)
             {
                 int closestId = 0;
                 double closestDist = double.MaxValue;
 
-                var tempData = Bin.SkipWhile(x => x.Item1 < i - window).TakeWhile(x => x.Item1 < i + window).ToList();
+                var tempData = Bin.SkipWhile(x => x.Item1 < Ain[i].Item1 - window).TakeWhile(x => x.Item1 < Ain[i].Item1 + window).ToList();
 
                 for (int j = 0; j < tempData.Count; j++)
                 {
