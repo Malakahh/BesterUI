@@ -1850,8 +1850,8 @@ namespace Classification_App
 
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
-                        var newPairA = gsrNewPair.Select(x => (double)x.Item1).ToList();
-                        var newPairB = gsrNewPair.Select(x => (double)x.Item2).ToList();
+                        var newPairA = gsrNewPair.Select(x => fdTestGsr[x.Item1].Item2).ToList();
+                        var newPairB = gsrNewPair.Select(x => fdRecallGsr[x.Item2].Item2).ToList();
                         var newPears = MathNet.Numerics.Statistics.Correlation.Pearson(newPairA, newPairB);
 
                         var gsrNorm = NormalizeFilterData(gsr);
