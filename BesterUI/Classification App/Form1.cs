@@ -1798,7 +1798,6 @@ namespace Classification_App
                     files.RemoveAll(f => !File.Exists($"{dirPath}/test/{f}") || !File.Exists($"{dirPath}/recall/{f}"));
 
                     string subject = dirPath.Split('\\').Last();
-                    string csvPath = "csv/" + subject + "_";
                     statusLabel.Text = $"{counterino++} / {dirs.Length}";
 
                     var metaLines = File.ReadAllLines(dirPath + "/meta.txt");
@@ -1828,9 +1827,13 @@ namespace Classification_App
                     int wholePeriodDone = int.Parse(testEvents[testEvents.Length - 2].Split('#')[0]);
                     //int waitPeriodDone = 180000;
 
-                    Directory.CreateDirectory("csv");
 
+                    string csvTimePath = "csv/Time " + time + "/" + subject + "_";
+                    string csvStimuliPath = "csv/Stimuli " + (stimul == "neu" ? "low" : "high") + "/" + subject + "_";
+                    //string csvPath = "csv/" + subject + "_";
 
+                    Directory.CreateDirectory("csv/Time " + time);
+                    Directory.CreateDirectory("csv/Stimuli " + (stimul == "neu" ? "low" : "high"));
 
                     Log.LogMessage("Starting GSR");
                     var gsr = FilterData(
@@ -1842,9 +1845,15 @@ namespace Classification_App
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
 
-                        SavePng(csvPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
 
-                        SaveZip(csvPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                        int t;
+                        if (int.TryParse(time, out t) && t != 0)
+                        {
+                            SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                            SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                        }
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
                     /*
@@ -2128,56 +2137,74 @@ namespace Classification_App
 
                 foreach (var folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
-                    if (folder.Contains("results")) continue;
+                    if (folder.Contains("Stimuli high") ||
+                        folder.Contains("Stimuli low") ||
+                        folder.Contains("Time 0") ||
+                        folder.Contains("Time 1") ||
+                        folder.Contains("Time 2"))
+                    {
+                        continue;
+                    }
 
                     string subject = folder.Split('\\').Last();
 
                     var metaLines = File.ReadAllLines($"{folder}/meta.txt");
                     int time = int.Parse(metaLines[0].Split('=').Last());
                     string stimuli = metaLines[1].Split('=').Last();
-                    stimuli = stimuli == "neu" ? "neu" : "nonNeu";
+                    stimuli = stimuli == "neu" ? "low" : "high";
                     if (!times.Contains(time)) times.Add(time);
                     if (!stimulis.Contains(stimuli)) stimulis.Add(stimuli);
 
-                    foreach (var resultFile in Directory.GetFiles(fbd.SelectedPath + "\\results").Where(f => f.Split('\\').Last().StartsWith(subject)))
+                    List<string> foldersToExamine = new List<string>();
+                    foldersToExamine.Add(fbd.SelectedPath + "\\Time " + time);
+
+                    if (time > 0)
                     {
-                        string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
+                        foldersToExamine.Add(fbd.SelectedPath + "\\Stimuli " + stimuli);
+                    }
 
-                        if (!sensors.Contains(sensor)) sensors.Add(sensor);
-
-                        var resultLines = File.ReadAllLines(resultFile);
-                        string correlationLine = resultLines.First(x => x.Contains("Pearson"));
-                        string significanceLine = resultLines.First(x => x.Contains("Sig."));
-
-                        if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
+                    foreach (var folderToExamine in foldersToExamine)
+                    {
+                        foreach (var resultFile in Directory.GetFiles(folderToExamine).Where(f => f.Split('\\').Last().StartsWith(subject) && f.Split('\\').Last().EndsWith(".txt")))
                         {
-                            continue;
+                            string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
+
+                            if (!sensors.Contains(sensor)) sensors.Add(sensor);
+
+                            var resultLines = File.ReadAllLines(resultFile);
+                            string correlationLine = resultLines.First(x => x.Contains("Pearson"));
+                            string significanceLine = resultLines.First(x => x.Contains("Sig."));
+
+                            if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
+                            {
+                                continue;
+                            }
+
+                            double correlation = double.Parse(correlationLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
+                            double significance = double.Parse(significanceLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
+
+                            var result = Tuple.Create(correlation, significance);
+
+                            if (!timeTable.ContainsKey(sensor))
+                            {
+                                timeTable.Add(sensor, new Dictionary<int, List<Tuple<double, double>>>());
+                                stimuliTable.Add(sensor, new Dictionary<string, List<Tuple<double, double>>>());
+                                totalList.Add(sensor, new List<Tuple<double, double>>());
+                            }
+                            if (!timeTable[sensor].ContainsKey(time))
+                            {
+                                timeTable[sensor].Add(time, new List<Tuple<double, double>>());
+                            }
+                            if (!stimuliTable[sensor].ContainsKey(stimuli))
+                            {
+                                stimuliTable[sensor].Add(stimuli, new List<Tuple<double, double>>());
+                            }
+
+                            timeTable[sensor][time].Add(result);
+                            stimuliTable[sensor][stimuli].Add(result);
+
+                            totalList[sensor].Add(result);
                         }
-
-                        double correlation = double.Parse(correlationLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
-                        double significance = double.Parse(significanceLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
-
-                        var result = Tuple.Create(correlation, significance);
-
-                        if (!timeTable.ContainsKey(sensor))
-                        {
-                            timeTable.Add(sensor, new Dictionary<int, List<Tuple<double, double>>>());
-                            stimuliTable.Add(sensor, new Dictionary<string, List<Tuple<double, double>>>());
-                            totalList.Add(sensor, new List<Tuple<double, double>>());
-                        }
-                        if (!timeTable[sensor].ContainsKey(time))
-                        {
-                            timeTable[sensor].Add(time, new List<Tuple<double, double>>());
-                        }
-                        if (!stimuliTable[sensor].ContainsKey(stimuli))
-                        {
-                            stimuliTable[sensor].Add(stimuli, new List<Tuple<double, double>>());
-                        }
-
-                        timeTable[sensor][time].Add(result);
-                        stimuliTable[sensor][stimuli].Add(result);
-
-                        totalList[sensor].Add(result);
                     }
                 }
 
