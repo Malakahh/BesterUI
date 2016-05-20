@@ -2225,8 +2225,42 @@ namespace Classification_App
                         timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                     }
 
-                    File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", totalToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", timeToWrite);
                 }
+
+                //correlation and reverse correlation
+                foreach (var time in times)
+                {
+                    //Correlation
+                    List<string> correlationTimeToWrite = new List<string>();
+                    correlationTimeToWrite.Add("Sensor&Avg Corr&Avg Sig. \\\\");
+
+                    //Reverse correlation
+                    List<string> reverseCorrelationTimeToWrite = new List<string>();
+                    reverseCorrelationTimeToWrite.Add("Sensor & Avg Corr & Avg Sig. \\\\");
+
+
+
+                    foreach (var sensor in sensors)
+                    {
+                        double correlationAvgCorrelation = timeTable[sensor][time].Where(x => x.Item1 >= 0).Average(x => x.Item1);
+                        double correlationStdevCorrelation = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 >= 0).Select(x => x.Item1).ToArray());
+                        double correlationAvgSignificance = timeTable[sensor][time].Where(x => x.Item1 >= 0).Average(x => x.Item2);
+                        double correlationStdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 >= 0).Select(x => x.Item2).ToArray());
+
+                        double reverseCorrelationAvgCorrelation = timeTable[sensor][time].Where(x => x.Item1 < 0).Average(x => x.Item1);
+                        double reverseCorrelationStdevCorrelation = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 < 0).Select(x => x.Item1).ToArray());
+                        double reverseCorrelationAvgSignificance = timeTable[sensor][time].Where(x => x.Item1 < 0).Average(x => x.Item2);
+                        double reverseCorrelationStdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 < 0).Select(x => x.Item2).ToArray());
+
+                        correlationTimeToWrite.Add($"{sensor}&{correlationAvgCorrelation.ToString("0.000")}({correlationStdevCorrelation.ToString("0.000")})&{correlationAvgSignificance.ToString("0.000")}({correlationStdevSignificance.ToString("0.000")}) \\\\");
+                        reverseCorrelationTimeToWrite.Add($"{sensor}&{reverseCorrelationAvgCorrelation.ToString("0.000")}({reverseCorrelationStdevCorrelation.ToString("0.000")})&{reverseCorrelationAvgSignificance.ToString("0.000")}({reverseCorrelationStdevSignificance.ToString("0.000")}) \\\\");
+                    }
+
+                    File.WriteAllLines(fbd.SelectedPath + "/correlationTime" + time + ".txt", correlationTimeToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/reverseCorrelationTime" + time + ".txt", reverseCorrelationTimeToWrite);
+                }
+
 
                 foreach (var time in times)
                 {
