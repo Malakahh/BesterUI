@@ -2151,8 +2151,14 @@ namespace Classification_App
                         big5List.Add("stim" + stimuli, new List<Dictionary<Big5, int>>());
                     }
 
+                    if (!big5List.ContainsKey("total"))
+                    {
+                        big5List.Add("total", new List<Dictionary<Big5, int>>());
+                    }
+
                     big5List["time" + time].Add(big5);
                     big5List["stim" + stimuli].Add(big5);
+                    big5List["total"].Add(big5);
 
                     foreach (var resultFile in Directory.GetFiles(fbd.SelectedPath + "\\results").Where(f => f.Split('\\').Last().StartsWith(subject)))
                     {
@@ -2208,6 +2214,11 @@ namespace Classification_App
 
                     totalToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                 }
+                foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                {
+                    totalToWrite.Add(item + " Mean: " + big5List["total"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["total"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                }
+
                 File.WriteAllLines(fbd.SelectedPath + "/totals.txt", totalToWrite);
 
                 foreach (var time in times)
