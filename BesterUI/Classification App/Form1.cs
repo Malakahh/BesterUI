@@ -1836,19 +1836,31 @@ namespace Classification_App
                     Directory.CreateDirectory("csv/Stimuli " + (stimul == "neu" ? "low" : "high"));
 
                     Log.LogMessage("Starting GSR");
+
+                    var fdTestGsr = fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList();
+                    var fdRecallGsr = fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList();
+
                     var gsr = FilterData(
-                        fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(),
-                        fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList()
+                            fdTestGsr,
+                            fdRecallGsr
                         );
+
+                    var gsrNewPair = FilterPairing(fdTestGsr, fdRecallGsr);
+
 
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
+                        var newPairA = gsrNewPair.Select(x => (double)x.Item1).ToList();
+                        var newPairB = gsrNewPair.Select(x => (double)x.Item2).ToList();
+                        var newPears = MathNet.Numerics.Statistics.Correlation.Pearson(newPairA, newPairB);
+
                         var gsrNorm = NormalizeFilterData(gsr);
                         var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
                         var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
                         var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
                         var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
+                        SavePng(csvTimePath + "GSR_newPair.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", newPairA, newPairB);
                         SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                         SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                         SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
@@ -1858,7 +1870,7 @@ namespace Classification_App
                         {
                             SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                             SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
-                            SavePng(csvStimuliPath+ "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                            SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
                         }
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
@@ -2049,6 +2061,35 @@ namespace Classification_App
             return Tuple.Create(new2, new3);
         }
 
+        List<Tuple<int, int>> FilterPairing(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin)
+        {
+            int window = 4000;
+
+            List<Tuple<int, int>> pairing = new List<Tuple<int, int>>();
+
+            for (int i = window; i < Ain.Count - window; i++)
+            {
+                int closestId = 0;
+                double closestDist = double.MaxValue;
+
+                var tempData = Bin.SkipWhile(x => x.Item1 < i - window).TakeWhile(x => x.Item1 < i + window).ToList();
+
+                for (int j = 0; j < tempData.Count; j++)
+                {
+                    var curDist = Math.Abs(tempData[j].Item2 - Ain[i].Item2);
+                    if (closestDist > curDist)
+                    {
+                        closestDist = curDist;
+                        closestId = Bin.IndexOf(tempData[j]);
+                    }
+                }
+
+                pairing.Add(Tuple.Create(i, closestId));
+            }
+
+            return pairing;
+        }
+
         Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin, int msPerReading = -1)
         {
             List<Tuple<long, double>> A = new List<Tuple<long, double>>(Ain);
@@ -2080,6 +2121,7 @@ namespace Classification_App
             List<double> As = new List<double>();
             List<double> closestB = new List<double>();
             List<double> secondClosestB = new List<double>();
+
 
             int furthestB = 0;
             for (int i = 0; i < A.Count; i++)
@@ -2126,6 +2168,7 @@ namespace Classification_App
             removed += Math.Abs(A.Count - B.Count);
 
             return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
+
         }
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
