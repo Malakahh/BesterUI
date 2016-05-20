@@ -143,7 +143,7 @@ namespace BesterUI
                             Log.LogMessage("Loading GSR data");
                             //gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             //gsrData = GSRSTDEVFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT));
-                            gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 150);
+                            gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 100);
                             //gsrData = GSRMoveStdFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             shouldRun.Add(s, true);
                         }
