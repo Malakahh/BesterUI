@@ -1851,7 +1851,11 @@ namespace Classification_App
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
                         var newPairA = gsrNewPair.Select(x => fdTestGsr[x.Item1].Item2).ToList();
+                        var maxA = newPairA.Max();
+                        newPairA = newPairA.Select(x => x / maxA).ToList();
                         var newPairB = gsrNewPair.Select(x => fdRecallGsr[x.Item2].Item2).ToList();
+                        var maxB = newPairB.Max();
+                        newPairB = newPairB.Select(x => x / maxB).ToList();
                         var newPears = MathNet.Numerics.Statistics.Correlation.Pearson(newPairA, newPairB);
 
                         var gsrNorm = NormalizeFilterData(gsr);
