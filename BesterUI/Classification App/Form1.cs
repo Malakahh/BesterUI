@@ -1841,8 +1841,13 @@ namespace Classification_App
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
+                        var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
+                        var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
+                        var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
-                        SavePng(csvPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
 
                         SaveZip(csvPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                     }
