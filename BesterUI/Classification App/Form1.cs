@@ -1844,15 +1844,21 @@ namespace Classification_App
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
+                        var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
+                        var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
+                        var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
-                        SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                         SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
 
                         int t;
                         if (int.TryParse(time, out t) && t != 0)
                         {
-                            SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                            SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                             SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                            SavePng(csvStimuliPath+ "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
                         }
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
