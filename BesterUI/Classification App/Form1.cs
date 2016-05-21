@@ -695,25 +695,36 @@ namespace Classification_App
                     {
                         statusLabel.Text = "META: " + curDat + "/" + maxDat + " -> " + feel + " -> " + item.Split('\\').Last();
                         List<SVMConfiguration> confs = new List<SVMConfiguration>();
-                        SVMConfiguration gsrConf;
-                        SVMConfiguration eegConf;
-                        SVMConfiguration hrConf;
-                        SVMConfiguration faceConf;
+                        SVMConfiguration gsrConf = null;
+                        SVMConfiguration eegConf = null;
+                        SVMConfiguration hrConf = null;
+                        SVMConfiguration faceConf = null;
 
-                        gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
-                        hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
-                        eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
-                        faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
-
-                        if (gsrConf != null)
+                        try
                         {
-                            confs.Add(gsrConf);
+                            if (!feel.ToString().Contains("Valence"))
+                            {
+                                gsrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("GSR") && x.Name.Contains(feel.ToString()));
+                                if (gsrConf != null)
+                                {
+                                    confs.Add(gsrConf);
+                                }
+                                else
+                                {
+                                    Log.LogMessage($"Missing GSR configs on person {personName}, skipping..");
+                                    continue;
+                                }
+                            }
+                            hrConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("HR") && x.Name.Contains(feel.ToString()));
+                            eegConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("EEG") && x.Name.Contains(feel.ToString()));
+                            faceConf = svmConfs.OfType<SVMConfiguration>().First((x) => x.Name.StartsWith("FACE") && x.Name.Contains(feel.ToString()));
                         }
-                        else
+                        catch (Exception w)
                         {
-                            Log.LogMessage($"Missing GSR configs on person {personName}, skipping..");
+                            Log.LogMessage("Not enough configs!");
                             continue;
                         }
+
 
                         if (eegConf != null)
                         {
