@@ -14,6 +14,7 @@ using System.IO;
 using LibSVMsharp;
 using System.Threading;
 using System.Diagnostics;
+using Microsoft.Kinect.Face;
 
 namespace Classification_App
 {
@@ -53,7 +54,7 @@ namespace Classification_App
         Dictionary<string, List<List<double>>> featureVectors = new Dictionary<string, List<List<double>>>();
         Dictionary<string, List<int>> predictions = new Dictionary<string, List<int>>();
 
-        string[] events = new string[0];
+        List<Events> events = new List<Events>();
         List<samEvents> sEvents = new List<samEvents>();
 
         public AnomalyDetection()
@@ -83,96 +84,46 @@ namespace Classification_App
 
                 _fdAnomaly.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
 
-                events = File.ReadAllLines(path + @"\SecondTest.dat");
+                string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
+                foreach (string ev in tmpevents)
+                {
+                    string[] split = ev.Split('#');
+                    events.Add(new Events(int.Parse(split[0]), split[1]));
+                }
+
 
                 string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
+
+
                 foreach (string ev in tmpSevents)
                 {
                     sEvents.Add(new samEvents(int.Parse(ev.Split(':')[0]), int.Parse(ev.Split(':')[1]), int.Parse(ev.Split(':')[2])));
                 }
+
+
+                SetupMachines();
             }
         }
 
         private void SlideWindow(SENSOR s)
         {
-            List<DataReading> data = new List<DataReading>();
-            int stepSize = 0;
-            int windowSize = 0;
-            if (s == SENSOR.EEG)
-            {
-                data = _fdAnomaly.eegData.Cast<DataReading>().ToList();
-                windowSize = EEG_DURATION;
-                stepSize = 100;
-            }
-            else if (s == SENSOR.GSR)
-            {
-                data = _fdAnomaly.gsrData.Cast<DataReading>().ToList();
-                windowSize = GSR_DURATION;
-                stepSize = 100;
-            }
-            else if (s == SENSOR.HR)
-            {
-                data = _fdAnomaly.hrData.Cast<DataReading>().ToList();
-                windowSize = HR_DURATION;
-                stepSize = 100;
-            }
-            else if (s == SENSOR.FACE)
-            {
-                data = _fdAnomaly.faceData.Cast<DataReading>().ToList();
-                windowSize = FACE_DURATION;
-                stepSize = 100;
-            }
 
+            /* List<int> timeStamps = new List<int>();
 
-            List<int> timeStamps = new List<int>();
+             var predictionSet = dataSet.SkipWhile(x => x.Item2 < trainingEnd);
 
-            for (int i = 0; i < data.Last().timestamp - data.First().timestamp - windowSize; i += stepSize)
-            {
-                if (s == SENSOR.GSR)
-                    GetGSRFeatures(data.Cast<GSRDataReading>().ToList(), i, windowSize);
-                else if (s == SENSOR.HR)
-                    GetHRFeatures(data.Cast<HRDataReading>().ToList(), i, windowSize);
+             int count = predictionSet.Count();
+             int firstPredcition = predictionSet.First().Item2;
 
-                timeStamps.Add(i);
-            }
-
-
-            int start = (useRestInTraining.Checked) ? 180000 : 0;
-            int trainingEnd = int.Parse(events[2].Split('#')[0]);
-
-
-            featureVectors[s.ToString()] = featureVectors[s.ToString()].NormalizeFeatureList<double>(Normalize.OneMinusOne).ToList();
-            var dataSet = featureVectors[s.ToString()].Zip(timeStamps, (first, second) => { return Tuple.Create(first, second); });
-
-            var trainingSet = dataSet.SkipWhile(x => x.Item2 < start).TakeWhile(x => x.Item2 < trainingEnd);
-            var predictionSet = dataSet.SkipWhile(x => x.Item2 < trainingEnd);
-
-            int count = predictionSet.Count();
-            int firstPredcition = predictionSet.First().Item2;
-
-            predictions[s.ToString()].AddRange(SVMThisShit(trainingSet, predictionSet));
+             predictions[s.ToString()].AddRange(SVMThisShit(trainingSet, predictionSet));
+             */
         }
 
-        private List<int> SVMThisShit(IEnumerable<Tuple<List<double>, int>> trainingSet, IEnumerable<Tuple<List<double>, int>> predictionSet)
-        {
-            OneClassClassifier occ = new OneClassClassifier(trainingSet.Select(x => x.Item1).ToList());
-            SVMParameter svmP = new SVMParameter();
-            svmP.Kernel = SVMKernelType.RBF;
-            svmP.C = 100;
-            svmP.Gamma = 0.01;
-            svmP.Nu = 0.01;
-            svmP.Type = SVMType.ONE_CLASS;
-            occ.CreateModel(svmP);
-            List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
-            return indexes;
-        }
-
-
-        private void GetHRFeatures(List<HRDataReading> data, int i, int windowSize)
+        private void GetHRFeatures(List<HRDataReading> data, int i)
         {
             List<double> featureVector = new List<double>();
-            List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - data.First().timestamp)).Select(x => (double)x.IBI).ToList();
-            if (data.Count == 0)
+            List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < i + HR_DELAY).TakeWhile(x => i + HR_DURATION > (x.timestamp - data.First().timestamp)).Select(x => (double)x.IBI).ToList();
+            if (d.Count == 0)
                 return;
 
             featureVector.Add(d.Average());
@@ -184,37 +135,176 @@ namespace Classification_App
 
         }
 
-        private void GetFACEFeatures(List<FaceDataReading> data, int i, int windowSize)
+        private void GetFACEFeatures(List<DataReading> data, int i, int windowSize)
         {
+            List<double> featureVector = new List<double>();
+            List<int> leftSide = new List<int>() { 5, 13, 15 };
+
+            foreach (int fsa in leftSide)
+            {
+                double mean = FeatureCreator.FaceMean(data,
+                (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                double sd = FeatureCreator.FaceStandardDeviation(data,
+                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                double max = FeatureCreator.FaceMax(data,
+                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                double min = FeatureCreator.FaceMin(data,
+                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                featureVector.Add(mean);
+                featureVector.Add(sd);
+                featureVector.Add(max);
+                featureVector.Add(min);
+            }
+
+            featureVectors["FACE"].Add(featureVector);
+
+
 
         }
 
-        private void GetGSRFeatures(List<GSRDataReading> data, int i, int windowSize)
+        private List<List<double>> CreateGSRFeatures(List<GSRDataReading> data)
         {
             List<double> featureVector = new List<double>();
-            List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < i).TakeWhile(x => i + windowSize > (x.timestamp - data.First().timestamp)).Select(x => (double)x.resistance).ToList();
-            if (data.Count == 0)
-                return;
+            List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < GSR_DELAY).TakeWhile(x => GSR_DURATION > (x.timestamp - data.First().timestamp)).Select(x => (double)x.resistance).ToList();
+            if (d.Count == 0)
+                return new List<List<double>>();
             featureVector.Add(d.Average());
             featureVector.Add(d.Max());
             featureVector.Add(d.Min());
             double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
             featureVector.Add(sd);
+            featureVectors["GSR"].Clear();
             featureVectors["GSR"].Add(featureVector);
-
-
-
+            return featureVectors["GSR"];
         }
+
+        private List<int> PredictSlice(SENSOR machine, List<List<double>> data)
+        {
+            return machines[machine.ToString()].PredictOutliers(data);
+        }
+
+
+        private IEnumerable<Tuple<List<double>, int>> GetTrainingData(SENSOR machine, int start, int trainingEnd)
+        {
+
+            //Split into training & prediction set
+            List<List<double>> featureVectors = new List<List<double>>();
+            List<int> timeStamps = new List<int>();
+
+            if (machine == SENSOR.GSR)
+            {
+                int stepSize = 100;
+                for (int i = 0; i < _fdAnomaly.gsrData.Last().timestamp - _fdAnomaly.gsrData.First().timestamp - GSR_DURATION + GSR_DELAY; i += stepSize)
+                {
+                    List<double> featureVector = new List<double>();
+                    List<double> data = _fdAnomaly.gsrData.SkipWhile(x => (x.timestamp - _fdAnomaly.gsrData.First().timestamp) < i + GSR_DELAY).TakeWhile(x => i + GSR_DURATION > (x.timestamp - _fdAnomaly.gsrData.First().timestamp)).Select(x => (double)x.resistance).ToList();
+                    if (data.Count == 0) continue;
+
+                    featureVector.Add(data.Average());
+                    featureVector.Add(data.Max());
+                    featureVector.Add(data.Min());
+                    double avg = data.Average();
+                    double sd = Math.Sqrt(data.Average(x => Math.Pow(x - avg, 2)));
+                    featureVector.Add(sd);
+                    featureVectors.Add(featureVector);
+                    timeStamps.Add(i);
+                }
+            }
+            featureVectors = featureVectors.NormalizeFeatureList<double>(Normalize.OneMinusOne).ToList();
+            var dataSet = featureVectors.Zip(timeStamps, (first, second) => { return Tuple.Create(first, second); });
+
+            var trainingSet = dataSet.SkipWhile(x => x.Item2 < start).TakeWhile(x => x.Item2 < trainingEnd);
+
+            return trainingSet;
+        }
+
+        private void SetupMachines()
+        {
+
+            int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
+            int trainingEnd = events[2].timestamp;
+
+            List<List<double>> data = new List<List<double>>();
+            int amount = 0;
+            for (int i = 0; i < 10000; i++)
+            {
+                List<double> tmp = new List<double>();
+                for (int k = 0; k < 4; k++)
+                {
+                    Random r = new Random();
+                    Random rr = new Random();
+
+                    if (rr.Next(1, 100) > 80 && amount > 11)
+                    {
+                        tmp.Add(80);
+                        amount++;
+                    }
+                    else
+                    {
+                        tmp.Add(r.Next(1, 3));
+                    }
+
+                }
+
+                data.Add(tmp);
+            }
+
+            //CreateSVM(SENSOR.GSR, GetTrainingData(SENSOR.GSR, trainingStart, trainingEnd));
+            CreateSVM(SENSOR.GSR, data);
+
+            //CreateSVM(SENSOR.EEG);
+            //CreateSVM(SENSOR.FACE);
+            //CreateSVM(SENSOR.HR);
+        }
+        Dictionary<string, OneClassClassifier> machines = new Dictionary<string, OneClassClassifier>();
+
+        private void CreateSVM(SENSOR machine, List<List<double>> trainingSet)
+        {
+
+            OneClassClassifier occ = new OneClassClassifier(trainingSet);
+            SVMParameter svmP = new SVMParameter();
+            svmP.Kernel = SVMKernelType.RBF;
+            svmP.C = 100;
+            svmP.Gamma = 0.01;
+            svmP.Nu = 0.01;
+            svmP.Type = SVMType.ONE_CLASS;
+            occ.CreateModel(svmP);
+
+            machines.Add(machine.ToString(), occ);
+        }
+
+        //PREDICT
+        /*private List<int> SVMThisShit(IEnumerable<Tuple<List<double>, int>> trainingSet, IEnumerable<Tuple<List<double>, int>> predictionSet)
+        {
+            List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
+            return indexes;
+        }*/
 
         private void btn_getData_Click(object sender, EventArgs e)
         {
-            //var data = Extensions.GetDataFromInterval(_fdAnomaly.gsrData.Cast<DataReading>().ToList(), 1000, 2000);
 
-            SlideWindow(SENSOR.GSR);
-            SlideWindow(SENSOR.HR);
-            var k = predictions;
-            var f = featureVectors;
+            for (int i = 2; i < events.Count; i++)
+            {
+                List<GSRDataReading> gsrData = Extensions.GetDataFromInterval(_fdAnomaly.gsrData.Cast<DataReading>().ToList(), events[i].timestamp, SENSOR.GSR).Cast<GSRDataReading>().ToList();
+                predictions["GSR"].AddRange(PredictSlice(SENSOR.GSR, CreateGSRFeatures(gsrData).ToList()));
+            }
+
+            var x = predictions;
+            //SlideWindow(SENSOR.GSR);
+            //SlideWindow(SENSOR.HR);
+            //SlideWindow(SENSOR.FACE);
+
 
         }
+
+
     }
 }

@@ -79,13 +79,23 @@ namespace Classification_App
             return allSets;
         }
 
-        public static List<DataReading> GetDataFromInterval(List<DataReading> original, int start, int duration)
+        public static List<DataReading> GetDataFromInterval(List<DataReading> original, int start, SENSOR machine)
         {
+            int offset = 0;
+            int duration = 0;
+
+            if (machine == SENSOR.GSR)
+            {
+                offset = 2000;
+                duration = 5000;
+
+            }
+
             List<DataReading> splicedData = new List<DataReading>();
 
             splicedData.AddRange(
                 original.Where(
-                    x => x.timestamp >= (start + original.First().timestamp) &&
+                    x => x.timestamp >= (start + original.First().timestamp + offset) &&
                     x.timestamp <= (start + original.First().timestamp + duration
                     )
                 )
