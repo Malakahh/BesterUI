@@ -106,6 +106,7 @@
             this.useRestInTraining = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.btn_CreateResultTable = new System.Windows.Forms.Button();
             this.btn_ExportDataCompare = new System.Windows.Forms.Button();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -115,7 +116,6 @@
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
             this.btn_anomalyDetection = new System.Windows.Forms.Button();
-            this.btn_CreateResultTable = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -887,6 +887,16 @@
             this.tabPage6.Text = "Data Compare";
             this.tabPage6.UseVisualStyleBackColor = true;
             // 
+            // btn_CreateResultTable
+            // 
+            this.btn_CreateResultTable.Location = new System.Drawing.Point(87, 6);
+            this.btn_CreateResultTable.Name = "btn_CreateResultTable";
+            this.btn_CreateResultTable.Size = new System.Drawing.Size(130, 23);
+            this.btn_CreateResultTable.TabIndex = 1;
+            this.btn_CreateResultTable.Text = "Create Result Table";
+            this.btn_CreateResultTable.UseVisualStyleBackColor = true;
+            this.btn_CreateResultTable.Click += new System.EventHandler(this.btn_CreateResultTable_Click);
+            // 
             // btn_ExportDataCompare
             // 
             this.btn_ExportDataCompare.Location = new System.Drawing.Point(6, 6);
@@ -970,16 +980,6 @@
             this.btn_anomalyDetection.Text = "Anomaly Detection";
             this.btn_anomalyDetection.UseVisualStyleBackColor = true;
             this.btn_anomalyDetection.Click += new System.EventHandler(this.btn_anomalyDetection_Click);
-            // 
-            // btn_CreateResultTable
-            // 
-            this.btn_CreateResultTable.Location = new System.Drawing.Point(87, 6);
-            this.btn_CreateResultTable.Name = "btn_CreateResultTable";
-            this.btn_CreateResultTable.Size = new System.Drawing.Size(130, 23);
-            this.btn_CreateResultTable.TabIndex = 1;
-            this.btn_CreateResultTable.Text = "Create Result Table";
-            this.btn_CreateResultTable.UseVisualStyleBackColor = true;
-            this.btn_CreateResultTable.Click += new System.EventHandler(this.btn_CreateResultTable_Click);
             // 
             // Form1
             // 

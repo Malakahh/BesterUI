@@ -84,6 +84,10 @@
       <HintPath>..\packages\Microsoft.Kinect.Face.2.0.1410.19000\lib\net45\Microsoft.Kinect.Face.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NDtw, Version=0.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NDtw.0.2.3.0\lib\net40\NDtw.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\packages\ILNumerics.4.8.0.0\lib\OpenTK.dll</HintPath>
       <Private>True</Private>

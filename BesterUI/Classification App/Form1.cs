@@ -1782,20 +1782,23 @@ namespace Classification_App
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                foreach (var dirPath in Directory.GetDirectories(fbd.SelectedPath))
+                int counterino = 1;
+                var dirs = Directory.GetDirectories(fbd.SelectedPath);
+                foreach (var dirPath in dirs)
                 {
+                    if (dirPath == "results") continue;
                     List<string> files = new List<string>()
                     {
-                        "EEG.dat",
+                        //"EEG.dat",
                         "GSR.dat",
-                        "HR.dat",
-                        "KINECT.dat"
+                        //"HR.dat",
+                        //"KINECT.dat"
                     };
 
                     files.RemoveAll(f => !File.Exists($"{dirPath}/test/{f}") || !File.Exists($"{dirPath}/recall/{f}"));
 
                     string subject = dirPath.Split('\\').Last();
-                    string csvPath = "csv/" + subject + "_";
+                    statusLabel.Text = $"{counterino++} / {dirs.Length}";
 
                     var metaLines = File.ReadAllLines(dirPath + "/meta.txt");
                     fdTest = new FusionData();
@@ -1817,43 +1820,97 @@ namespace Classification_App
                     var testEvents = File.ReadAllLines(dirPath + "/test/SecondTest.dat");
                     //fix waiting period offset til at være første event i testevents
                     int offset = int.Parse(metaLines.ToList().First(x => x.StartsWith("sync")).Split(':', '=').Last());
+                    string stimul = metaLines[1].Split('=').Last();
+                    string time = metaLines[0].Split('=').Last();
 
                     int waitPeriodDone = int.Parse(testEvents[0].Split('#')[0]);
+                    int wholePeriodDone = int.Parse(testEvents[testEvents.Length - 2].Split('#')[0]);
                     //int waitPeriodDone = 180000;
 
-                    Directory.CreateDirectory("csv");
 
+                    string csvTimePath = "csv/Time " + time + "/" + subject + "_";
+                    string csvStimuliPath = "csv/Stimuli " + (stimul == "neu" ? "low" : "high") + "/" + subject + "_";
+                    //string csvPath = "csv/" + subject + "_";
 
+                    Directory.CreateDirectory("csv/Time " + time);
+                    Directory.CreateDirectory("csv/Stimuli " + (stimul == "neu" ? "low" : "high"));
 
                     Log.LogMessage("Starting GSR");
-                    var gsr = FilterData(
-                        fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList(),
-                        fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList()
-                        );
-                    SaveZip(csvPath + "GSR.csv", gsr.Item2, gsr.Item3);
-                    Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
 
+                    var fdTestGsr = fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList();
+                    var fdRecallGsr = fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList();
+
+                    var gsr = FilterData(
+                            fdTestGsr,
+                            fdRecallGsr
+                        );
+
+                    var gsrNewPair = FilterPairing(fdTestGsr, fdRecallGsr);
+
+
+                    if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
+                    {
+                        var newPairA = gsrNewPair.Select(x => fdTestGsr[x.Item1].Item2).ToList();
+                        var maxA = newPairA.Max();
+                        newPairA = newPairA.Select(x => x / maxA).ToList();
+                        var newPairB = gsrNewPair.Select(x => fdRecallGsr[x.Item2].Item2).ToList();
+                        var maxB = newPairB.Max();
+                        newPairB = newPairB.Select(x => x / maxB).ToList();
+                        var newPears = MathNet.Numerics.Statistics.Correlation.Pearson(newPairA, newPairB);
+
+                        var gsrNorm = NormalizeFilterData(gsr);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
+                        var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
+                        var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
+                        var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
+
+                        SavePng(csvTimePath + "GSR_newPair.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", newPairA, newPairB);
+                        SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+
+                        int t;
+                        if (int.TryParse(time, out t) && t != 0)
+                        {
+                            SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                            SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                            SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                        }
+                    }
+                    Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
+                    /*
                     Log.LogMessage("Starting EEG");
                     foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
                     {
                         var eeg = FilterData(
-                            fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                            fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                            fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                            fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
                             8
                             );
 
+                        if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
+
+                        var eegNorm = NormalizeFilterData(eeg);
+
                         Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
-                        SaveZip(csvPath + "EEG_" + item + ".csv", eeg.Item2, eeg.Item3);
+                        SaveZip(csvPath + "EEG_" + item + ".csv", eegNorm.Item1, eegNorm.Item2);
                     }
                     Log.LogMessage("EEG done");
 
                     Log.LogMessage("Starting HR");
                     var hr = FilterData(
-                        fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
-                        fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
+                        fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
+                        fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
                         20
                         );
-                    SaveZip(csvPath + "HR.csv", hr.Item2, hr.Item3);
+
+
+                    if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
+                    {
+                        var hrNorm = NormalizeFilterData(hr);
+
+                        SaveZip(csvPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
+                    }
                     Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
 
                     Log.LogMessage("Starting Kinect");
@@ -1862,15 +1919,20 @@ namespace Classification_App
                         if (item == Microsoft.Kinect.Face.FaceShapeAnimations.Count) continue;
 
                         var kinect = FilterData(
-                            fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                            fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                            fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                            fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
                             34
                             );
 
+                        if (kinect.Item2.Count == 0 || kinect.Item3.Count == 0) continue;
+
+                        var kiNorm = NormalizeFilterData(kinect);
+
                         Log.LogMessage($"{item.ToString()}, data filtered: {kinect.Item1.ToString("0.0")}%");
-                        SaveZip(csvPath + "FACE_" + item + ".csv", kinect.Item2, kinect.Item3);
+                        SaveZip(csvPath + "FACE_" + item + ".csv", kiNorm.Item1, kiNorm.Item2);
                     }
                     Log.LogMessage("Kinect done");
+                    */
 
 
 
@@ -1900,9 +1962,40 @@ namespace Classification_App
             }
         }
 
+        static void SavePng(string path, string name, List<double> A, List<double> B)
+        {
+            PngExporter pngify = new PngExporter();
+            pngify.Width = 1600;
+            pngify.Height = 900;
+
+            var model = new PlotModel() { Title = name };
+
+            var aSeries = new OxyPlot.Series.LineSeries() { Color = OxyColors.Blue };
+            var bSeries = new OxyPlot.Series.LineSeries() { Color = OxyColors.Red };
+
+            for (int i = 0; i < A.Count; i++)
+            {
+                aSeries.Points.Add(new OxyPlot.DataPoint(i, A[i]));
+            }
+
+            for (int i = 0; i < B.Count; i++)
+            {
+                bSeries.Points.Add(new OxyPlot.DataPoint(i, B[i]));
+            }
+
+            model.Series.Add(aSeries);
+            model.Series.Add(bSeries);
+
+            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
+            //model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
+
+
+            pngify.ExportToFile(model, path);
+        }
+
         static void SaveZip(string path, List<double> A, List<double> B)
         {
-            File.WriteAllLines(path, A.Zip(B, (a, b) => a + ";" + b));
+            File.WriteAllLines(path, A.Zip(B, (a, b) => (a + ";" + b).Replace(',', '.')));
         }
 
         public static double Pearson(IEnumerable<double> dataA, IEnumerable<double> dataB)
@@ -1961,6 +2054,46 @@ namespace Classification_App
                 return 0;
         }
 
+        Tuple<List<double>, List<double>> NormalizeFilterData(Tuple<double, List<double>, List<double>, List<double>> input)
+        {
+            var max2 = input.Item2.Max();
+            var new2 = input.Item2.Select(x => x / max2).ToList();
+
+            var max3 = input.Item3.Max();
+            var new3 = input.Item3.Select(x => x / max3).ToList();
+
+            return Tuple.Create(new2, new3);
+        }
+
+        List<Tuple<int, int>> FilterPairing(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin)
+        {
+            int window = 4000;
+
+            List<Tuple<int, int>> pairing = new List<Tuple<int, int>>();
+
+            for (int i = 0; i < Ain.Count; i++)
+            {
+                int closestId = 0;
+                double closestDist = double.MaxValue;
+
+                var tempData = Bin.SkipWhile(x => x.Item1 < Ain[i].Item1 - window).TakeWhile(x => x.Item1 < Ain[i].Item1 + window).ToList();
+
+                for (int j = 0; j < tempData.Count; j++)
+                {
+                    var curDist = Math.Abs(tempData[j].Item2 - Ain[i].Item2);
+                    if (closestDist > curDist)
+                    {
+                        closestDist = curDist;
+                        closestId = Bin.IndexOf(tempData[j]);
+                    }
+                }
+
+                pairing.Add(Tuple.Create(i, closestId));
+            }
+
+            return pairing;
+        }
+
         Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin, int msPerReading = -1)
         {
             List<Tuple<long, double>> A = new List<Tuple<long, double>>(Ain);
@@ -1992,6 +2125,7 @@ namespace Classification_App
             List<double> As = new List<double>();
             List<double> closestB = new List<double>();
             List<double> secondClosestB = new List<double>();
+
 
             int furthestB = 0;
             for (int i = 0; i < A.Count; i++)
@@ -2038,6 +2172,7 @@ namespace Classification_App
             removed += Math.Abs(A.Count - B.Count);
 
             return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
+
         }
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
@@ -2049,61 +2184,121 @@ namespace Classification_App
                 var timeTable = new Dictionary<string, Dictionary<int, List<Tuple<double, double>>>>();
                 var stimuliTable = new Dictionary<string, Dictionary<string, List<Tuple<double, double>>>>();
                 var totalList = new Dictionary<string, List<Tuple<double, double>>>();
+                var big5List = new Dictionary<string, List<Dictionary<Big5, int>>>();
                 List<string> sensors = new List<string>();
                 List<int> times = new List<int>();
                 List<string> stimulis = new List<string>();
 
                 foreach (var folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
-                    if (folder.Contains("results")) continue;
+                    if (folder.Contains("Stimuli high") ||
+                        folder.Contains("Stimuli low") ||
+                        folder.Contains("Time 0") ||
+                        folder.Contains("Time 1") ||
+                        folder.Contains("Time 2"))
+                    {
+                        continue;
+                    }
 
                     string subject = folder.Split('\\').Last();
 
                     var metaLines = File.ReadAllLines($"{folder}/meta.txt");
+                    var big5 = GetBig5(metaLines);
                     int time = int.Parse(metaLines[0].Split('=').Last());
                     string stimuli = metaLines[1].Split('=').Last();
-
+                    stimuli = stimuli == "neu" ? "low" : "high";
                     if (!times.Contains(time)) times.Add(time);
                     if (!stimulis.Contains(stimuli)) stimulis.Add(stimuli);
 
-                    foreach (var resultFile in Directory.GetFiles(fbd.SelectedPath + "\\results").Where(f => f.Split('\\').Last().StartsWith(subject)))
+                    List<string> foldersToExamine = new List<string>();
+                    foldersToExamine.Add(fbd.SelectedPath + "\\Time " + time);
+
+                    if (time > 0)
                     {
-                        string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
+                        foldersToExamine.Add(fbd.SelectedPath + "\\Stimuli " + stimuli);
+                    }
 
-                        if (!sensors.Contains(sensor)) sensors.Add(sensor);
+                    if (!big5List.ContainsKey("time" + time))
+                    {
+                        big5List.Add("time" + time, new List<Dictionary<Big5, int>>());
+                    }
 
-                        var resultLines = File.ReadAllLines(resultFile);
-                        string correlationLine = resultLines.First(x => x.Contains("Pearson"));
-                        string significanceLine = resultLines.First(x => x.Contains("Sig."));
+                    if (!big5List.ContainsKey("stim" + stimuli))
+                    {
+                        big5List.Add("stim" + stimuli, new List<Dictionary<Big5, int>>());
+                    }
 
-                        if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
+                    if (!big5List.ContainsKey("total"))
+                    {
+                        big5List.Add("total", new List<Dictionary<Big5, int>>());
+                    }
+
+                    if (!big5List.ContainsKey("corr"))
+                    {
+                        big5List.Add("corr", new List<Dictionary<Big5, int>>());
+                    }
+
+                    if (!big5List.ContainsKey("revCorr"))
+                    {
+                        big5List.Add("revCorr", new List<Dictionary<Big5, int>>());
+                    }
+
+                    big5List["time" + time].Add(big5);
+                    big5List["stim" + stimuli].Add(big5);
+                    big5List["total"].Add(big5);
+
+                    foreach (var folderToExamine in foldersToExamine)
+                    {
+                        foreach (var resultFile in Directory.GetFiles(folderToExamine).Where(f => f.Split('\\').Last().StartsWith(subject) && f.Split('\\').Last().EndsWith(".txt")))
                         {
-                            continue;
-                        }
+                            string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
 
-                        double correlation = double.Parse(correlationLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
-                        double significance = double.Parse(significanceLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
+                            if (!sensors.Contains(sensor)) sensors.Add(sensor);
 
-                        var result = Tuple.Create(correlation, significance);
+                            var resultLines = File.ReadAllLines(resultFile);
+                            string correlationLine = resultLines.First(x => x.Contains("Pearson"));
+                            string significanceLine = resultLines.First(x => x.Contains("Sig."));
 
-                        if (!timeTable.ContainsKey(sensor))
-                        {
-                            timeTable.Add(sensor, new Dictionary<int, List<Tuple<double, double>>>());
-                            stimuliTable.Add(sensor, new Dictionary<string, List<Tuple<double, double>>>());
-                            totalList.Add(sensor, new List<Tuple<double, double>>());
-                        }
-                        if (!timeTable[sensor].ContainsKey(time))
-                        {
-                            timeTable[sensor].Add(time, new List<Tuple<double, double>>());
-                        }
-                        if (!stimuliTable[sensor].ContainsKey(stimuli))
-                        {
-                            stimuliTable[sensor].Add(stimuli, new List<Tuple<double, double>>());
-                        }
+                            if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
+                            {
+                                continue;
+                            }
 
-                        timeTable[sensor][time].Add(result);
-                        stimuliTable[sensor][stimuli].Add(result);
-                        totalList[sensor].Add(result);
+                            double correlation = double.Parse(correlationLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
+                            double significance = double.Parse(significanceLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
+
+                            var result = Tuple.Create(correlation, significance);
+
+                            if (!timeTable.ContainsKey(sensor))
+                            {
+                                timeTable.Add(sensor, new Dictionary<int, List<Tuple<double, double>>>());
+                                stimuliTable.Add(sensor, new Dictionary<string, List<Tuple<double, double>>>());
+                                totalList.Add(sensor, new List<Tuple<double, double>>());
+                            }
+                            if (!timeTable[sensor].ContainsKey(time))
+                            {
+                                timeTable[sensor].Add(time, new List<Tuple<double, double>>());
+                            }
+                            if (!stimuliTable[sensor].ContainsKey(stimuli))
+                            {
+                                stimuliTable[sensor].Add(stimuli, new List<Tuple<double, double>>());
+                            }
+
+                            timeTable[sensor][time].Add(result);
+                            stimuliTable[sensor][stimuli].Add(result);
+
+                            totalList[sensor].Add(result);
+
+                            if (correlation > 0)
+                            {
+                                big5List["corr"].Add(big5);
+                            }
+                            else
+                            {
+                                big5List["revCorr"].Add(big5);
+
+                            }
+                        }
                     }
                 }
 
@@ -2119,6 +2314,11 @@ namespace Classification_App
 
                     totalToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                 }
+                foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                {
+                    totalToWrite.Add(item + " Mean: " + big5List["total"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["total"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                }
+
                 File.WriteAllLines(fbd.SelectedPath + "/totals.txt", totalToWrite);
 
                 foreach (var time in times)
@@ -2136,8 +2336,49 @@ namespace Classification_App
                         timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                     }
 
-                    File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", totalToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", timeToWrite);
                 }
+
+                //correlation and reverse correlation
+                foreach (var time in times)
+                {
+                    //Correlation
+                    List<string> correlationTimeToWrite = new List<string>();
+                    correlationTimeToWrite.Add("Sensor&Avg Corr&Avg Sig. \\\\");
+
+
+                    //Reverse correlation
+                    List<string> reverseCorrelationTimeToWrite = new List<string>();
+                    reverseCorrelationTimeToWrite.Add("Sensor & Avg Corr & Avg Sig. \\\\");
+
+
+
+                    foreach (var sensor in sensors)
+                    {
+                        double correlationAvgCorrelation = timeTable[sensor][time].Where(x => x.Item1 >= 0).Average(x => x.Item1);
+                        double correlationStdevCorrelation = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 >= 0).Select(x => x.Item1).ToArray());
+                        double correlationAvgSignificance = timeTable[sensor][time].Where(x => x.Item1 >= 0).Average(x => x.Item2);
+                        double correlationStdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 >= 0).Select(x => x.Item2).ToArray());
+
+                        double reverseCorrelationAvgCorrelation = timeTable[sensor][time].Where(x => x.Item1 < 0).Average(x => x.Item1);
+                        double reverseCorrelationStdevCorrelation = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 < 0).Select(x => x.Item1).ToArray());
+                        double reverseCorrelationAvgSignificance = timeTable[sensor][time].Where(x => x.Item1 < 0).Average(x => x.Item2);
+                        double reverseCorrelationStdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 < 0).Select(x => x.Item2).ToArray());
+
+                        correlationTimeToWrite.Add($"{sensor}&{correlationAvgCorrelation.ToString("0.000")}({correlationStdevCorrelation.ToString("0.000")})&{correlationAvgSignificance.ToString("0.000")}({correlationStdevSignificance.ToString("0.000")}) \\\\");
+                        reverseCorrelationTimeToWrite.Add($"{sensor}&{reverseCorrelationAvgCorrelation.ToString("0.000")}({reverseCorrelationStdevCorrelation.ToString("0.000")})&{reverseCorrelationAvgSignificance.ToString("0.000")}({reverseCorrelationStdevSignificance.ToString("0.000")}) \\\\");
+                    }
+
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        correlationTimeToWrite.Add(item + " Mean: " + big5List["corr"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["corr"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                        reverseCorrelationTimeToWrite.Add(item + " Mean: " + big5List["revCorr"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["revCorr"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                    }
+
+                    File.WriteAllLines(fbd.SelectedPath + "/correlationTime" + time + ".txt", correlationTimeToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/reverseCorrelationTime" + time + ".txt", reverseCorrelationTimeToWrite);
+                }
+
 
                 foreach (var time in times)
                 {
@@ -2160,7 +2401,14 @@ namespace Classification_App
                     }
                     timeToWrite.Add("\\bottomrule");
                     timeToWrite.Add("\\end{tabular}");
-                    timeToWrite.Add("\\caption{Results from time " + time + "}");
+                    timeToWrite.Add("\\caption{Results from time " + time + ".");
+
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        timeToWrite.Add(item + " Mean: " + big5List["time" + time].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["time" + time].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                    }
+                    timeToWrite.Add("}");
+
                     timeToWrite.Add("\\label{[TABLE] res time" + time + "}");
                     timeToWrite.Add("\\end{table}");
 
@@ -2189,7 +2437,12 @@ namespace Classification_App
                     }
                     stimuliToWrite.Add("\\bottomrule");
                     stimuliToWrite.Add("\\end{tabular}");
-                    stimuliToWrite.Add("\\caption{Results from stimuli " + stimuli + "}");
+                    stimuliToWrite.Add("\\caption{Results from stimuli " + stimuli + ".");
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        stimuliToWrite.Add(item + " Mean: " + big5List["stim" + stimuli].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["stim" + stimuli].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                    }
+                    stimuliToWrite.Add("}");
                     stimuliToWrite.Add("\\label{[TABLE] res stimuli" + stimuli + "}");
                     stimuliToWrite.Add("\\end{table}");
 
@@ -2387,6 +2640,30 @@ namespace Classification_App
             a.ShowDialog(this);
         }
 
+        public enum Big5
+        {
+            Extraversion = 1,
+            Agreeableness,
+            Conscientiousness,
+            EmotionalStability,
+            IntellectImagination
+        }
 
+        Dictionary<Big5, int> GetBig5(string[] metaText)
+        {
+            Dictionary<Big5, int> retVal = new Dictionary<Big5, int>();
+
+            foreach (var item in metaText)
+            {
+                if (item.Contains("big"))
+                {
+                    var split = item.Split('=');
+
+                    retVal.Add((Big5)int.Parse(split[0].Replace("big", "")), int.Parse(split[1]));
+                }
+            }
+
+            return retVal;
+        }
     }
 }
