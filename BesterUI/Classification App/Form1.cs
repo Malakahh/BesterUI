@@ -2076,15 +2076,15 @@ namespace Classification_App
                 int closestId = 0;
                 double closestDist = double.MaxValue;
 
-                var tempData = Bin.SkipWhile(x => x.Item1 < Ain[i].Item1 - window).TakeWhile(x => x.Item1 < Ain[i].Item1 + window).ToList();
-
-                for (int j = 0; j < tempData.Count; j++)
+                for (int j = 0; j < Bin.Count && Bin[j].Item1 < Ain[i].Item1 + window; j++)
                 {
-                    var curDist = Math.Abs(tempData[j].Item2 - Ain[i].Item2);
+                    if (Bin[j].Item1 > Ain[i].Item1 - window) continue;
+
+                    var curDist = Math.Abs(Bin[j].Item2 - Ain[i].Item2);
                     if (closestDist > curDist)
                     {
                         closestDist = curDist;
-                        closestId = Bin.IndexOf(tempData[j]);
+                        closestId = j;
                     }
                 }
 
