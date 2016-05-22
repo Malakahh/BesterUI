@@ -1845,36 +1845,37 @@ namespace Classification_App
                             fdRecallGsr
                         );
 
-                    var gsrNewPair = FilterPairing(fdTestGsr, fdRecallGsr);
-
+                    //var gsrNewPair = FilterPairing(fdTestGsr, fdRecallGsr);
+                    var gsrSlopePairing = FilterSlopePairing(fdTestGsr, fdRecallGsr);
 
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
-                        var newPairA = gsrNewPair.Select(x => fdTestGsr[x.Item1].Item2).ToList();
+                        var newPairA = gsrSlopePairing.Select(x => fdTestGsr[x.Item1].Item2).ToList();
                         var maxA = newPairA.Max();
                         newPairA = newPairA.Select(x => x / maxA).ToList();
-                        var newPairB = gsrNewPair.Select(x => fdRecallGsr[x.Item2].Item2).ToList();
+                        var newPairB = gsrSlopePairing.Select(x => fdRecallGsr[x.Item2].Item2).ToList();
                         var maxB = newPairB.Max();
                         newPairB = newPairB.Select(x => x / maxB).ToList();
                         var newPears = MathNet.Numerics.Statistics.Correlation.Pearson(newPairA, newPairB);
 
                         var gsrNorm = NormalizeFilterData(gsr);
                         var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
-                        var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
-                        var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
-                        var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
+                        //var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
+                        //var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
+                        //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
-                        SavePng(csvTimePath + "GSR_newPair.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", newPairA, newPairB);
+                        //SavePng(csvTimePath + "GSR_newPair.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", newPairA, newPairB);
+                        SavePng(csvTimePath + "GSR_slope.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2, gsrSlopePairing);
                         SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                         SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
-                        SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                        //SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
 
                         int t;
                         if (int.TryParse(time, out t) && t != 0)
                         {
                             SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                             SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
-                            SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                            //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
                         }
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
@@ -1962,11 +1963,11 @@ namespace Classification_App
             }
         }
 
-        static void SavePng(string path, string name, List<double> A, List<double> B)
+        static void SavePng(string path, string name, List<double> A, List<double> B, List<Tuple<int, int>> pairings = null)
         {
             PngExporter pngify = new PngExporter();
-            pngify.Width = 1600;
-            pngify.Height = 900;
+            pngify.Width = 3200;
+            pngify.Height = 1200;
 
             var model = new PlotModel() { Title = name };
 
@@ -1981,6 +1982,19 @@ namespace Classification_App
             for (int i = 0; i < B.Count; i++)
             {
                 bSeries.Points.Add(new OxyPlot.DataPoint(i, B[i]));
+            }
+
+            if (pairings != null)
+            {
+                for (int i = 0; i < pairings.Count; i += 10)
+                {
+                    var lineSeries = new OxyPlot.Series.LineSeries() { Color = OxyColors.Gray, StrokeThickness = 0.2 };
+
+                    lineSeries.Points.Add(aSeries.Points[pairings[i].Item1]);
+                    lineSeries.Points.Add(bSeries.Points[pairings[i].Item2]);
+
+                    model.Series.Add(lineSeries);
+                }
             }
 
             model.Series.Add(aSeries);
@@ -2067,9 +2081,10 @@ namespace Classification_App
 
         List<Tuple<int, int>> FilterPairing(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin)
         {
-            int window = 4000;
+            int window = 1000;
 
             List<Tuple<int, int>> pairing = new List<Tuple<int, int>>();
+
 
             for (int i = 0; i < Ain.Count; i++)
             {
@@ -2081,6 +2096,52 @@ namespace Classification_App
                     if (Bin[j].Item1 > Ain[i].Item1 - window) continue;
 
                     var curDist = Math.Abs(Bin[j].Item2 - Ain[i].Item2);
+                    if (closestDist > curDist)
+                    {
+                        closestDist = curDist;
+                        closestId = j;
+                    }
+                }
+
+                pairing.Add(Tuple.Create(i, closestId));
+            }
+
+            return pairing;
+        }
+
+        List<Tuple<int, int>> FilterSlopePairing(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin)
+        {
+            int window = 1000;
+
+            List<Tuple<int, int>> pairing = new List<Tuple<int, int>>();
+            List<double> slopeA = new List<double>(Ain.Count - 1);
+            for (int i = 1; i < Ain.Count; i++)
+            {
+                slopeA.Add((Ain[i].Item2 - Ain[i - 1].Item2) / (Ain[i].Item1 - Ain[i - 1].Item1));
+            }
+
+            List<double> slopeB = new List<double>(Bin.Count - 1);
+            for (int i = 1; i < Bin.Count; i++)
+            {
+                slopeB.Add((Bin[i].Item2 - Bin[i - 1].Item2) / (Bin[i].Item1 - Bin[i - 1].Item1));
+            }
+
+            for (int i = 0; i < slopeA.Count; i++)
+            {
+                int closestId = 0;
+                double closestDist = double.MaxValue;
+
+                for (int j = 0; j < slopeB.Count && j < slopeA.Count && Bin[j + 1].Item1 < Ain[i + 1].Item1 + window; j++)
+                {
+                    if (Bin[j + 1].Item1 < Ain[i + 1].Item1 - window) continue;
+
+                    var positionalDiff = Math.Sqrt(Math.Pow(Ain[i + 1].Item1 - Bin[j + 1].Item1, 2) + Math.Pow(Ain[i + 1].Item2 - Bin[j + 1].Item2, 2));
+
+                    var slopeDiff = Math.Abs(slopeA[i] - slopeB[j]) * window * 10;
+
+                    var timeDiff = Ain[i + 1].Item1 - Bin[j + 1].Item1;
+
+                    var curDist = slopeDiff + positionalDiff;
                     if (closestDist > curDist)
                     {
                         closestDist = curDist;
