@@ -51,8 +51,8 @@ namespace Classification_App
         const int HR_DURATION = 3000;
 
 
-        Dictionary<string, List<List<double>>> featureVectors = new Dictionary<string, List<List<double>>>();
-        Dictionary<string, List<int>> predictions = new Dictionary<string, List<int>>();
+        Dictionary<SENSOR, List<List<double>>> featureVectors = new Dictionary<SENSOR, List<List<double>>>();
+        Dictionary<SENSOR, List<int>> predictions = new Dictionary<SENSOR, List<int>>();
 
         List<Events> events = new List<Events>();
         List<samEvents> sEvents = new List<samEvents>();
@@ -60,16 +60,11 @@ namespace Classification_App
         public AnomalyDetection()
         {
             InitializeComponent();
-            featureVectors.Add("GSR", new List<List<double>>());
-            featureVectors.Add("EEG", new List<List<double>>());
-            featureVectors.Add("FACE", new List<List<double>>());
-            featureVectors.Add("HR", new List<List<double>>());
-
-            predictions.Add("GSR", new List<int>());
-            predictions.Add("EEG", new List<int>());
-            predictions.Add("FACE", new List<int>());
-            predictions.Add("HR", new List<int>());
-
+            foreach (var k in Enum.GetValues(typeof(SENSOR)))
+            {
+                featureVectors.Add((SENSOR)k, new List<List<double>>());
+                predictions.Add((SENSOR)k, new List<int>());
+            }
         }
 
         private void btn_loadData_Click(object sender, EventArgs e)
@@ -99,8 +94,7 @@ namespace Classification_App
                 {
                     sEvents.Add(new samEvents(int.Parse(ev.Split(':')[0]), int.Parse(ev.Split(':')[1]), int.Parse(ev.Split(':')[2])));
                 }
-
-
+                
                 SetupMachines();
             }
         }
@@ -131,9 +125,40 @@ namespace Classification_App
             featureVector.Add(d.Min());
             double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
             featureVector.Add(sd);
-            featureVectors["HR"].Add(featureVector);
+            featureVectors[SENSOR.HR].Add(featureVector);
 
         }
+
+        private void GetEEGFeatures(List<DataReading> data, int startPoint)
+        {
+            List<double> featureVector = new List<double>();
+            List<DataReading> slice = data.SkipWhile(x => startPoint + EEG_DELAY > x.timestamp).TakeWhile(x => startPoint + EEG_DELAY + EEG_DURATION > x.timestamp).ToList(); 
+            List<string> names = new List<string>() { "Delta", "Theta", "Alpha", "Beta", "Gamma" };
+
+            foreach (string name in names)
+            {
+                //Arousal 
+                featureVector.Add(FeatureCreator.DASM(slice, name,
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
+
+                featureVector.Add(FeatureCreator.DASM(slice, name,
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
+
+                //Valence
+                featureVector.Add(FeatureCreator.DASM(slice, name,
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
+
+                 featureVector.Add(FeatureCreator.DASM(slice, name,
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
+                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
+
+            }
+            featureVectors[SENSOR.EEG].Add(featureVector);
+        }
+
 
         private void GetFACEFeatures(List<DataReading> data, int i, int windowSize)
         {
@@ -164,10 +189,8 @@ namespace Classification_App
                 featureVector.Add(min);
             }
 
-            featureVectors["FACE"].Add(featureVector);
-
-
-
+            featureVectors[SENSOR.FACE].Add(featureVector);
+            
         }
 
         private List<List<double>> CreateGSRFeatures(List<GSRDataReading> data)
@@ -181,9 +204,9 @@ namespace Classification_App
             featureVector.Add(d.Min());
             double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
             featureVector.Add(sd);
-            featureVectors["GSR"].Clear();
-            featureVectors["GSR"].Add(featureVector);
-            return featureVectors["GSR"];
+            featureVectors[SENSOR.GSR].Clear();
+            featureVectors[SENSOR.GSR].Add(featureVector);
+            return featureVectors[SENSOR.GSR];
         }
 
         private List<int> PredictSlice(SENSOR machine, List<List<double>> data)
@@ -294,7 +317,7 @@ namespace Classification_App
             for (int i = 2; i < events.Count; i++)
             {
                 List<GSRDataReading> gsrData = Extensions.GetDataFromInterval(_fdAnomaly.gsrData.Cast<DataReading>().ToList(), events[i].timestamp, SENSOR.GSR).Cast<GSRDataReading>().ToList();
-                predictions["GSR"].AddRange(PredictSlice(SENSOR.GSR, CreateGSRFeatures(gsrData).ToList()));
+                predictions[SENSOR.GSR].AddRange(PredictSlice(SENSOR.GSR, CreateGSRFeatures(gsrData).ToList()));
             }
 
             var x = predictions;
