@@ -98,6 +98,14 @@ namespace Classification_App
                 }
                 
                 SetupMachines();
+                CreateGSRFeatures(_fdAnomaly.gsrData);
+                CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>());
+                CreateHRFeatures(_fdAnomaly.hrData);
+                CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>());
+                foreach (var k in featureVectors.Keys)
+                {
+                    featureVectors[k].NormalizeFeatureVectorList(Normalize.ZeroOne);
+                }
             }
         }
 
@@ -172,7 +180,7 @@ namespace Classification_App
         }
 
 
-        private void CreateFACEFeatures(List<DataReading> data, int point)
+        private void CreateFACEFeatures(List<DataReading> data)
         {
             List<int> leftSide = new List<int>() { 5, 13, 15 };
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (FACE_DELAY + FACE_DURATION); time += STEP_SIZE)
