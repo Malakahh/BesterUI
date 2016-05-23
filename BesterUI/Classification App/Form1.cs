@@ -2659,13 +2659,13 @@ namespace Classification_App
             svmP.Nu = 0.01;
             svmP.Type = SVMType.ONE_CLASS;
             occ.CreateModel(svmP);
-            List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
+            /* List<int> indexes = occ.PredictOutliers(predictionSet.Select(x => x.Item1).ToList());
 
-            foreach (int index in indexes)
-            {
-                timestampsOutliers.Add(predictionSet.ElementAt(index).Item2 - firstPredcition + 180000 + 4000);
-            }
-
+             foreach (int index in indexes)
+             {
+                 timestampsOutliers.Add(predictionSet.ElementAt(index).Item2 - firstPredcition + 180000 + 4000);
+             }
+             */
 
             updateChart();
 
