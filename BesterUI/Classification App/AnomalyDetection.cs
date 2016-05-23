@@ -234,7 +234,7 @@ namespace Classification_App
             }
         }   
 
-        private List<int> PredictSlice(SENSOR machine, List<List<double>> data)
+        private List<OneClassFV> PredictSlice(SENSOR machine, List<OneClassFV> data)
         {
             return machines[machine.ToString()].PredictOutliers(data);
         }
@@ -338,18 +338,9 @@ namespace Classification_App
 
         private void btn_getData_Click(object sender, EventArgs e)
         {
-
-            for (int i = 2; i < events.Count; i++)
-            {
-                List<GSRDataReading> gsrData = Extensions.GetDataFromInterval(_fdAnomaly.gsrData.Cast<DataReading>().ToList(), events[i].timestamp, SENSOR.GSR).Cast<GSRDataReading>().ToList();
-                predictions[SENSOR.GSR].AddRange(PredictSlice(SENSOR.GSR, CreateGSRFeatures(gsrData).ToList()));
-            }
-
-            var x = predictions;
             //SlideWindow(SENSOR.GSR);
             //SlideWindow(SENSOR.HR);
             //SlideWindow(SENSOR.FACE);
-
 
         }
 
