@@ -104,7 +104,7 @@ namespace Classification_App
                 CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>());
                 foreach (var k in featureVectors.Keys)
                 {
-                    featureVectors[k].NormalizeFeatureVectorList(Normalize.ZeroOne);
+                    featureVectors[k]= featureVectors[k].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
                 }
             }
         }
