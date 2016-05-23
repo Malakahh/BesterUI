@@ -96,7 +96,7 @@ namespace Classification_App
                 {
                     sEvents.Add(new samEvents(int.Parse(ev.Split(':')[0]), int.Parse(ev.Split(':')[1]), int.Parse(ev.Split(':')[2])));
                 }
-                
+
                 SetupMachines();
                 CreateGSRFeatures(_fdAnomaly.gsrData);
                 CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>());
@@ -104,7 +104,7 @@ namespace Classification_App
                 CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>());
                 foreach (var k in featureVectors.Keys)
                 {
-                    featureVectors[k]= featureVectors[k].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+                    featureVectors[k] = featureVectors[k].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
                 }
             }
         }
@@ -232,7 +232,7 @@ namespace Classification_App
                 featureVector.Add(sd);
                 featureVectors[SENSOR.GSR].Add(new OneClassFV(featureVector, time));
             }
-        }   
+        }
 
         private List<OneClassFV> PredictSlice(SENSOR machine, List<OneClassFV> data)
         {
@@ -280,34 +280,7 @@ namespace Classification_App
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
             int trainingEnd = events[2].timestamp;
 
-            List<List<double>> data = new List<List<double>>();
-            int amount = 0;
-            for (int i = 0; i < 10000; i++)
-            {
-                List<double> tmp = new List<double>();
-                for (int k = 0; k < 4; k++)
-                {
-                    Random r = new Random();
-                    Random rr = new Random();
-
-                    if (rr.Next(1, 100) > 80 && amount > 11)
-                    {
-                        tmp.Add(80);
-                        amount++;
-                    }
-                    else
-                    {
-                        tmp.Add(r.Next(1, 3));
-                    }
-
-                }
-
-                data.Add(tmp);
-            }
-
             //CreateSVM(SENSOR.GSR, GetTrainingData(SENSOR.GSR, trainingStart, trainingEnd));
-            CreateSVM(SENSOR.GSR, data);
-
             //CreateSVM(SENSOR.EEG);
             //CreateSVM(SENSOR.FACE);
             //CreateSVM(SENSOR.HR);
