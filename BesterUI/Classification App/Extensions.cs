@@ -164,6 +164,7 @@ namespace Classification_App
 
         public static IEnumerable<List<double>> NormalizeFeatureList<T>(this IEnumerable<List<double>> original, Normalize nMethod)
         {
+            var tempCopy = original.ToList();
             double maxNormalize = 0;
             double minNormalize = 0;
 
@@ -192,7 +193,7 @@ namespace Classification_App
                     {
                         double temp = (original.ElementAt(j)[i] - minValue) / (maxValue - minValue);
                         //Scale to -1 to 1 (normalized_value *(max-min)+min)
-                        original.ElementAt(j)[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
+                        tempCopy.ElementAt(j)[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
                     }
 
                 }
@@ -202,11 +203,12 @@ namespace Classification_App
 
                 return null;
             }
-            return original;
+            return tempCopy;
         }
 
         public static IEnumerable<OneClassFV> NormalizeFeatureVectorList(this IEnumerable<OneClassFV> original, Normalize nMethod)
         {
+            var tempCopy = original.ToList();
             double maxNormalize = 0;
             double minNormalize = 0;
 
@@ -235,7 +237,7 @@ namespace Classification_App
                     {
                         double temp = (original.ElementAt(j).Features[i] - minValue) / (maxValue - minValue);
                         //Scale to -1 to 1 (normalized_value *(max-min)+min)
-                        original.ElementAt(j).Features[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
+                        tempCopy.ElementAt(j).Features[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
                     }
 
                 }
@@ -245,7 +247,7 @@ namespace Classification_App
 
                 return null;
             }
-            return original;
+            return tempCopy;
         }
     }
 }
