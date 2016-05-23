@@ -204,5 +204,48 @@ namespace Classification_App
             }
             return original;
         }
+
+        public static IEnumerable<OneClassFV> NormalizeFeatureVectorList(this IEnumerable<OneClassFV> original, Normalize nMethod)
+        {
+            double maxNormalize = 0;
+            double minNormalize = 0;
+
+            switch (nMethod)
+            {
+                case Normalize.OneMinusOne:
+                    maxNormalize = 1;
+                    minNormalize = -1;
+                    break;
+                case Normalize.ZeroOne:
+                    maxNormalize = 1;
+                    minNormalize = -1;
+                    break;
+                default:
+                    throw new Exception("The chosen normalize case is not valid");
+            }
+
+            try
+            {
+                for (int i = 0; i < original.First().Features.Count; i++)
+                {
+                    double minValue = original.Min(x => x.Features[i]);
+                    double maxValue = original.Max(x => x.Features[i]);
+
+                    for (int j = 0; j < original.Count(); j++)
+                    {
+                        double temp = (original.ElementAt(j).Features[i] - minValue) / (maxValue - minValue);
+                        //Scale to -1 to 1 (normalized_value *(max-min)+min)
+                        original.ElementAt(j).Features[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
+                    }
+
+                }
+            }
+            catch
+            {
+
+                return null;
+            }
+            return original;
+        }
     }
 }

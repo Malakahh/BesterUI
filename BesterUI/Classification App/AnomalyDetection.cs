@@ -50,8 +50,10 @@ namespace Classification_App
         const int HR_DELAY = 4000;
         const int HR_DURATION = 3000;
 
+        const int STEP_SIZE = 100;
 
-        Dictionary<SENSOR, List<List<double>>> featureVectors = new Dictionary<SENSOR, List<List<double>>>();
+
+        Dictionary<SENSOR, List<OneClassFV>> featureVectors = new Dictionary<SENSOR, List<OneClassFV>>();
         Dictionary<SENSOR, List<int>> predictions = new Dictionary<SENSOR, List<int>>();
 
         List<Events> events = new List<Events>();
@@ -62,7 +64,7 @@ namespace Classification_App
             InitializeComponent();
             foreach (var k in Enum.GetValues(typeof(SENSOR)))
             {
-                featureVectors.Add((SENSOR)k, new List<List<double>>());
+                featureVectors.Add((SENSOR)k, new List<OneClassFV>());
                 predictions.Add((SENSOR)k, new List<int>());
             }
         }
@@ -113,101 +115,116 @@ namespace Classification_App
              */
         }
 
-        private void GetHRFeatures(List<HRDataReading> data, int i)
+        private void CreateHRFeatures(List<HRDataReading> data)
         {
-            List<double> featureVector = new List<double>();
-            List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < i + HR_DELAY).TakeWhile(x => i + HR_DURATION > (x.timestamp - data.First().timestamp)).Select(x => (double)x.IBI).ToList();
-            if (d.Count == 0)
-                return;
-
-            featureVector.Add(d.Average());
-            featureVector.Add(d.Max());
-            featureVector.Add(d.Min());
-            double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
-            featureVector.Add(sd);
-            featureVectors[SENSOR.HR].Add(featureVector);
-
-        }
-
-        private void GetEEGFeatures(List<DataReading> data, int startPoint)
-        {
-            List<double> featureVector = new List<double>();
-            List<DataReading> slice = data.SkipWhile(x => startPoint + EEG_DELAY > x.timestamp).TakeWhile(x => startPoint + EEG_DELAY + EEG_DURATION > x.timestamp).ToList(); 
-            List<string> names = new List<string>() { "Delta", "Theta", "Alpha", "Beta", "Gamma" };
-
-            foreach (string name in names)
+            for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (HR_DELAY + HR_DURATION); time += STEP_SIZE)
             {
-                //Arousal 
-                featureVector.Add(FeatureCreator.DASM(slice, name,
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
+                List<double> featureVector = new List<double>();
+                List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < time + HR_DELAY).TakeWhile(x => time + HR_DURATION + HR_DELAY > (x.timestamp - data.First().timestamp)).Select(x => (double)x.IBI).ToList();
+                if (d.Count == 0)
+                {
+                    continue;
+                }
 
-                featureVector.Add(FeatureCreator.DASM(slice, name,
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
-
-                //Valence
-                featureVector.Add(FeatureCreator.DASM(slice, name,
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
-
-                 featureVector.Add(FeatureCreator.DASM(slice, name,
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
-                    (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
-
-            }
-            featureVectors[SENSOR.EEG].Add(featureVector);
-        }
-
-
-        private void GetFACEFeatures(List<DataReading> data, int i, int windowSize)
-        {
-            List<double> featureVector = new List<double>();
-            List<int> leftSide = new List<int>() { 5, 13, 15 };
-
-            foreach (int fsa in leftSide)
-            {
-                double mean = FeatureCreator.FaceMean(data,
-                (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                double sd = FeatureCreator.FaceStandardDeviation(data,
-                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                double max = FeatureCreator.FaceMax(data,
-                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                double min = FeatureCreator.FaceMin(data,
-                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                     (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                featureVector.Add(mean);
+                featureVector.Add(d.Average());
+                featureVector.Add(d.Max());
+                featureVector.Add(d.Min());
+                double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
                 featureVector.Add(sd);
-                featureVector.Add(max);
-                featureVector.Add(min);
+                featureVectors[SENSOR.HR].Add(new OneClassFV(featureVector, time));
             }
-
-            featureVectors[SENSOR.FACE].Add(featureVector);
-            
         }
 
-        private List<List<double>> CreateGSRFeatures(List<GSRDataReading> data)
+        private void CreateEEGFeatures(List<DataReading> data)
         {
-            List<double> featureVector = new List<double>();
-            List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < GSR_DELAY).TakeWhile(x => GSR_DURATION > (x.timestamp - data.First().timestamp)).Select(x => (double)x.resistance).ToList();
-            if (d.Count == 0)
-                return new List<List<double>>();
-            featureVector.Add(d.Average());
-            featureVector.Add(d.Max());
-            featureVector.Add(d.Min());
-            double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
-            featureVector.Add(sd);
-            featureVectors[SENSOR.GSR].Clear();
-            featureVectors[SENSOR.GSR].Add(featureVector);
-            return featureVectors[SENSOR.GSR];
+            for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (EEG_DELAY + EEG_DURATION); time += STEP_SIZE)
+            {
+                List<double> featureVector = new List<double>();
+                List<DataReading> slice = data.SkipWhile(x => time + EEG_DELAY > x.timestamp).TakeWhile(x => time + EEG_DELAY + EEG_DURATION > x.timestamp).ToList();
+                List<string> names = new List<string>() { "Delta", "Theta", "Alpha", "Beta", "Gamma" };
+                if (slice.Count == 0)
+                {
+                    continue;
+                }
+                foreach (string name in names)
+                {
+                    //Arousal 
+                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
+                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
+
+                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
+                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
+
+                    //Valence
+                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
+                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
+
+                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                       (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
+                       (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
+
+                }
+                featureVectors[SENSOR.EEG].Add(new OneClassFV(featureVector, time));
+            }
         }
+
+
+        private void CreateFACEFeatures(List<DataReading> data, int point)
+        {
+            List<int> leftSide = new List<int>() { 5, 13, 15 };
+            for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (FACE_DELAY + FACE_DURATION); time += STEP_SIZE)
+            {
+                List<DataReading> dataSlice = data.SkipWhile(x => time + FACE_DELAY > x.timestamp).TakeWhile(x => time + FACE_DELAY + FACE_DURATION > x.timestamp).ToList();
+                List<double> featureVector = new List<double>();
+                foreach (int fsa in leftSide)
+                {
+                    double mean = FeatureCreator.FaceMean(dataSlice,
+                    (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                    (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                    double sd = FeatureCreator.FaceStandardDeviation(dataSlice,
+                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                    double max = FeatureCreator.FaceMax(dataSlice,
+                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                    double min = FeatureCreator.FaceMin(dataSlice,
+                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
+                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+
+                    featureVector.Add(mean);
+                    featureVector.Add(sd);
+                    featureVector.Add(max);
+                    featureVector.Add(min);
+                }
+
+                featureVectors[SENSOR.FACE].Add(new OneClassFV(featureVector, time));
+            }
+        }
+
+        private void CreateGSRFeatures(List<GSRDataReading> data)
+        {
+            for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (GSR_DELAY + GSR_DURATION); time += STEP_SIZE)
+            {
+                List<double> featureVector = new List<double>();
+                List<double> slice = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < GSR_DELAY + time).TakeWhile(x => time + GSR_DELAY + GSR_DURATION > (x.timestamp - data.First().timestamp)).Select(x => (double)x.resistance).ToList();
+                if (slice.Count == 0)
+                {
+                    continue;
+                }
+                featureVector.Add(slice.Average());
+                featureVector.Add(slice.Max());
+                featureVector.Add(slice.Min());
+                double sd = Math.Sqrt(slice.Average(x => Math.Pow(x - slice.Average(), 2)));
+                featureVector.Add(sd);
+                featureVectors[SENSOR.GSR].Add(new OneClassFV(featureVector, time));
+            }
+        }   
 
         private List<int> PredictSlice(SENSOR machine, List<List<double>> data)
         {
