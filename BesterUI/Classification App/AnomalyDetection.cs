@@ -301,10 +301,10 @@ namespace Classification_App
 
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
             int trainingEnd = events[2].timestamp;
-            CreateSVM(SENSOR.GSR, featureVectors[SENSOR.GSR].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
-            CreateSVM(SENSOR.EEG, featureVectors[SENSOR.EEG].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
-            CreateSVM(SENSOR.FACE, featureVectors[SENSOR.FACE].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
-            CreateSVM(SENSOR.HR, featureVectors[SENSOR.HR].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
+            foreach (SENSOR sensor in Enum.GetValues(typeof(SENSOR)))
+            {
+                CreateSVM(sensor, featureVectors[sensor].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
+            }
         }
 
         Dictionary<SENSOR, OneClassClassifier> machines = new Dictionary<SENSOR, OneClassClassifier>();
