@@ -13,7 +13,7 @@ namespace Classification_App
 {
     class OneClassClassifier
     {
-        List<List<double>> _trainingData;
+        SVMProblem _trainingData;
         SVMModel _model;
 
         /// <summary>
@@ -22,7 +22,17 @@ namespace Classification_App
         /// <param name="trainingData">The training data which the svm will learn the "normal" data from</param>
         public OneClassClassifier(List<List<double>> trainingData)
         {
-            _trainingData = trainingData;
+            _trainingData = trainingData.CreateCompleteProblemOneClass(); ;
+        }
+
+        public OneClassClassifier(List<SVMNode[]> trainingData)
+        {
+            SVMProblem problem = new SVMProblem();
+            for (int i = 0; i < trainingData.Count; i++)
+            {
+                problem.Add(trainingData[i], 1);
+            }
+            _trainingData = problem;
         }
 
         /// <summary>
@@ -36,8 +46,7 @@ namespace Classification_App
 
             try
             {
-                SVMProblem problem = _trainingData.CreateCompleteProblemOneClass();
-                _model = problem.Train(parameter);
+                _model = _trainingData.Train(parameter);
                 return true;
             }
             catch
@@ -59,13 +68,12 @@ namespace Classification_App
                 //Remember to call CreateModel before PredictData
                 return null;
             }
-
-            List<SVMNode[]> nodeSets = data.Select(x=>x.Features).CreateNodesFromData();
+            
             List<int> results = new List<int>();
 
-            for (int i = 0; i < nodeSets.Count; i++)
+            for (int i = 0; i < data.Count; i++)
             {
-                double result = _model.Predict(nodeSets[i]);
+                double result = _model.Predict(data[i].Features);
                 if (result == -1)
                 {
                     results.Add(i);

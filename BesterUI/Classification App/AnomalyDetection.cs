@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -53,23 +54,24 @@ namespace Classification_App
         const int STEP_SIZE = 100;
 
 
-        Dictionary<SENSOR, List<OneClassFV>> featureVectors = new Dictionary<SENSOR, List<OneClassFV>>();
-        Dictionary<SENSOR, List<int>> predictions = new Dictionary<SENSOR, List<int>>();
+        ConcurrentDictionary<SENSOR, List<OneClassFV>> featureVectors = new ConcurrentDictionary<SENSOR, List<OneClassFV>>();
+        Dictionary<SENSOR, List<OneClassFV>> predictions = new Dictionary<SENSOR, List<OneClassFV>>();
 
         List<Events> events = new List<Events>();
         List<samEvents> sEvents = new List<samEvents>();
+        Stopwatch sw = new Stopwatch();
 
         public AnomalyDetection()
         {
             InitializeComponent();
             foreach (var k in Enum.GetValues(typeof(SENSOR)))
             {
-                featureVectors.Add((SENSOR)k, new List<OneClassFV>());
-                predictions.Add((SENSOR)k, new List<int>());
+                featureVectors.TryAdd((SENSOR)k, new List<OneClassFV>());
+                predictions.Add((SENSOR)k, new List<OneClassFV>());
             }
         }
 
-        private void btn_loadData_Click(object sender, EventArgs e)
+        private async void btn_loadData_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
 
@@ -78,9 +80,11 @@ namespace Classification_App
 
                 string path = fbd.SelectedPath;
                 string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
-
+                sw.Start();
+                Log.LogMessage($"Loading Data");
                 _fdAnomaly.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
 
+                Log.LogMessage($"Getting Events: {sw.Elapsed}");
                 string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
                 foreach (string ev in tmpevents)
                 {
@@ -89,28 +93,44 @@ namespace Classification_App
                 }
 
 
-                string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
+                /*string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
 
 
                 foreach (string ev in tmpSevents)
                 {
                     sEvents.Add(new samEvents(int.Parse(ev.Split(':')[0]), int.Parse(ev.Split(':')[1]), int.Parse(ev.Split(':')[2])));
-                }
+                }*/
 
-                CreateGSRFeatures(_fdAnomaly.gsrData);
-                //CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>());
-                //CreateHRFeatures(_fdAnomaly.hrData);
-                //CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>());
+                Task gsrThread = Task.Run(() => CreateGSRFeatures(_fdAnomaly.gsrData));
+                Task eegThread = Task.Run(() => CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>()));
+                Task hrThread = Task.Run(() => CreateHRFeatures(_fdAnomaly.hrData));
+                Task faceThread = Task.Run(()=> CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>()));
+                List<Task> threads = new List<Task>();
+                threads.Add(gsrThread);
+                threads.Add(eegThread);
+                threads.Add(hrThread);
+                threads.Add(faceThread);
+                await Task.WhenAll(threads.ToArray());
+                
+                Log.LogMessage("");
+               
 
-
-
+                Log.LogMessage($"Normalizing GSR Feature: {sw.Elapsed}");
                 featureVectors[SENSOR.GSR] = featureVectors[SENSOR.GSR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
-                //featureVectors[SENSOR.EEG] = featureVectors[SENSOR.EEG].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
-                //featureVectors[SENSOR.HR] = featureVectors[SENSOR.HR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
-                //featureVectors[SENSOR.FACE] = featureVectors[SENSOR.FACE].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                Log.LogMessage($"Normalizing EEG Feature: {sw.Elapsed}");
+                featureVectors[SENSOR.EEG] = featureVectors[SENSOR.EEG].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                Log.LogMessage($"Normalizing HR Feature: {sw.Elapsed}");
+                featureVectors[SENSOR.HR] = featureVectors[SENSOR.HR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                Log.LogMessage($"Normalizing FACE Feature: {sw.Elapsed}");
+                featureVectors[SENSOR.FACE] = featureVectors[SENSOR.FACE].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
 
 
                 SetupMachines();
+                Log.LogMessage("Done setting up machines");
+
             }
         }
 
@@ -118,27 +138,29 @@ namespace Classification_App
         {
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (HR_DELAY + HR_DURATION); time += STEP_SIZE)
             {
-                List<double> featureVector = new List<double>();
-                List<double> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < time + HR_DELAY).TakeWhile(x => time + HR_DURATION + HR_DELAY > (x.timestamp - data.First().timestamp)).Select(x => (double)x.IBI).ToList();
+                SVMNode[] featureVector = new SVMNode[6];
+                List<HRDataReading> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < time + HR_DELAY).TakeWhile(x => time + HR_DURATION + HR_DELAY > (x.timestamp - data.First().timestamp)).Where(x=>x.isBeat).ToList();
                 if (d.Count == 0)
                 {
                     continue;
                 }
-
-                featureVector.Add(d.Average());
-                featureVector.Add(d.Max());
-                featureVector.Add(d.Min());
-                double sd = Math.Sqrt(d.Average(x => Math.Pow(x - d.Average(), 2)));
-                featureVector.Add(sd);
+                featureVector[0] = new SVMNode(1,d.Select(x=>(double)x.IBI).Average());
+                double sd = Math.Sqrt(d.Average(x => Math.Pow((double)x.IBI - featureVector[0].Value, 2)));
+                featureVector[1] = new SVMNode(2,sd);
+                featureVector[2] = new SVMNode(3,d.Select(x => (double)x.BPM).Average());
+                featureVector[3] = new SVMNode(4,FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
+                featureVector[4] = new SVMNode(5,d.Max(x=>x.BPM));
+                featureVector[5] = new SVMNode(6,d.Min(x => x.BPM));
                 featureVectors[SENSOR.HR].Add(new OneClassFV(featureVector, time));
             }
+            Log.LogMessage($"Calculation HR Feature Done: {sw.Elapsed}");
         }
 
         private void CreateEEGFeatures(List<DataReading> data)
         {
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (EEG_DELAY + EEG_DURATION); time += STEP_SIZE)
             {
-                List<double> featureVector = new List<double>();
+                SVMNode[] featureVector = new SVMNode[4];
                 List<DataReading> slice = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < EEG_DELAY + time).TakeWhile(x => time + EEG_DELAY + EEG_DURATION > (x.timestamp - data.First().timestamp)).ToList();
                 List<string> names = new List<string>() { "Delta", "Theta", "Alpha", "Beta", "Gamma" };
                 if (slice.Count == 0)
@@ -148,26 +170,28 @@ namespace Classification_App
                 foreach (string name in names)
                 {
                     //Arousal 
-                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                    featureVector[0] = new SVMNode(1,FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
 
-                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                    featureVector[1] = new SVMNode(2,FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
 
                     //Valence
-                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                    featureVector[2] = new SVMNode(3,FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
 
-                    featureVector.Add(FeatureCreator.DASM(slice, name,
+                    featureVector[3] = new SVMNode(4,FeatureCreator.DASM(slice, name,
                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
 
                 }
                 featureVectors[SENSOR.EEG].Add(new OneClassFV(featureVector, time));
             }
+
+            Log.LogMessage($"Calculation EEG Feature: {sw.Elapsed}");
         }
 
 
@@ -180,7 +204,7 @@ namespace Classification_App
                 if (dataSlice.Count == 0)
                     continue;
 
-                List<double> featureVector = new List<double>();
+                SVMNode[] featureVector = new SVMNode[4];
                 foreach (int fsa in leftSide)
                 {
                     double mean = FeatureCreator.FaceMean(dataSlice,
@@ -199,38 +223,42 @@ namespace Classification_App
                          (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
                          (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
 
-                    featureVector.Add(mean);
-                    featureVector.Add(sd);
-                    featureVector.Add(max);
-                    featureVector.Add(min);
+                    featureVector[0] = new SVMNode(1,mean);
+                    featureVector[1] = new SVMNode(2,sd);
+                    featureVector[2] = new SVMNode(3,max);
+                    featureVector[3] = new SVMNode(4,min);
                 }
 
                 featureVectors[SENSOR.FACE].Add(new OneClassFV(featureVector, time));
             }
+
+            Log.LogMessage($"Calculation FACE Feature: {sw.Elapsed}");
         }
 
         private void CreateGSRFeatures(List<GSRDataReading> data)
         {
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (GSR_DELAY + GSR_DURATION); time += STEP_SIZE)
             {
-                List<double> featureVector = new List<double>();
+                SVMNode[] featureVector = new SVMNode[4];
                 List<double> slice = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < GSR_DELAY + time).TakeWhile(x => time + GSR_DELAY + GSR_DURATION > (x.timestamp - data.First().timestamp)).Select(x => (double)x.resistance).ToList();
                 if (slice.Count == 0)
                 {
                     continue;
                 }
-                featureVector.Add(slice.Average());
-                featureVector.Add(slice.Max());
-                featureVector.Add(slice.Min());
+                featureVector[0] = new SVMNode(1, slice.Average());
+                featureVector[1] = new SVMNode(2, slice.Max());
+                featureVector[2] = new SVMNode(3, slice.Min());
                 double sd = Math.Sqrt(slice.Average(x => Math.Pow(x - slice.Average(), 2)));
-                featureVector.Add(sd);
+                featureVector[3] = new SVMNode(4, sd);
                 featureVectors[SENSOR.GSR].Add(new OneClassFV(featureVector, time));
             }
+
+            Log.LogMessage($"Calculation GSR Feature: {sw.Elapsed}");
         }
 
         private List<OneClassFV> PredictSlice(SENSOR machine, List<OneClassFV> data)
         {
-            return machines[machine.ToString()].PredictOutliers(data);
+            return machines[machine].PredictOutliers(data);
         }
 
 
@@ -273,13 +301,13 @@ namespace Classification_App
 
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
             int trainingEnd = events[2].timestamp;
-            var tdata = featureVectors[SENSOR.GSR].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList();
-            CreateSVM(SENSOR.GSR, tdata);
-            //CreateSVM(SENSOR.EEG);
-            //CreateSVM(SENSOR.FACE);
-            //CreateSVM(SENSOR.HR);
+            CreateSVM(SENSOR.GSR, featureVectors[SENSOR.GSR].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
+            CreateSVM(SENSOR.EEG, featureVectors[SENSOR.EEG].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
+            CreateSVM(SENSOR.FACE, featureVectors[SENSOR.FACE].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
+            CreateSVM(SENSOR.HR, featureVectors[SENSOR.HR].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
         }
-        Dictionary<string, OneClassClassifier> machines = new Dictionary<string, OneClassClassifier>();
+
+        Dictionary<SENSOR, OneClassClassifier> machines = new Dictionary<SENSOR, OneClassClassifier>();
 
         private void CreateSVM(SENSOR machine, List<OneClassFV> trainingSet)
         {
@@ -295,7 +323,7 @@ namespace Classification_App
             svmP.Type = SVMType.ONE_CLASS;
             occ.CreateModel(svmP);
 
-            machines.Add(machine.ToString(), occ);
+            machines.Add(machine, occ);
         }
 
         private List<OneClassFV> FindNearestTimeStamp(List<OneClassFV> data, int timestamp)
@@ -328,21 +356,29 @@ namespace Classification_App
 
         private void btn_getData_Click(object sender, EventArgs e)
         {
-            List<OneClassFV> outliers = new List<OneClassFV>();
+            List<OneClassFV> anomali = new List<OneClassFV>();
             List<OneClassFV> outliersFromSam = new List<OneClassFV>();
-            foreach (Events ev in events)
-            {
-                var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], ev.timestamp));
-                outliers.AddRange(preds);
-            }
+            sw.Restart();
+            /*  foreach (Events ev in events)
+              {
+                  var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], ev.timestamp));
+                  anomali.AddRange(preds);
+              }
 
-            foreach (samEvents sev in sEvents)
+              foreach (samEvents sev in sEvents)
+              {
+                  var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], sev.timestamp));
+                  outliersFromSam.AddRange(preds);
+              }*/
+            foreach (SENSOR key in featureVectors.Keys)
             {
-                var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], sev.timestamp));
-                outliersFromSam.AddRange(preds);
-            }
 
-            var x = outliers;
+                Log.LogMessage($"Predicting {key}: {sw.Elapsed}");
+                anomali = PredictSlice(key, featureVectors[key]);
+            }
+            
+
+            var x = anomali;
         }
 
 

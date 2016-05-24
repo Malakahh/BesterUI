@@ -13,13 +13,13 @@ namespace Classification_App
             get;
             set;
         }
-        public List<double> Features
+        public LibSVMsharp.SVMNode[] Features
         {
             get;
             set;
         }
 
-        public OneClassFV(List<double> features, int timeStamp)
+        public OneClassFV(LibSVMsharp.SVMNode[] features, int timeStamp)
         {
             Features = features;
             TimeStamp = timeStamp;

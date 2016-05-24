@@ -228,21 +228,21 @@ namespace Classification_App
 
             try
             {
-                for (int i = 0; i < original.First().Features.Count; i++)
+                for (int i = 0; i < original.First().Features.Length; i++)
                 {
-                    double minValue = original.Min(x => x.Features[i]);
-                    double maxValue = original.Max(x => x.Features[i]);
+                    double minValue = original.Min(x => x.Features[i].Value);
+                    double maxValue = original.Max(x => x.Features[i].Value);
 
                     for (int j = 0; j < original.Count(); j++)
                     {
-                        double temp = (original.ElementAt(j).Features[i] - minValue) / (maxValue - minValue);
+                        double temp = (original.ElementAt(j).Features[i].Value - minValue) / (maxValue - minValue);
                         //Scale to -1 to 1 (normalized_value *(max-min)+min)
-                        tempCopy.ElementAt(j).Features[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
+                        tempCopy.ElementAt(j).Features[i].Value = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
                     }
 
                 }
             }
-            catch
+            catch(Exception e)
             {
 
                 return null;
