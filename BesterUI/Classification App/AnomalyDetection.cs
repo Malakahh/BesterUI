@@ -54,7 +54,7 @@ namespace Classification_App
 
 
         Dictionary<SENSOR, List<OneClassFV>> featureVectors = new Dictionary<SENSOR, List<OneClassFV>>();
-        Dictionary<SENSOR, List<int>> predictions = new Dictionary<SENSOR, List<int>>();
+        Dictionary<SENSOR, List<OneClassFV>> predictions = new Dictionary<SENSOR, List<OneClassFV>>();
 
         List<Events> events = new List<Events>();
         List<samEvents> sEvents = new List<samEvents>();
@@ -65,7 +65,7 @@ namespace Classification_App
             foreach (var k in Enum.GetValues(typeof(SENSOR)))
             {
                 featureVectors.Add((SENSOR)k, new List<OneClassFV>());
-                predictions.Add((SENSOR)k, new List<int>());
+                predictions.Add((SENSOR)k, new List<OneClassFV>());
             }
         }
 
@@ -98,16 +98,16 @@ namespace Classification_App
                 }
 
                 CreateGSRFeatures(_fdAnomaly.gsrData);
-                //CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>());
-                //CreateHRFeatures(_fdAnomaly.hrData);
-                //CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>());
+                CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>());
+                CreateHRFeatures(_fdAnomaly.hrData);
+                CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>());
 
 
 
                 featureVectors[SENSOR.GSR] = featureVectors[SENSOR.GSR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
-                //featureVectors[SENSOR.EEG] = featureVectors[SENSOR.EEG].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
-                //featureVectors[SENSOR.HR] = featureVectors[SENSOR.HR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
-                //featureVectors[SENSOR.FACE] = featureVectors[SENSOR.FACE].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+                featureVectors[SENSOR.EEG] = featureVectors[SENSOR.EEG].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+                featureVectors[SENSOR.HR] = featureVectors[SENSOR.HR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+                featureVectors[SENSOR.FACE] = featureVectors[SENSOR.FACE].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
 
 
                 SetupMachines();
@@ -273,12 +273,13 @@ namespace Classification_App
 
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
             int trainingEnd = events[2].timestamp;
-            var tdata = featureVectors[SENSOR.GSR].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList();
-            CreateSVM(SENSOR.GSR, tdata);
-            //CreateSVM(SENSOR.EEG);
-            //CreateSVM(SENSOR.FACE);
-            //CreateSVM(SENSOR.HR);
+
+            foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+            {
+                CreateSVM(s, featureVectors[s].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
+            }
         }
+
         Dictionary<string, OneClassClassifier> machines = new Dictionary<string, OneClassClassifier>();
 
         private void CreateSVM(SENSOR machine, List<OneClassFV> trainingSet)
@@ -298,6 +299,8 @@ namespace Classification_App
             machines.Add(machine.ToString(), occ);
         }
 
+        List<Tuple<int, int, int>> offsets = new List<Tuple<int, int, int>>();
+
         private List<OneClassFV> FindNearestTimeStamp(List<OneClassFV> data, int timestamp)
         {
             List<OneClassFV> returnData = new List<OneClassFV>();
@@ -309,13 +312,15 @@ namespace Classification_App
                 }
                 else if (data[i].TimeStamp > timestamp)
                 {
-                    if (data[i - 1].TimeStamp - timestamp < timestamp - data[i].TimeStamp)
+                    if (timestamp - data[i - 1].TimeStamp < Math.Abs(timestamp - data[i].TimeStamp))
                     {
+                        offsets.Add(new Tuple<int, int, int>(timestamp - data[i - 1].TimeStamp, Math.Abs(timestamp - data[i].TimeStamp), Math.Abs(timestamp - data[i - 1].TimeStamp)));
                         returnData.Add(data[i - 1]);
                         break;
                     }
                     else
                     {
+                        offsets.Add(new Tuple<int, int, int>(timestamp - data[i - 1].TimeStamp, Math.Abs(timestamp - data[i].TimeStamp), Math.Abs(timestamp - data[i].TimeStamp)));
                         returnData.Add(data[i]);
                         break;
                     }
@@ -328,21 +333,81 @@ namespace Classification_App
 
         private void btn_getData_Click(object sender, EventArgs e)
         {
-            List<OneClassFV> outliers = new List<OneClassFV>();
-            List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+
+
+            foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+            {
+                List<OneClassFV> outliers = new List<OneClassFV>();
+                List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+
+                outliers.AddRange(PredictSlice(s, featureVectors[s]));
+
+                predictions[s].AddRange(outliers);
+                predictions[s].AddRange(outliersFromSam);
+            }
+
+            GroupByEvent();
+
+        }
+
+        private void GroupByEvent()
+        {
+            //We have no event for "pre-resting", this holds all outliers predicted in that period.
+            Events rest_event = new Events(0, "Resting Period");
+
+            foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+            {
+
+                for (int i = 0; i < events.Count; i++)
+                {
+                    foreach (OneClassFV outlier in predictions[s])
+                    {
+                        if (i != events.Count - 1)
+                        {
+                            if (outlier.TimeStamp < events[i].timestamp && i == 0)
+                            {
+                                //The outlier is prior any events, should be added to the rest period.
+                                rest_event.AddOutlier(outlier);
+                                events.Add(rest_event);
+
+                            }
+                            else if (outlier.TimeStamp >= events[i].timestamp && outlier.TimeStamp < events[i + 1].timestamp)
+                            {
+                                events[i].AddOutlier(outlier);
+                            }
+                            else
+                            {
+                                var wrong = outlier;
+                            }
+                        }
+                        else
+                        {
+                            if (outlier.TimeStamp >= events[i].timestamp)
+                            {
+                                events[i].AddOutlier(outlier);
+                            }
+                            else
+                            {
+                                var wrong = outlier;
+                            }
+                        }
+                    }
+                }
+            }
+
+            int count = 0;
+            int outliers = 0;
+            foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+            {
+                outliers += predictions[s].Count;
+            }
             foreach (Events ev in events)
             {
-                var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], ev.timestamp));
-                outliers.AddRange(preds);
+                count += ev.outliers.Count;
             }
 
-            foreach (samEvents sev in sEvents)
-            {
-                var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], sev.timestamp));
-                outliersFromSam.AddRange(preds);
-            }
+            var x = events;
 
-            var x = outliers;
         }
 
 
