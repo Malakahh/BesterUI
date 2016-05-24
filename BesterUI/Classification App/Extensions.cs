@@ -79,13 +79,23 @@ namespace Classification_App
             return allSets;
         }
 
-        public static List<DataReading> GetDataFromInterval(List<DataReading> original, int start, int duration)
+        public static List<DataReading> GetDataFromInterval(List<DataReading> original, int start, SENSOR machine)
         {
+            int offset = 0;
+            int duration = 0;
+
+            if (machine == SENSOR.GSR)
+            {
+                offset = 2000;
+                duration = 5000;
+
+            }
+
             List<DataReading> splicedData = new List<DataReading>();
 
             splicedData.AddRange(
                 original.Where(
-                    x => x.timestamp >= (start + original.First().timestamp) &&
+                    x => x.timestamp >= (start + original.First().timestamp + offset) &&
                     x.timestamp <= (start + original.First().timestamp + duration
                     )
                 )
@@ -154,6 +164,7 @@ namespace Classification_App
 
         public static IEnumerable<List<double>> NormalizeFeatureList<T>(this IEnumerable<List<double>> original, Normalize nMethod)
         {
+            var tempCopy = original.ToList();
             double maxNormalize = 0;
             double minNormalize = 0;
 
@@ -182,7 +193,7 @@ namespace Classification_App
                     {
                         double temp = (original.ElementAt(j)[i] - minValue) / (maxValue - minValue);
                         //Scale to -1 to 1 (normalized_value *(max-min)+min)
-                        original.ElementAt(j)[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
+                        tempCopy.ElementAt(j)[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
                     }
 
                 }
@@ -192,7 +203,51 @@ namespace Classification_App
 
                 return null;
             }
-            return original;
+            return tempCopy;
+        }
+
+        public static IEnumerable<OneClassFV> NormalizeFeatureVectorList(this IEnumerable<OneClassFV> original, Normalize nMethod)
+        {
+            var tempCopy = original.ToList();
+            double maxNormalize = 0;
+            double minNormalize = 0;
+
+            switch (nMethod)
+            {
+                case Normalize.OneMinusOne:
+                    maxNormalize = 1;
+                    minNormalize = -1;
+                    break;
+                case Normalize.ZeroOne:
+                    maxNormalize = 1;
+                    minNormalize = -1;
+                    break;
+                default:
+                    throw new Exception("The chosen normalize case is not valid");
+            }
+
+            try
+            {
+                for (int i = 0; i < original.First().Features.Count; i++)
+                {
+                    double minValue = original.Min(x => x.Features[i]);
+                    double maxValue = original.Max(x => x.Features[i]);
+
+                    for (int j = 0; j < original.Count(); j++)
+                    {
+                        double temp = (original.ElementAt(j).Features[i] - minValue) / (maxValue - minValue);
+                        //Scale to -1 to 1 (normalized_value *(max-min)+min)
+                        tempCopy.ElementAt(j).Features[i] = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
+                    }
+
+                }
+            }
+            catch
+            {
+
+                return null;
+            }
+            return tempCopy;
         }
     }
 }

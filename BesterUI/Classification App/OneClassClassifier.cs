@@ -52,7 +52,7 @@ namespace Classification_App
         /// </summary>
         /// <param name="data">Data to find outliers in</param>
         /// <returns>indexing of where outliers were found in the list</returns>
-        public List<int> PredictOutliers(List<List<double>> data)
+        public List<OneClassFV> PredictOutliers(List<OneClassFV> data)
         {
             if (_model == null)
             {
@@ -60,7 +60,7 @@ namespace Classification_App
                 return null;
             }
 
-            List<SVMNode[]> nodeSets = data.CreateNodesFromData();
+            List<SVMNode[]> nodeSets = data.Select(x=>x.Features).CreateNodesFromData();
             List<int> results = new List<int>();
 
             for (int i = 0; i < nodeSets.Count; i++)
@@ -72,7 +72,12 @@ namespace Classification_App
                 }
             }
 
-            return results;
+            List<OneClassFV> resultList = new List<OneClassFV>();
+            foreach(int result in results)
+            {
+                resultList.Add(data[result]);
+            }
+            return resultList;
         }
 
     }

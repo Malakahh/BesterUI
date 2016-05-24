@@ -145,6 +145,16 @@ namespace Classification_App
             return (data.Average(x => valueAccessor1(x)) + data.Average(x => valueAccessor2(x))) / 2;
         }
 
+        public static double FaceMax(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
+        {
+            return (data.Max(x => valueAccessor1(x)) + data.Max(x => valueAccessor2(x))) / 2;
+        }
+
+        public static double FaceMin(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
+        {
+            return (data.Min(x => valueAccessor1(x)) + data.Min(x => valueAccessor2(x))) / 2;
+        }
+
         public static double FaceStandardDeviation(List<DataReading> data, Func<DataReading, double> valueAccessor1, Func<DataReading, double> valueAccessor2)
         {
 
@@ -383,6 +393,7 @@ namespace Classification_App
                 FACEValenceOptimizationFeatures.Add(new Feature("Face Mean " + meanFaceLeftSide[l] + " & " + meanFaceRightSide[l], (data, sam) => FaceMean(FaceDataSlice(data, sam),
                       (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceLeftSide[l])),
                       (x => KinectValueAccessor(x, (FaceShapeAnimations)meanFaceRightSide[l])))));
+
             }
             for (int j = 0; j < sdFaceLeftSide.Count; j++)
             {
