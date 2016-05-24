@@ -1845,35 +1845,22 @@ namespace Classification_App
                             fdRecallGsr
                         );
 
-                    //var gsrNewPair = FilterPairing(fdTestGsr, fdRecallGsr);
-                    var gsrSlopePairing = FilterSlopePairing(fdTestGsr, fdRecallGsr);
-
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
-                        var newPairA = gsrSlopePairing.Select(x => fdTestGsr[x.Item1].Item2).ToList();
-                        var maxA = newPairA.Max();
-                        newPairA = newPairA.Select(x => x / maxA).ToList();
-                        var newPairB = gsrSlopePairing.Select(x => fdRecallGsr[x.Item2].Item2).ToList();
-                        var maxB = newPairB.Max();
-                        newPairB = newPairB.Select(x => x / maxB).ToList();
-                        var newPears = MathNet.Numerics.Statistics.Correlation.Pearson(newPairA, newPairB);
-
                         var gsrNorm = NormalizeFilterData(gsr);
-                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
+                        //var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
                         //var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
                         //var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
                         //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
-                        //SavePng(csvTimePath + "GSR_newPair.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", newPairA, newPairB);
-                        SavePng(csvTimePath + "GSR_slope.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {newPears.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2, gsrSlopePairing);
-                        SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                        SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                         SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                         //SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
 
                         int t;
                         if (int.TryParse(time, out t) && t != 0)
                         {
-                            SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                            SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
                             SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                             //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
                         }
@@ -2155,6 +2142,11 @@ namespace Classification_App
             return pairing;
         }
 
+        bool PairTupleCompare(Tuple<long, double, bool> t1, Tuple<long, double, bool> t2)
+        {
+            return t1 == null || t1.Item3 == t2.Item3;
+        }
+
         Tuple<double, List<double>, List<double>, List<double>> FilterData(List<Tuple<long, double>> Ain, List<Tuple<long, double>> Bin, int msPerReading = -1)
         {
             List<Tuple<long, double>> A = new List<Tuple<long, double>>(Ain);
@@ -2162,77 +2154,192 @@ namespace Classification_App
 
             int removed = 0;
 
-            //step 1, filter gaps
-            if (msPerReading > 0)
-            {
-                for (int i = 0; i < A.Count - 1; i++)
-                {
-                    if (A[i + 1].Item1 - A[i].Item1 > 2 * msPerReading)
-                    {
-                        removed += B.RemoveAll(x => A[i].Item1 < x.Item1 && A[i + 1].Item1 > x.Item1);
-                    }
-                }
 
-                for (int i = 0; i < B.Count - 1; i++)
+            var together = A.Select(x => Tuple.Create(x.Item1, x.Item2, true)).Concat(B.Select(y => Tuple.Create(y.Item1, y.Item2, false))).OrderBy(x => x.Item1).ToList();
+            for (int i = 0; i < together.Count - 2; i++)
+            {
+                if (PairTupleCompare(together[i], together[i + 1]) && PairTupleCompare(together[i+1], together[i + 2]))
                 {
-                    if (B[i + 1].Item1 - B[i].Item1 > 2 * msPerReading)
+                    //together.RemoveAt(i + 1);
+                    together[i+1] = null;
+
+                    if (i == 0)
                     {
-                        removed += A.RemoveAll(x => B[i].Item1 < x.Item1 && B[i + 1].Item1 > x.Item1);
+                        together[0] = null;
+                    }
+
+                    if (i + 2 == together.Count - 1)
+                    {
+                        together[i + 2] = null;
                     }
                 }
             }
+            A = together.Where(x => x != null && x.Item3).Select(x => Tuple.Create(x.Item1, x.Item2)).ToList();
+            B = together.Where(x => x != null && !x.Item3).Select(x => Tuple.Create(x.Item1, x.Item2)).ToList();
+            removed = together.Count - A.Count - B.Count;
+            
+
+            //for (int i = 0; i < Ain.Count - 2; i++)
+            //{
+            //    int r = 0;
+            //    while (true)
+            //    {
+            //        if (i +r + 2 < Bin.Count && Ain[i + r + 2].Item1 < Bin[i].Item1)
+            //        {
+            //            A[i + r + 1] = null;
+            //            //A.Remove(Ain[i + r + 1]);
+            //            r++;
+
+            //            if (i == 0)
+            //            {
+            //                //A.Remove(Ain[0]);
+            //                A[0] = null;
+            //            }
+
+            //        }
+            //        else
+            //        {
+            //            if (i + r + 2 >= Bin.Count)
+            //            {
+            //                for (int d = i + r + 2; d < A.Count; d++)
+            //                {
+            //                    A[d] = null;
+            //                }
+            //            }
+
+            //            break;
+            //        }
+            //    }
+            //}
+
+            //for (int i = 0; i < Bin.Count - 2; i++)
+            //{
+            //    int r = 0;
+            //    while (true)
+            //    {
+            //        if (i + r + 2 < Ain.Count && Bin[i + r + 2].Item1 < Ain[i].Item1)
+            //        {
+            //            //B.Remove(Bin[i + r + 1]);
+            //            B[i + r + 1] = null;
+            //            r++;
+
+            //            if (i == 0)
+            //            {
+            //                //A.Remove(Ain[0]);
+            //                B[0] = null;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (i + r + 2 >= Ain.Count)
+            //            {
+            //                for (int d = i + r + 2; d < B.Count; d++)
+            //                {
+            //                    B[d] = null;
+            //                }
+            //            }
+
+            //            break;
+            //        }
+            //    }
+            //}
+
+            //A.RemoveAll(x => x == null);
+            //B.RemoveAll(x => x == null);
+
+            //for (int aItr = 0, bItr = 0; aItr < A.Count - 2 && bItr < B.Count - 2;)
+            //{
+            //    if (A[aItr + 2].Item1 < B[bItr].Item1)
+            //    {
+            //        A.Remove(A[aItr + 1]);
+            //    }
+            //    else
+            //    {
+            //        aItr++;
+            //    }
+
+            //    if (B[bItr + 2].Item1 < A[aItr].Item1)
+            //    {
+            //        B.Remove(B[bItr + 1]);
+            //    }
+            //    else
+            //    {
+            //        bItr++;
+            //    }
+
+            //}
+            /*
+            if (A.Last().Item1 < B.Last().Item1)
+            {
+                B = B.Where(x => x.Item1 < A.Last().Item1).ToList();
+            }
+            else
+            {
+                A = A.Where(x => x.Item1 < B.Last().Item1).ToList();
+            }
+
+            if (A.Last().Item1 < B.Last().Item1)
+            {
+                B = B.Where(x => x.Item1 < A.Last().Item1).ToList();
+            }
+            else
+            {
+                A = A.Where(x => x.Item1 < B.Last().Item1).ToList();
+            }
+            */
+
 
             //step 2, do pair pointer analysis thingy
-            List<double> As = new List<double>();
-            List<double> closestB = new List<double>();
-            List<double> secondClosestB = new List<double>();
+            //List<double> As = new List<double>();
+            //List<double> closestB = new List<double>();
+            //List<double> secondClosestB = new List<double>();
 
 
-            int furthestB = 0;
-            for (int i = 0; i < A.Count; i++)
-            {
-                long bestDist = int.MaxValue;
-                int bestDistId = 0;
-                long secondBestDist = int.MaxValue;
-                int secondBestDistId = 0;
+            //int furthestB = 0;
+            //for (int i = 0; i < A.Count; i++)
+            //{
+            //    long bestDist = int.MaxValue;
+            //    int bestDistId = 0;
+            //    long secondBestDist = int.MaxValue;
+            //    int secondBestDistId = 0;
 
-                long prevDist = int.MaxValue;
+            //    long prevDist = int.MaxValue;
 
-                for (int j = furthestB; j < B.Count; j++)
-                {
-                    long dist = Math.Abs(A[i].Item1 - B[j].Item1);
+            //    for (int j = furthestB; j < B.Count; j++)
+            //    {
+            //        long dist = Math.Abs(A[i].Item1 - B[j].Item1);
 
-                    if (dist < bestDist)
-                    {
-                        secondBestDist = bestDist;
-                        secondBestDistId = bestDistId;
-                        bestDist = dist;
-                        bestDistId = j;
-                    }
-                    else if (dist < secondBestDist)
-                    {
-                        secondBestDist = dist;
-                        secondBestDistId = j;
-                    }
+            //        if (dist < bestDist)
+            //        {
+            //            secondBestDist = bestDist;
+            //            secondBestDistId = bestDistId;
+            //            bestDist = dist;
+            //            bestDistId = j;
+            //        }
+            //        else if (dist < secondBestDist)
+            //        {
+            //            secondBestDist = dist;
+            //            secondBestDistId = j;
+            //        }
 
-                    if (prevDist < dist)
-                    {
-                        break;
-                    }
+            //        if (prevDist < dist)
+            //        {
+            //            break;
+            //        }
 
-                    prevDist = dist;
-                }
+            //        prevDist = dist;
+            //    }
 
-                furthestB = Math.Max(0, bestDistId - 1);
+            //    furthestB = Math.Max(0, bestDistId - 1);
 
-                As.Add(A[i].Item2);
-                closestB.Add(B[(int)bestDistId].Item2);
-                secondClosestB.Add(B[(int)secondBestDistId].Item2);
-            }
+            //    As.Add(A[i].Item2);
+            //    closestB.Add(B[(int)bestDistId].Item2);
+            //    secondClosestB.Add(B[(int)secondBestDistId].Item2);
+            //}
 
-            removed += Math.Abs(A.Count - B.Count);
+            
 
-            return Tuple.Create((double)removed / (A.Count + B.Count), As, closestB, secondClosestB);
+            return Tuple.Create((A.Count + B.Count) / (double)(Ain.Count + Bin.Count), A.Select(x => x.Item2).ToList(), B.Select(x => x.Item2).ToList(), new List<double>());
 
         }
 

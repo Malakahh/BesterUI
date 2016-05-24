@@ -326,6 +326,8 @@ namespace Classification_App
             machines.Add(machine, occ);
         }
 
+        List<Tuple<int, int, int>> offsets = new List<Tuple<int, int, int>>();
+
         private List<OneClassFV> FindNearestTimeStamp(List<OneClassFV> data, int timestamp)
         {
             List<OneClassFV> returnData = new List<OneClassFV>();
@@ -337,13 +339,15 @@ namespace Classification_App
                 }
                 else if (data[i].TimeStamp > timestamp)
                 {
-                    if (data[i - 1].TimeStamp - timestamp < timestamp - data[i].TimeStamp)
+                    if (timestamp - data[i - 1].TimeStamp < Math.Abs(timestamp - data[i].TimeStamp))
                     {
+                        offsets.Add(new Tuple<int, int, int>(timestamp - data[i - 1].TimeStamp, Math.Abs(timestamp - data[i].TimeStamp), Math.Abs(timestamp - data[i - 1].TimeStamp)));
                         returnData.Add(data[i - 1]);
                         break;
                     }
                     else
                     {
+                        offsets.Add(new Tuple<int, int, int>(timestamp - data[i - 1].TimeStamp, Math.Abs(timestamp - data[i].TimeStamp), Math.Abs(timestamp - data[i].TimeStamp)));
                         returnData.Add(data[i]);
                         break;
                     }
@@ -353,6 +357,54 @@ namespace Classification_App
 
             return returnData;
         }
+
+
+        private void GroupByEvent()
+        {
+            //We have no event for "pre-resting", this holds all outliers predicted in that period.
+            Events rest_event = new Events(0, "Resting Period");
+
+            foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+            {
+
+                for (int i = 0; i < events.Count; i++)
+                {
+                    foreach (OneClassFV outlier in predictions[s])
+                    {
+                        if (i != events.Count - 1)
+                        {
+                            if (outlier.TimeStamp < events[i].timestamp && i == 0)
+                            {
+                                //The outlier is prior any events, should be added to the rest period.
+                                rest_event.AddOutlier(outlier);
+                                events.Add(rest_event);
+
+                            }
+                            else if (outlier.TimeStamp >= events[i].timestamp && outlier.TimeStamp < events[i + 1].timestamp)
+                            {
+                                events[i].AddOutlier(outlier);
+                            }
+                            else
+                            {
+                                var wrong = outlier;
+                            }
+                        }
+                        else
+                        {
+                            if (outlier.TimeStamp >= events[i].timestamp)
+                            {
+                                events[i].AddOutlier(outlier);
+                            }
+                            else
+                            {
+                                var wrong = outlier;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         private void btn_getData_Click(object sender, EventArgs e)
         {

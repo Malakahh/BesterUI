@@ -12,10 +12,17 @@ namespace Classification_App
         public int timestamp;
         public string eventName;
 
+        public List<OneClassFV> outliers = new List<OneClassFV>();
+
         public Events(int ts, string en)
         {
             this.timestamp = ts;
             this.eventName = en;
+        }
+
+        public void AddOutlier(OneClassFV outlier)
+        {
+            outliers.Add(outlier);
         }
 
     }
