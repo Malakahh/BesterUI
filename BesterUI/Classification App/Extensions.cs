@@ -267,8 +267,26 @@ namespace Classification_App
             }
 
             return newValues;
+        }
 
+        public static List<double> EEGMovingFilter(this List<double> input, int windowSize)
+        {
+            List<double> newValues = new List<double>();
 
+            for (int i = 0; i < input.Count - windowSize; i += windowSize)
+            {
+                List<double> tempValues = new List<double>();
+
+                for (int j = 0; j < windowSize; j++)
+                {
+                    tempValues.Add(input[i + j]);
+                }
+
+                newValues.Add(tempValues.Average());
+                //newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
+            }
+
+            return newValues;
         }
     }
 }
