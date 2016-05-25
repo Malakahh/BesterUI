@@ -1789,10 +1789,10 @@ namespace Classification_App
                     if (dirPath == "results") continue;
                     List<string> files = new List<string>()
                     {
-                        "EEG.dat",
+                        //"EEG.dat",
                         //"GSR.dat",
                         //"HR.dat",
-                        //"KINECT.dat"
+                        "KINECT.dat"
                     };
 
                     files.RemoveAll(f => !File.Exists($"{dirPath}/test/{f}") || !File.Exists($"{dirPath}/recall/{f}"));
@@ -1916,8 +1916,8 @@ namespace Classification_App
                             if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
 
                             var eegNorm = NormalizeFilterData(eeg);
-                            var setA = eegNorm.Item1.EEGMovingFilter(10);
-                            var setB = eegNorm.Item2.EEGMovingFilter(10);
+                            var setA = eegNorm.Item1.AveragePointReductionFilter(10);
+                            var setB = eegNorm.Item2.AveragePointReductionFilter(10);
                             var min = Math.Min(setA.Count, setB.Count);
                             Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
                             var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
@@ -1935,28 +1935,43 @@ namespace Classification_App
                         Log.LogMessage("EEG done");
                     }
 
-                    /*
-
-                    Log.LogMessage("Starting Kinect");
-                    foreach (Microsoft.Kinect.Face.FaceShapeAnimations item in Enum.GetValues(typeof(Microsoft.Kinect.Face.FaceShapeAnimations)))
+                    if (files.Contains("KINECT.dat"))
                     {
-                        if (item == Microsoft.Kinect.Face.FaceShapeAnimations.Count) continue;
+                        Log.LogMessage("Starting Kinect");
+                        foreach (Microsoft.Kinect.Face.FaceShapeAnimations item in Enum.GetValues(typeof(Microsoft.Kinect.Face.FaceShapeAnimations)))
+                        {
+                            if (item == Microsoft.Kinect.Face.FaceShapeAnimations.Count) continue;
 
-                        var kinect = FilterData(
-                            fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                            fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
-                            34
-                            );
+                            var kinect = FilterData(
+                                fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                                fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                                34
+                                );
 
-                        if (kinect.Item2.Count == 0 || kinect.Item3.Count == 0) continue;
+                            if (kinect.Item2.Count == 0 || kinect.Item3.Count == 0) continue;
 
-                        var kiNorm = NormalizeFilterData(kinect);
 
-                        Log.LogMessage($"{item.ToString()}, data filtered: {kinect.Item1.ToString("0.0")}%");
-                        SaveZip(csvPath + "FACE_" + item + ".csv", kiNorm.Item1, kiNorm.Item2);
+                            var kiNorm = NormalizeFilterData(kinect);
+                            var setA = kiNorm.Item1;//.AveragePointReductionFilter(5);
+                            var setB = kiNorm.Item2;//.AveragePointReductionFilter(5);
+                            var min = Math.Min(setA.Count, setB.Count);
+                            Log.LogMessage($"{item} done, data filtered: {kinect.Item1.ToString("0.0")}%");
+
+                            var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
+                            SavePng(csvTimePath + "FACE_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
+                            SaveZip(csvTimePath + "FACE_" + item + ".csv", setA, setB);
+
+                            int t;
+                            if (int.TryParse(time, out t) && t != 0)
+                            {
+                                SavePng(csvStimuliPath + "FACE_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
+                                SaveZip(csvStimuliPath + "FACE_" + item + ".csv", setA, setB);
+                                //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                            }
+                        }
+                        Log.LogMessage("Kinect done");
                     }
-                    Log.LogMessage("Kinect done");
-                    */
+
 
 
 

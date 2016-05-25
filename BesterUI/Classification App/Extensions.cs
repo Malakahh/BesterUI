@@ -269,7 +269,7 @@ namespace Classification_App
             return newValues;
         }
 
-        public static List<double> EEGMovingFilter(this List<double> input, int windowSize)
+        public static List<double> AveragePointReductionFilter(this List<double> input, int windowSize)
         {
             List<double> newValues = new List<double>();
 
