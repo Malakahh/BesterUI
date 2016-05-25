@@ -47,6 +47,7 @@
             // 
             // btn_getData
             // 
+            this.btn_getData.Enabled = false;
             this.btn_getData.Location = new System.Drawing.Point(13, 43);
             this.btn_getData.Name = "btn_getData";
             this.btn_getData.Size = new System.Drawing.Size(75, 23);
