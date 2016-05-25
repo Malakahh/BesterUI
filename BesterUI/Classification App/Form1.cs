@@ -1791,7 +1791,7 @@ namespace Classification_App
                     {
                         //"EEG.dat",
                         "GSR.dat",
-                        //"HR.dat",
+                        "HR.dat",
                         //"KINECT.dat"
                     };
 
@@ -1848,7 +1848,7 @@ namespace Classification_App
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
-                        //var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
                         //var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
                         //var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
                         //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
@@ -1866,6 +1866,31 @@ namespace Classification_App
                         }
                     }
                     Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
+                    Log.LogMessage("Starting HR");
+                    var hr = FilterData(
+                        fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
+                        fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
+                        20
+                        );
+
+
+                    if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
+                    {
+                        var hrNorm = NormalizeFilterData(hr);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(hrNorm.Item1, hrNorm.Item2);
+                        SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
+                        SaveZip(csvTimePath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
+
+                        int t;
+                        if (int.TryParse(time, out t) && t != 0)
+                        {
+                            SavePng(csvStimuliPath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
+                            SaveZip(csvStimuliPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
+                            //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                        }
+                    }
+                    Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
+
                     /*
                     Log.LogMessage("Starting EEG");
                     foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
@@ -1884,22 +1909,9 @@ namespace Classification_App
                         SaveZip(csvPath + "EEG_" + item + ".csv", eegNorm.Item1, eegNorm.Item2);
                     }
                     Log.LogMessage("EEG done");
+                    */
 
-                    Log.LogMessage("Starting HR");
-                    var hr = FilterData(
-                        fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
-                        fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
-                        20
-                        );
-
-
-                    if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
-                    {
-                        var hrNorm = NormalizeFilterData(hr);
-
-                        SaveZip(csvPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
-                    }
-                    Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
+                    /*
 
                     Log.LogMessage("Starting Kinect");
                     foreach (Microsoft.Kinect.Face.FaceShapeAnimations item in Enum.GetValues(typeof(Microsoft.Kinect.Face.FaceShapeAnimations)))
@@ -2158,10 +2170,10 @@ namespace Classification_App
             var together = A.Select(x => Tuple.Create(x.Item1, x.Item2, true)).Concat(B.Select(y => Tuple.Create(y.Item1, y.Item2, false))).OrderBy(x => x.Item1).ToList();
             for (int i = 0; i < together.Count - 2; i++)
             {
-                if (PairTupleCompare(together[i], together[i + 1]) && PairTupleCompare(together[i+1], together[i + 2]))
+                if (PairTupleCompare(together[i], together[i + 1]) && PairTupleCompare(together[i + 1], together[i + 2]))
                 {
                     //together.RemoveAt(i + 1);
-                    together[i+1] = null;
+                    together[i + 1] = null;
 
                     if (i == 0)
                     {
@@ -2177,7 +2189,7 @@ namespace Classification_App
             A = together.Where(x => x != null && x.Item3).Select(x => Tuple.Create(x.Item1, x.Item2)).ToList();
             B = together.Where(x => x != null && !x.Item3).Select(x => Tuple.Create(x.Item1, x.Item2)).ToList();
             removed = together.Count - A.Count - B.Count;
-            
+
 
             //for (int i = 0; i < Ain.Count - 2; i++)
             //{
@@ -2337,7 +2349,7 @@ namespace Classification_App
             //    secondClosestB.Add(B[(int)secondBestDistId].Item2);
             //}
 
-            
+
 
             return Tuple.Create((A.Count + B.Count) / (double)(Ain.Count + Bin.Count), A.Select(x => x.Item2).ToList(), B.Select(x => x.Item2).ToList(), new List<double>());
 
