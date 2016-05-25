@@ -1877,9 +1877,11 @@ namespace Classification_App
                     if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
                     {
                         var hrNorm = NormalizeFilterData(hr);
-                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(hrNorm.Item1.GetRange(0, Math.Min(hrNorm.Item1.Count, hrNorm.Item2.Count)), hrNorm.Item2.GetRange(0, Math.Min(hrNorm.Item1.Count, hrNorm.Item2.Count)));
+                        var setA = hrNorm.Item1.MedianFilter(25);
+                        var setB = hrNorm.Item2.MedianFilter(25);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, Math.Min(setA.Count, setB.Count)), setB.GetRange(0, Math.Min(setA.Count, setB.Count)));
                         SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
-                        SaveZip(csvTimePath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
+                        SaveZip(csvTimePath + "HR.csv", setA, setB);
 
                         int t;
                         if (int.TryParse(time, out t) && t != 0)

@@ -242,12 +242,33 @@ namespace Classification_App
 
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
 
                 return null;
             }
             return tempCopy;
+        }
+
+        public static List<double> MedianFilter(this List<double> input, int windowSize)
+        {
+            List<double> newValues = new List<double>();
+
+            for (int i = 0; i < input.Count - windowSize; i++)
+            {
+                List<double> tempValues = new List<double>();
+
+                for (int j = 0; j < windowSize; j++)
+                {
+                    tempValues.Add(input[i + j]);
+                }
+
+                newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
+            }
+
+            return newValues;
+
+
         }
     }
 }
