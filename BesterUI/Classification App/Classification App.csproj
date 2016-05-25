@@ -120,6 +120,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnomaliSerializer.cs" />
     <Compile Include="AnomalyDetection.cs">
       <SubType>Form</SubType>
     </Compile>

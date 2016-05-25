@@ -71,6 +71,8 @@ namespace Classification_App
             }
         }
 
+
+        string path = "";
         private async void btn_loadData_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
@@ -78,7 +80,7 @@ namespace Classification_App
             if (fbd.ShowDialog() == DialogResult.OK)
             {
 
-                string path = fbd.SelectedPath;
+                path = fbd.SelectedPath;
                 string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
                 sw.Start();
                 Log.LogMessage($"Loading Data");
@@ -127,9 +129,12 @@ namespace Classification_App
                 Log.LogMessage($"Normalizing FACE Feature: {sw.Elapsed}");
                 featureVectors[SENSOR.FACE] = featureVectors[SENSOR.FACE].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
 
+                Log.LogMessage("Saving Feature Vectors");
+                AnomaliSerializer.SaveFeatureVectors(featureVectors, path);
 
                 SetupMachines();
                 Log.LogMessage("Done setting up machines");
+                btn_getData.Enabled = true;
 
             }
         }
@@ -408,7 +413,7 @@ namespace Classification_App
 
         private void btn_getData_Click(object sender, EventArgs e)
         {
-            List<OneClassFV> anomali = new List<OneClassFV>();
+            Dictionary<SENSOR,List<OneClassFV>> anomali = new Dictionary<SENSOR, List<OneClassFV>>();
             List<OneClassFV> outliersFromSam = new List<OneClassFV>();
             sw.Restart();
             /*  foreach (Events ev in events)
@@ -424,15 +429,11 @@ namespace Classification_App
               }*/
             foreach (SENSOR key in featureVectors.Keys)
             {
-
                 Log.LogMessage($"Predicting {key}: {sw.Elapsed}");
-                anomali = PredictSlice(key, featureVectors[key]);
+                anomali.Add(key,PredictSlice(key, featureVectors[key]));
             }
-            
 
-            var x = anomali;
+            AnomaliSerializer.SaveAnomalis(anomali, path, STEP_SIZE);
         }
-
-
     }
 }
