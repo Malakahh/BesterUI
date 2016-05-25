@@ -172,7 +172,7 @@ namespace BesterUI
                         {
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
-                            hrData = hrData.Where(x => x.signal < 2000).ToList();
+                            hrData = hrData.Where(x => x.signal < 2000 && x.isBeat).ToList();
                             hrData = HRMedianFilter(hrData, 25, (x) => x.IBI.Value);
                             shouldRun.Add(s, true);
                         }
