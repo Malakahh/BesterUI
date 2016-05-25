@@ -173,6 +173,7 @@ namespace BesterUI
                             Log.LogMessage("Loading HR data");
                             hrData = DataReading.LoadFromFile<HRDataReading>(file, dT);
                             hrData = hrData.Where(x => x.signal < 2000).ToList();
+                            hrData = HRMedianFilter(hrData, 25, (x) => x.IBI.Value);
                             shouldRun.Add(s, true);
                         }
                         else
@@ -215,6 +216,21 @@ namespace BesterUI
             for (int i = 0; i < data.Count - windowSize; i++)
             {
                 List<GSRDataReading> tempValues = data.Skip(i).Take(windowSize).OrderBy(x => x.resistance).ToList();
+                newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
+            }
+            newValues = newValues.Distinct().ToList();
+            newValues = newValues.OrderBy(x => x.timestamp).ToList();
+            return newValues;
+
+        }
+
+        public static List<HRDataReading> HRMedianFilter(List<HRDataReading> data, int windowSize, Func<HRDataReading, int> valuer)
+        {
+            Log.LogMessage("Doing median filter on HR data");
+            List<HRDataReading> newValues = new List<HRDataReading>();
+            for (int i = 0; i < data.Count - windowSize; i++)
+            {
+                List<HRDataReading> tempValues = data.Skip(i).Take(windowSize).OrderBy(valuer).ToList();
                 newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
             }
             newValues = newValues.Distinct().ToList();
