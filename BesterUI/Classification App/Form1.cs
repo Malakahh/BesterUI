@@ -1952,8 +1952,8 @@ namespace Classification_App
 
 
                             var kiNorm = NormalizeFilterData(kinect);
-                            var setA = kiNorm.Item1;//.AveragePointReductionFilter(5);
-                            var setB = kiNorm.Item2;//.AveragePointReductionFilter(5);
+                            var setA = kiNorm.Item1.MovingAverageFilter(25);
+                            var setB = kiNorm.Item2.MovingAverageFilter(25);
                             var min = Math.Min(setA.Count, setB.Count);
                             Log.LogMessage($"{item} done, data filtered: {kinect.Item1.ToString("0.0")}%");
 
