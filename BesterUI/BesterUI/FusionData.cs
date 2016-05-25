@@ -230,7 +230,13 @@ namespace BesterUI
             List<HRDataReading> newValues = new List<HRDataReading>();
             for (int i = 0; i < data.Count - windowSize; i++)
             {
-                List<HRDataReading> tempValues = data.Skip(i).Take(windowSize).OrderBy(valuer).ToList();
+                List<HRDataReading> tempValues = new List<HRDataReading>();
+
+                for (int j = 0; j < windowSize; j++)
+                {
+                    tempValues.Add(data[i + j]);
+                }
+
                 newValues.Add(tempValues.ElementAt((int)Math.Round((double)windowSize / 2)));
             }
             newValues = newValues.Distinct().ToList();
