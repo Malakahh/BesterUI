@@ -1848,7 +1848,7 @@ namespace Classification_App
                     if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                     {
                         var gsrNorm = NormalizeFilterData(gsr);
-                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1, gsrNorm.Item2);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1.GetRange(0, Math.Min(gsrNorm.Item1.Count, gsrNorm.Item2.Count)), gsrNorm.Item2.GetRange(0, Math.Min(gsrNorm.Item1.Count, gsrNorm.Item2.Count)));
                         //var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
                         //var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
                         //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
@@ -1877,7 +1877,7 @@ namespace Classification_App
                     if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
                     {
                         var hrNorm = NormalizeFilterData(hr);
-                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(hrNorm.Item1, hrNorm.Item2);
+                        var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(hrNorm.Item1.GetRange(0, Math.Min(hrNorm.Item1.Count, hrNorm.Item2.Count)), hrNorm.Item2.GetRange(0, Math.Min(hrNorm.Item1.Count, hrNorm.Item2.Count)));
                         SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
                         SaveZip(csvTimePath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
 
@@ -2435,7 +2435,7 @@ namespace Classification_App
                             {
                                 continue;
                             }
-                            
+
                             resultFiles.Add(resultFile.Split('\\').Last());
 
                             string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
