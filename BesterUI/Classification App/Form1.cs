@@ -2368,6 +2368,7 @@ namespace Classification_App
                 List<string> sensors = new List<string>();
                 List<int> times = new List<int>();
                 List<string> stimulis = new List<string>();
+                List<string> resultFiles = new List<string>();
 
                 foreach (var folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
@@ -2426,18 +2427,24 @@ namespace Classification_App
                     big5List["time" + time].Add(big5);
                     big5List["stim" + stimuli].Add(big5);
                     big5List["total"].Add(big5);
-
                     foreach (var folderToExamine in foldersToExamine)
                     {
                         foreach (var resultFile in Directory.GetFiles(folderToExamine).Where(f => f.Split('\\').Last().StartsWith(subject) && f.Split('\\').Last().EndsWith(".txt")))
                         {
+                            if (resultFiles.Contains(resultFile.Split('\\').Last()) || !folderToExamine.Contains("Time") && !foldersToExamine.Contains("Stimuli"))
+                            {
+                                continue;
+                            }
+                            
+                            resultFiles.Add(resultFile.Split('\\').Last());
+
                             string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
 
                             if (!sensors.Contains(sensor)) sensors.Add(sensor);
 
                             var resultLines = File.ReadAllLines(resultFile);
-                            string correlationLine = resultLines.First(x => x.Contains("Pearson"));
-                            string significanceLine = resultLines.First(x => x.Contains("Sig."));
+                            string correlationLine = resultLines.First(x => x.Contains("|Pearson"));
+                            string significanceLine = resultLines.First(x => x.Contains("|Sig."));
 
                             if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
                             {
@@ -2448,6 +2455,7 @@ namespace Classification_App
                             double significance = double.Parse(significanceLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
 
                             var result = Tuple.Create(correlation, significance);
+
 
                             if (!timeTable.ContainsKey(sensor))
                             {
@@ -2465,9 +2473,8 @@ namespace Classification_App
                             }
 
                             timeTable[sensor][time].Add(result);
-                            stimuliTable[sensor][stimuli].Add(result);
-
                             totalList[sensor].Add(result);
+                            stimuliTable[sensor][stimuli].Add(result);
 
                             if (correlation > 0)
                             {
@@ -2519,6 +2526,7 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", timeToWrite);
                 }
 
+                /*
                 //correlation and reverse correlation
                 foreach (var time in times)
                 {
@@ -2535,6 +2543,7 @@ namespace Classification_App
 
                     foreach (var sensor in sensors)
                     {
+
                         double correlationAvgCorrelation = timeTable[sensor][time].Where(x => x.Item1 >= 0).Average(x => x.Item1);
                         double correlationStdevCorrelation = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Where(x => x.Item1 >= 0).Select(x => x.Item1).ToArray());
                         double correlationAvgSignificance = timeTable[sensor][time].Where(x => x.Item1 >= 0).Average(x => x.Item2);
@@ -2558,7 +2567,7 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/correlationTime" + time + ".txt", correlationTimeToWrite);
                     File.WriteAllLines(fbd.SelectedPath + "/reverseCorrelationTime" + time + ".txt", reverseCorrelationTimeToWrite);
                 }
-
+                */
 
                 foreach (var time in times)
                 {
