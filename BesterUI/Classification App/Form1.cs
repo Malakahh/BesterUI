@@ -1908,12 +1908,12 @@ namespace Classification_App
                         Log.LogMessage("Starting EEG");
                         foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
                         {
-                            //var eeg = FilterData(
-                            //    fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                            //    fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
-                            //    8
-                            //    );
                             var eeg = FilterData(
+                                fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                                fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                                8
+                                );
+                            var eeg2 = FilterData(
                                 fdTest.eegData.SkipWhile(x => x.timestamp < firstTwoTasksDone).TakeWhile(x => x.timestamp < firstTwoTasksDone + 180000).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
                                 fdRecall.eegData.SkipWhile(x => x.timestamp - offset < firstTwoTasksDone).TakeWhile(x => x.timestamp - offset < firstTwoTasksDone + 180000).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
                                 8
@@ -1930,12 +1930,23 @@ namespace Classification_App
                             SavePng(csvTimePath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
                             SaveZip(csvTimePath + "EEG_" + item + ".csv", setA, setB);
 
+                            var eegNorm2 = NormalizeFilterData(eeg2);
+                            var setA2 = eegNorm2.Item1;
+                            var setB2 = eegNorm2.Item2;
+                            var min2 = Math.Min(setA2.Count, setB2.Count);
+                            Log.LogMessage($"{item} done, data filtered: {eeg2.Item1.ToString("0.0")}%");
+                            var pearsCorr2 = MathNet.Numerics.Statistics.Correlation.Pearson(setA2.GetRange(0, min2), setB2.GetRange(0, min2));
+                            SavePng(csvTimePath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
+                            SaveZip(csvTimePath + "EEG2_" + item + ".csv", setA2, setB2);
+
                             int t;
                             if (int.TryParse(time, out t) && t != 0)
                             {
                                 SavePng(csvStimuliPath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
                                 SaveZip(csvStimuliPath + "EEG_" + item + ".csv", setA, setB);
-                                //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                                SavePng(csvStimuliPath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
+                                SaveZip(csvStimuliPath + "EEG2_" + item + ".csv", setA2, setB2);
+
                             }
                         }
                         Log.LogMessage("EEG done");
