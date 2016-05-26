@@ -1789,10 +1789,10 @@ namespace Classification_App
                     if (dirPath == "results") continue;
                     List<string> files = new List<string>()
                     {
-                        //"EEG.dat",
-                        //"GSR.dat",
-                        //"HR.dat",
-                        "KINECT.dat"
+                        "EEG.dat",
+                        "GSR.dat",
+                        "HR.dat",
+                        //"KINECT.dat"
                     };
 
                     files.RemoveAll(f => !File.Exists($"{dirPath}/test/{f}") || !File.Exists($"{dirPath}/recall/{f}"));
@@ -1824,6 +1824,7 @@ namespace Classification_App
                     string time = metaLines[0].Split('=').Last();
 
                     int waitPeriodDone = int.Parse(testEvents[0].Split('#')[0]);
+                    int firstTwoTasksDone = int.Parse(testEvents[2].Split('#')[0]);
                     int wholePeriodDone = int.Parse(testEvents[testEvents.Length - 2].Split('#')[0]);
                     //int waitPeriodDone = 180000;
 
@@ -1841,7 +1842,7 @@ namespace Classification_App
                         Log.LogMessage("Starting GSR");
 
                         var fdTestGsr = fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList();
-                        var fdRecallGsr = fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList();
+                        var fdRecallGsr = fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList();
 
                         var gsr = FilterData(
                                 fdTestGsr,
@@ -1877,7 +1878,7 @@ namespace Classification_App
                         Log.LogMessage("Starting HR");
                         var hr = FilterData(
                             fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
-                            fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
+                            fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
                             20
                             );
 
@@ -1907,9 +1908,14 @@ namespace Classification_App
                         Log.LogMessage("Starting EEG");
                         foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
                         {
+                            //var eeg = FilterData(
+                            //    fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                            //    fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                            //    8
+                            //    );
                             var eeg = FilterData(
-                                fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                                fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                                fdTest.eegData.SkipWhile(x => x.timestamp < firstTwoTasksDone).TakeWhile(x => x.timestamp < firstTwoTasksDone + 180000).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                                fdRecall.eegData.SkipWhile(x => x.timestamp - offset < firstTwoTasksDone).TakeWhile(x => x.timestamp - offset < firstTwoTasksDone + 180000).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
                                 8
                                 );
 
@@ -1944,7 +1950,7 @@ namespace Classification_App
 
                             var kinect = FilterData(
                                 fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                                fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                                fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
                                 34
                                 );
 
