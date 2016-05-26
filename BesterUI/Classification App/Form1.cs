@@ -1930,22 +1930,30 @@ namespace Classification_App
                             SavePng(csvTimePath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
                             SaveZip(csvTimePath + "EEG_" + item + ".csv", setA, setB);
 
-                            var eegNorm2 = NormalizeFilterData(eeg2);
-                            var setA2 = eegNorm2.Item1;
-                            var setB2 = eegNorm2.Item2;
-                            var min2 = Math.Min(setA2.Count, setB2.Count);
-                            Log.LogMessage($"{item} done, data filtered: {eeg2.Item1.ToString("0.0")}%");
-                            var pearsCorr2 = MathNet.Numerics.Statistics.Correlation.Pearson(setA2.GetRange(0, min2), setB2.GetRange(0, min2));
-                            SavePng(csvTimePath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
-                            SaveZip(csvTimePath + "EEG2_" + item + ".csv", setA2, setB2);
+                            if (eeg2.Item2.Count != 0 && eeg.Item3.Count != 0)
+                            {
+                                var eegNorm2 = NormalizeFilterData(eeg2);
+                                var setA2 = eegNorm2.Item1;
+                                var setB2 = eegNorm2.Item2;
+                                var min2 = Math.Min(setA2.Count, setB2.Count);
+                                Log.LogMessage($"{item} done, data filtered: {eeg2.Item1.ToString("0.0")}%");
+                                var pearsCorr2 = MathNet.Numerics.Statistics.Correlation.Pearson(setA2.GetRange(0, min2), setB2.GetRange(0, min2));
+                                SavePng(csvTimePath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
+                                SaveZip(csvTimePath + "EEG2_" + item + ".csv", setA2, setB2);
+                                int t2;
+                                if (int.TryParse(time, out t2) && t2 != 0)
+                                {
+                                    SavePng(csvStimuliPath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
+                                    SaveZip(csvStimuliPath + "EEG2_" + item + ".csv", setA2, setB2);
+
+                                }
+                            }
 
                             int t;
                             if (int.TryParse(time, out t) && t != 0)
                             {
                                 SavePng(csvStimuliPath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
                                 SaveZip(csvStimuliPath + "EEG_" + item + ".csv", setA, setB);
-                                SavePng(csvStimuliPath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
-                                SaveZip(csvStimuliPath + "EEG2_" + item + ".csv", setA2, setB2);
 
                             }
                         }
