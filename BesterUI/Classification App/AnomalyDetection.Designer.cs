@@ -34,6 +34,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
             this.load_data_from_files = new System.Windows.Forms.Button();
+            this.runAllButton = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btn_loadData
@@ -95,11 +97,33 @@
             this.load_data_from_files.UseVisualStyleBackColor = true;
             this.load_data_from_files.Click += new System.EventHandler(this.load_data_from_files_Click);
             // 
+            // runAllButton
+            // 
+            this.runAllButton.Location = new System.Drawing.Point(13, 157);
+            this.runAllButton.Name = "runAllButton";
+            this.runAllButton.Size = new System.Drawing.Size(137, 23);
+            this.runAllButton.TabIndex = 6;
+            this.runAllButton.Text = "Calculate All features";
+            this.runAllButton.UseVisualStyleBackColor = true;
+            this.runAllButton.Click += new System.EventHandler(this.runAllButton_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(14, 186);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(137, 23);
+            this.button1.TabIndex = 7;
+            this.button1.Text = "Calculate anomalis";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // AnomalyDetection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(662, 368);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.runAllButton);
             this.Controls.Add(this.load_data_from_files);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.label1);
@@ -121,5 +145,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label statusLabel;
         private System.Windows.Forms.Button load_data_from_files;
+        private System.Windows.Forms.Button runAllButton;
+        private System.Windows.Forms.Button button1;
     }
 }

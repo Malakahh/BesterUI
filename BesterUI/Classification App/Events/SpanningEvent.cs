@@ -8,7 +8,6 @@ namespace Classification_App.Evnt
 {
     class SpanningEvent : Events
     {
-        private double percentageToHit;
 
         public SpanningEvent(int startTimeStamp, int endTimestamp, string eventName, double percentageToHit): base(startTimeStamp, endTimestamp, eventName)
         {

@@ -9,6 +9,7 @@ namespace Classification_App.Evnt
     class Events
     {
         protected PointsOfInterest POI;
+        public double percentageToHit = 1;
         private bool _POIchanged = true;
         public int startTimestamp;
         public int endTimestamp = 0;
@@ -45,7 +46,7 @@ namespace Classification_App.Evnt
 
         protected virtual bool CalculateHit()
         {
-            return POI.IsPointFlagged(endTimestamp);
+            return POI.PercentageAreaHit(endTimestamp, endTimestamp) >= percentageToHit;
         }
 
         public Events Copy()

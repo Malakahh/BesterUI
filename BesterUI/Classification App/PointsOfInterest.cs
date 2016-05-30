@@ -70,19 +70,19 @@ namespace Classification_App
         {
             foreach (Tuple<int, int> area in flaggedAreas)
             {
-                if (area.Item1 > startTime && area.Item2 < endTime)
+                if (area.Item1 < startTime && endTime < area.Item2)
                 {
                     return 1;
                 }
-                else if (area.Item1 > startTime && area.Item2 > endTime)
+                else if (area.Item1 >= startTime && area.Item2 >= endTime && area.Item1 <= endTime)
                 {
                     return (endTime - area.Item1) / (area.Item2 - area.Item1);
                 }
-                else if (area.Item1 < startTime && area.Item2 < endTime)
+                else if (area.Item1 <= startTime && area.Item2 <= endTime && area.Item2 >= startTime)
                 {
                     return (area.Item2 - startTime) / (area.Item2 - area.Item1);
                 }
-                else if (area.Item1 < startTime && area.Item2 > endTime)
+                else if (startTime  <= area.Item1 && area.Item2 <= endTime)
                 {
                     return (endTime - startTime) / (area.Item2 - area.Item1);
                 }
