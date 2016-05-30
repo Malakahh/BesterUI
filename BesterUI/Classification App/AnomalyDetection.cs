@@ -15,6 +15,7 @@ using System.IO;
 using LibSVMsharp;
 using System.Threading;
 using System.Diagnostics;
+using Classification_App.Evnt;
 using Microsoft.Kinect.Face;
 
 namespace Classification_App
@@ -88,11 +89,7 @@ namespace Classification_App
 
                 Log.LogMessage($"Getting Events: {sw.Elapsed}");
                 string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
-                foreach (string ev in tmpevents)
-                {
-                    string[] split = ev.Split('#');
-                    events.Add(new Events(int.Parse(split[0]), split[1]));
-                }
+                LoadEvents(tmpevents);
 
 
                 /*string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
@@ -305,7 +302,7 @@ namespace Classification_App
         {
 
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
-            int trainingEnd = events[2].timestamp;
+            int trainingEnd = events[2].endTimestamp;
             foreach (SENSOR sensor in Enum.GetValues(typeof(SENSOR)))
             {
                 CreateSVM(sensor, featureVectors[sensor].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
@@ -367,11 +364,10 @@ namespace Classification_App
         private void GroupByEvent()
         {
             //We have no event for "pre-resting", this holds all outliers predicted in that period.
-            Events rest_event = new Events(0, "Resting Period");
+          /*  Events rest_event = new Events(0, "Resting Period");
 
             foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
             {
-
                 for (int i = 0; i < events.Count; i++)
                 {
                     foreach (OneClassFV outlier in predictions[s])
@@ -407,33 +403,185 @@ namespace Classification_App
                         }
                     }
                 }
-            }
+            }*/
         }
-
 
         private void btn_getData_Click(object sender, EventArgs e)
         {
             Dictionary<SENSOR,List<OneClassFV>> anomali = new Dictionary<SENSOR, List<OneClassFV>>();
+            Dictionary<SENSOR, List<Events>> eventResult = new Dictionary<SENSOR, List<Events>>();
             List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+            Dictionary<SENSOR, PointsOfInterest> dPointsOfInterest = new Dictionary<SENSOR, PointsOfInterest>();
             sw.Restart();
-            /*  foreach (Events ev in events)
-              {
-                  var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], ev.timestamp));
-                  anomali.AddRange(preds);
-              }
-
-              foreach (samEvents sev in sEvents)
-              {
-                  var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], sev.timestamp));
-                  outliersFromSam.AddRange(preds);
-              }*/
             foreach (SENSOR key in featureVectors.Keys)
             {
                 Log.LogMessage($"Predicting {key}: {sw.Elapsed}");
                 anomali.Add(key,PredictSlice(key, featureVectors[key]));
+                dPointsOfInterest.Add(key,new PointsOfInterest(anomali[key]));
             }
-
+            foreach (SENSOR key in dPointsOfInterest.Keys)
+            {
+                List<Events> tempEvents = new List<Events>();
+                foreach (Events p in events)
+                {
+                    p.SetPointOfInterest(dPointsOfInterest[key]);
+                    tempEvents.Add(p.Copy());
+                }
+                eventResult.Add(key, tempEvents);
+            }
             AnomaliSerializer.SaveAnomalis(anomali, path, STEP_SIZE);
+            AnomaliSerializer.SaveEvents(eventResult, path);
+            AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
+        }
+
+        private void load_data_from_files_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+
+                path = fbd.SelectedPath;
+                string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+                sw.Start();
+                Log.LogMessage($"Loading Data");
+                featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
+                string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
+                LoadEvents(tmpevents);
+                SetupMachines();
+                Log.LogMessage("Done setting up machines");
+                btn_getData.Enabled = true;
+
+            }
+        }
+        public void LoadEvents(string[] tmpevents)
+        {
+            List<string> eventList = tmpevents.ToList();
+            #region [Instant]
+            //Add Attachment
+            for (int i  = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("AddAttachmentButtonClick:"))
+                {
+                    //+2000 for delay for the failed message shown
+                    events.Add(new InstantEvents(int.Parse(temp[0]) + 2000, int.Parse(temp[0]) + 2000, temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            //Send draft
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("SendDraft error shown"))
+                {
+                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            //Not responding
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("NotResponding"))
+                {
+                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            //Remove contact
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("RemoveContact clicked"))
+                {
+                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            #endregion
+            #region [Non-instant]
+            //Add contact
+            int firstContactClick = 0;
+            int lastContactClick = 0;
+            for (int i = eventList.Count-1; i >= 0; i--)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("Add Contact Button click: 1"))
+                {
+                    firstContactClick = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    break;
+                }
+                else if (temp[1].Contains("Add Contact Button click: 2"))
+                {
+                    firstContactClick = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    continue;
+                }
+                else if (temp[1].Contains("Add Contact Button click: 3"))
+                {
+                    lastContactClick = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    continue;
+                }
+            }
+            events.Add(new SpanningEvent(firstContactClick, lastContactClick, "Send Draft", 0.7));
+
+            //Caret Movement
+            int firstCaretMoved = 0;
+            int lastCaretMoved = 0;
+            bool lastSet = true;
+            for (int i = eventList.Count - 1; i >= 0; i--)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("Caret Moved"))
+                {
+                    if (lastSet)
+                    {
+                        lastCaretMoved = int.Parse(temp[0]);
+                        eventList.RemoveAt(i);
+                        lastSet = false;
+                        continue;
+                    }
+                    else
+                    {
+                        firstCaretMoved = int.Parse(temp[0]);
+                        eventList.RemoveAt(i);
+                        continue;
+                    }
+
+                }
+                else if (temp[1].Contains("BogusMessage: Text Changed"))
+                {
+                    eventList.RemoveAt(i);
+                }
+           }
+            events.Add(new SpanningEvent(firstCaretMoved, lastCaretMoved, "CaretMoved", 0.5));
+
+            //Language
+            int langugeChanged = 0;
+            int languageTaskDone = 0;
+            for (int i = eventList.Count - 1; i >= 0; i--)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("CreateDraft, language changed to: US"))
+                {
+                    langugeChanged = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    continue;
+                }
+                else if (temp[1].Contains("TaskWizard - BtnCompleteClicked - CreateDraft") || temp[1].Contains("TaskWizard - BtnIncompleteClicked - CreateDraft"))
+                {
+                    languageTaskDone = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                }
+            }
+            events.Add(new SpanningEvent(langugeChanged, languageTaskDone, "Language Changed", 0.75));
+
+
+            #endregion
         }
     }
+   
 }

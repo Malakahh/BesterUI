@@ -3,15 +3,40 @@ using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using Classification_App.Evnt;
 
 namespace Classification_App
 {
     static class AnomaliSerializer
     {
         #region [Feature Vectors]
-        public static Dictionary<SENSOR, List<OneClassFV>> LoadFeatureVectors(string path)
+        public static ConcurrentDictionary<SENSOR, List<OneClassFV>> LoadFeatureVectors(string path)
         {
-            throw new Exception("Not implemented");
+            ConcurrentDictionary<SENSOR, List<OneClassFV>> featureVectors = new ConcurrentDictionary<SENSOR, List<OneClassFV>>();
+
+            if (!Directory.Exists(path + "/FeatureVectors"))
+            {
+                return null;
+            }
+            foreach (SENSOR key in Enum.GetValues(typeof(SENSOR)))
+            {
+                string[] data = File.ReadAllLines(path + "/FeatureVectors/" + key.ToString() + ".txt");
+
+                List<OneClassFV> featureVector = new List<OneClassFV>();
+                for (int i = 1; i < data.Length; i++)
+                {
+                    int time = int.Parse(data[i].Split(':')[0]);
+                    List<double> values = data[i].Split(':')[1].Split(';').Select(x=> double.Parse(x)).ToList();
+                    LibSVMsharp.SVMNode[] node = new LibSVMsharp.SVMNode[values.Count];
+                    for(int j = 0; j < values.Count; j++)
+                    {
+                        node[j] = new LibSVMsharp.SVMNode(j + 1, values[j]);
+                    }
+                    featureVector.Add(new OneClassFV(node, time));
+                }
+                featureVectors.TryAdd(key, featureVector);
+            }
+            return featureVectors;
         }
 
         public static void SaveFeatureVectors(ConcurrentDictionary<SENSOR, List<OneClassFV>> featureVectors, string path)
@@ -27,9 +52,9 @@ namespace Classification_App
                 
                 foreach (OneClassFV fv in featureVectors[key])
                 {
-                    string tempVector = fv.TimeStamp.ToString() 
-                                        + ":" 
-                                        + string.Join(",", Array.ConvertAll(fv.Features, x => x.Value.ToString()));
+                    string tempVector = fv.TimeStamp.ToString()
+                                        + ":"
+                                        + string.Join(";", Array.ConvertAll(fv.Features, x => x.Value.ToString()));
                     data.Add(tempVector);
                 }
                 File.WriteAllLines(path + "/FeatureVectors/" + key.ToString() + ".txt", data);
@@ -54,6 +79,46 @@ namespace Classification_App
                     data.Add(fv.TimeStamp.ToString());
                 }
                 File.WriteAllLines(path + "/Anomalis/" + key.ToString() + ".txt", data);
+            }
+        }
+
+        public static void SavePointsOfInterest(Dictionary<SENSOR, PointsOfInterest> POIs, string path)
+        {
+            if (!Directory.Exists(path + "/POI"))
+            {
+                Directory.CreateDirectory(path + "/POI");
+            }
+            foreach (SENSOR key in POIs.Keys)
+            {
+                List<string> data = new List<string>();
+                var tempAreas = POIs[key].GetFlaggedAreas();
+                foreach (Tuple<int, int> area in tempAreas)
+                {
+                    data.Add($"{area.Item1}, {area.Item2}");
+                }
+                File.WriteAllLines(path + "/POI/" + key.ToString() + ".txt", data);
+            }
+        }
+
+        public static void SaveEvents(Dictionary<SENSOR, List<Events>> events, string path)
+        {
+            if (!Directory.Exists(path + "/Events"))
+            {
+                Directory.CreateDirectory(path + "/Events");
+            }
+            foreach (SENSOR key in events.Keys)
+            {
+                List<string> data = new List<string>();
+
+                foreach (Events ev in events[key])
+                {
+                    data.Add($"{ev.eventName}, {ev.isHit}," 
+                        + ((ev.endTimestamp == 0) ? 
+                            $"{ ev.startTimestamp.ToString()} ; { ev.startTimestamp.ToString()}" :
+                            $"{ ev.startTimestamp.ToString()} + { ev.endTimestamp.ToString()}"
+                            ));
+                }
+                File.WriteAllLines(path + "/Events/" + key.ToString() + ".txt", data);
             }
         }
         #endregion
