@@ -950,6 +950,7 @@ namespace Classification_App
             {
                 Log.LogMessage("Starting Excel");
                 Excel.Application exc = new Excel.Application() { Visible = false };
+                List<string> skipped = new List<string>();
 
                 foreach (var path in files)
                 {
@@ -1020,7 +1021,15 @@ namespace Classification_App
 
                         foreach (SAMDataPoint.FeelingModel feel in Enum.GetValues(typeof(SAMDataPoint.FeelingModel)))
                         {
-                            if (accuracies[feel] == -1) continue;
+                            if (accuracies[feel] == -1)
+                            {
+                                //if (fileType == "GSR" || !feel.ToString().Contains("Valence"))
+                                //{
+                                //    skipped.Add(feel + tpName);
+                                //}
+
+                                //continue;
+                            }
 
                             if (!values[feel].ContainsKey(tpName))
                             {
@@ -1047,7 +1056,6 @@ namespace Classification_App
                     ["FACE"] = 4,
                     ["GSR"] = 5,
                 };
-
                 foreach (var feelValue in values)
                 {
                     Excel.Workbook anova = exc.Workbooks.Add(ExcelHandler.missingValue);
@@ -1055,6 +1063,19 @@ namespace Classification_App
 
                     foreach (var testSubject in feelValue.Value)
                     {
+                        //if (skipped.Contains(feelValue.Key + testSubject.Key)) continue;
+                        bool skip = false;
+                        foreach (var sensorType in testSubject.Value)
+                        {
+                            if (sensorType.Value < 0 && !(sensorType.Key == "GSR" && feelValue.Key.ToString().Contains("Valence")))
+                            {
+                                skip = true;
+                                skipped.Add(testSubject.Key + "_" + feelValue.Key + "_" + sensorType.Key);
+                            }
+                        }
+
+                        if (skip) continue;
+
                         foreach (var sensorType in testSubject.Value)
                         {
                             if (!anovals.ContainsKey(columns[sensorType.Key]))
@@ -1083,7 +1104,10 @@ namespace Classification_App
                     anova.SaveCopyAs(sd.FileName.Replace(".xlsx", $"_{feelValue.Key.ToString()}.xlsx"));
                     Log.LogMessage("Done with " + feelValue.Key);
                     anova.Close(false);
+
                 }
+
+                File.WriteAllLines(sd.FileName.Replace(".xlsx", "_skipped.txt"), skipped);
 
 
                 exc.Quit();
