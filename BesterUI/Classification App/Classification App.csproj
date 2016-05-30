@@ -128,7 +128,9 @@
       <DependentUpon>AnomalyDetection.cs</DependentUpon>
     </Compile>
     <Compile Include="DataProgressHandler.cs" />
-    <Compile Include="Events.cs" />
+    <Compile Include="Events\Events.cs" />
+    <Compile Include="Events\InstantEvents.cs" />
+    <Compile Include="Events\SpanningEvent.cs" />
     <Compile Include="ExcelHandler.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="Classifier.cs" />
@@ -145,6 +147,7 @@
     <Compile Include="MetaSVMConfiguration.cs" />
     <Compile Include="OneClassClassifier.cs" />
     <Compile Include="OneClassFV.cs" />
+    <Compile Include="PointsOfInterest.cs" />
     <Compile Include="PredictionResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

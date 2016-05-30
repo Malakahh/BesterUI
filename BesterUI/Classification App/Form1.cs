@@ -1813,9 +1813,9 @@ namespace Classification_App
                     if (dirPath == "results") continue;
                     List<string> files = new List<string>()
                     {
-                        "EEG.dat",
+                        //"EEG.dat",
                         "GSR.dat",
-                        "HR.dat",
+                        //"HR.dat",
                         //"KINECT.dat"
                     };
 

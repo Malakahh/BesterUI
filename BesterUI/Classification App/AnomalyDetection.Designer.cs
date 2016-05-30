@@ -33,6 +33,9 @@
             this.useRestInTraining = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.statusLabel = new System.Windows.Forms.Label();
+            this.load_data_from_files = new System.Windows.Forms.Button();
+            this.runAllButton = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btn_loadData
@@ -48,7 +51,7 @@
             // btn_getData
             // 
             this.btn_getData.Enabled = false;
-            this.btn_getData.Location = new System.Drawing.Point(13, 43);
+            this.btn_getData.Location = new System.Drawing.Point(12, 77);
             this.btn_getData.Name = "btn_getData";
             this.btn_getData.Size = new System.Drawing.Size(75, 23);
             this.btn_getData.TabIndex = 1;
@@ -69,7 +72,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 69);
+            this.label1.Location = new System.Drawing.Point(11, 103);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(40, 13);
             this.label1.TabIndex = 3;
@@ -78,17 +81,50 @@
             // statusLabel
             // 
             this.statusLabel.AutoSize = true;
-            this.statusLabel.Location = new System.Drawing.Point(58, 69);
+            this.statusLabel.Location = new System.Drawing.Point(57, 103);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(33, 13);
             this.statusLabel.TabIndex = 4;
             this.statusLabel.Text = "None";
+            // 
+            // load_data_from_files
+            // 
+            this.load_data_from_files.Location = new System.Drawing.Point(12, 42);
+            this.load_data_from_files.Name = "load_data_from_files";
+            this.load_data_from_files.Size = new System.Drawing.Size(137, 23);
+            this.load_data_from_files.TabIndex = 5;
+            this.load_data_from_files.Text = "Load Data From files";
+            this.load_data_from_files.UseVisualStyleBackColor = true;
+            this.load_data_from_files.Click += new System.EventHandler(this.load_data_from_files_Click);
+            // 
+            // runAllButton
+            // 
+            this.runAllButton.Location = new System.Drawing.Point(13, 157);
+            this.runAllButton.Name = "runAllButton";
+            this.runAllButton.Size = new System.Drawing.Size(137, 23);
+            this.runAllButton.TabIndex = 6;
+            this.runAllButton.Text = "Calculate All features";
+            this.runAllButton.UseVisualStyleBackColor = true;
+            this.runAllButton.Click += new System.EventHandler(this.runAllButton_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(14, 186);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(137, 23);
+            this.button1.TabIndex = 7;
+            this.button1.Text = "Calculate anomalis";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // AnomalyDetection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(662, 368);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.runAllButton);
+            this.Controls.Add(this.load_data_from_files);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.useRestInTraining);
@@ -108,5 +144,8 @@
         private System.Windows.Forms.CheckBox useRestInTraining;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.Button load_data_from_files;
+        private System.Windows.Forms.Button runAllButton;
+        private System.Windows.Forms.Button button1;
     }
 }

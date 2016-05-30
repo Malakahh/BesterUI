@@ -15,6 +15,7 @@ using System.IO;
 using LibSVMsharp;
 using System.Threading;
 using System.Diagnostics;
+using Classification_App.Evnt;
 using Microsoft.Kinect.Face;
 
 namespace Classification_App
@@ -88,11 +89,7 @@ namespace Classification_App
 
                 Log.LogMessage($"Getting Events: {sw.Elapsed}");
                 string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
-                foreach (string ev in tmpevents)
-                {
-                    string[] split = ev.Split('#');
-                    events.Add(new Events(int.Parse(split[0]), split[1]));
-                }
+                LoadEvents(tmpevents);
 
 
                 /*string[] tmpSevents = File.ReadAllLines(path + @"\sam.dat");
@@ -106,16 +103,16 @@ namespace Classification_App
                 Task gsrThread = Task.Run(() => CreateGSRFeatures(_fdAnomaly.gsrData));
                 Task eegThread = Task.Run(() => CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>()));
                 Task hrThread = Task.Run(() => CreateHRFeatures(_fdAnomaly.hrData));
-                Task faceThread = Task.Run(()=> CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>()));
+                Task faceThread = Task.Run(() => CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>()));
                 List<Task> threads = new List<Task>();
                 threads.Add(gsrThread);
                 threads.Add(eegThread);
                 threads.Add(hrThread);
                 threads.Add(faceThread);
                 await Task.WhenAll(threads.ToArray());
-                
+
                 Log.LogMessage("");
-               
+
 
                 Log.LogMessage($"Normalizing GSR Feature: {sw.Elapsed}");
                 featureVectors[SENSOR.GSR] = featureVectors[SENSOR.GSR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
@@ -144,18 +141,18 @@ namespace Classification_App
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (HR_DELAY + HR_DURATION); time += STEP_SIZE)
             {
                 SVMNode[] featureVector = new SVMNode[6];
-                List<HRDataReading> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < time + HR_DELAY).TakeWhile(x => time + HR_DURATION + HR_DELAY > (x.timestamp - data.First().timestamp)).Where(x=>x.isBeat).ToList();
+                List<HRDataReading> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < time + HR_DELAY).TakeWhile(x => time + HR_DURATION + HR_DELAY > (x.timestamp - data.First().timestamp)).Where(x => x.isBeat).ToList();
                 if (d.Count == 0)
                 {
                     continue;
                 }
-                featureVector[0] = new SVMNode(1,d.Select(x=>(double)x.IBI).Average());
+                featureVector[0] = new SVMNode(1, d.Select(x => (double)x.IBI).Average());
                 double sd = Math.Sqrt(d.Average(x => Math.Pow((double)x.IBI - featureVector[0].Value, 2)));
-                featureVector[1] = new SVMNode(2,sd);
-                featureVector[2] = new SVMNode(3,d.Select(x => (double)x.BPM).Average());
-                featureVector[3] = new SVMNode(4,FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
-                featureVector[4] = new SVMNode(5,d.Max(x=>x.BPM));
-                featureVector[5] = new SVMNode(6,d.Min(x => x.BPM));
+                featureVector[1] = new SVMNode(2, sd);
+                featureVector[2] = new SVMNode(3, d.Select(x => (double)x.BPM).Average());
+                featureVector[3] = new SVMNode(4, FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
+                featureVector[4] = new SVMNode(5, d.Max(x => x.BPM));
+                featureVector[5] = new SVMNode(6, d.Min(x => x.BPM));
                 featureVectors[SENSOR.HR].Add(new OneClassFV(featureVector, time));
             }
             Log.LogMessage($"Calculation HR Feature Done: {sw.Elapsed}");
@@ -175,20 +172,20 @@ namespace Classification_App
                 foreach (string name in names)
                 {
                     //Arousal 
-                    featureVector[0] = new SVMNode(1,FeatureCreator.DASM(slice, name,
+                    featureVector[0] = new SVMNode(1, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
 
-                    featureVector[1] = new SVMNode(2,FeatureCreator.DASM(slice, name,
+                    featureVector[1] = new SVMNode(2, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
 
                     //Valence
-                    featureVector[2] = new SVMNode(3,FeatureCreator.DASM(slice, name,
+                    featureVector[2] = new SVMNode(3, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
 
-                    featureVector[3] = new SVMNode(4,FeatureCreator.DASM(slice, name,
+                    featureVector[3] = new SVMNode(4, FeatureCreator.DASM(slice, name,
                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
 
@@ -228,10 +225,10 @@ namespace Classification_App
                          (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
                          (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
 
-                    featureVector[0] = new SVMNode(1,mean);
-                    featureVector[1] = new SVMNode(2,sd);
-                    featureVector[2] = new SVMNode(3,max);
-                    featureVector[3] = new SVMNode(4,min);
+                    featureVector[0] = new SVMNode(1, mean);
+                    featureVector[1] = new SVMNode(2, sd);
+                    featureVector[2] = new SVMNode(3, max);
+                    featureVector[3] = new SVMNode(4, min);
                 }
 
                 featureVectors[SENSOR.FACE].Add(new OneClassFV(featureVector, time));
@@ -303,9 +300,9 @@ namespace Classification_App
 
         private void SetupMachines()
         {
-
+            machines.Clear();
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
-            int trainingEnd = events[2].timestamp;
+            int trainingEnd = events[2].endTimestamp;
             foreach (SENSOR sensor in Enum.GetValues(typeof(SENSOR)))
             {
                 CreateSVM(sensor, featureVectors[sensor].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
@@ -367,73 +364,386 @@ namespace Classification_App
         private void GroupByEvent()
         {
             //We have no event for "pre-resting", this holds all outliers predicted in that period.
-            Events rest_event = new Events(0, "Resting Period");
+            /*  Events rest_event = new Events(0, "Resting Period");
 
-            foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+              foreach (SENSOR s in Enum.GetValues(typeof(SENSOR)))
+              {
+                  for (int i = 0; i < events.Count; i++)
+                  {
+                      foreach (OneClassFV outlier in predictions[s])
+                      {
+                          if (i != events.Count - 1)
+                          {
+                              if (outlier.TimeStamp < events[i].timestamp && i == 0)
+                              {
+                                  //The outlier is prior any events, should be added to the rest period.
+                                  rest_event.AddOutlier(outlier);
+                                  events.Add(rest_event);
+
+                              }
+                              else if (outlier.TimeStamp >= events[i].timestamp && outlier.TimeStamp < events[i + 1].timestamp)
+                              {
+                                  events[i].AddOutlier(outlier);
+                              }
+                              else
+                              {
+                                  var wrong = outlier;
+                              }
+                          }
+                          else
+                          {
+                              if (outlier.TimeStamp >= events[i].timestamp)
+                              {
+                                  events[i].AddOutlier(outlier);
+                              }
+                              else
+                              {
+                                  var wrong = outlier;
+                              }
+                          }
+                      }
+                  }
+              }*/
+        }
+
+        private void btn_getData_Click(object sender, EventArgs e)
+        {
+            Dictionary<SENSOR, List<OneClassFV>> anomali = new Dictionary<SENSOR, List<OneClassFV>>();
+            Dictionary<SENSOR, List<Events>> eventResult = new Dictionary<SENSOR, List<Events>>();
+            List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+            Dictionary<SENSOR, PointsOfInterest> dPointsOfInterest = new Dictionary<SENSOR, PointsOfInterest>();
+            sw.Restart();
+            foreach (SENSOR key in featureVectors.Keys)
+            {
+                Log.LogMessage($"Predicting {key}: {sw.Elapsed}");
+                anomali.Add(key, PredictSlice(key, featureVectors[key]));
+                dPointsOfInterest.Add(key, new PointsOfInterest(anomali[key]));
+            }
+            foreach (SENSOR key in dPointsOfInterest.Keys)
+            {
+                List<Events> tempEvents = new List<Events>();
+                foreach (Events p in events)
+                {
+                    p.SetPointOfInterest(dPointsOfInterest[key]);
+                    tempEvents.Add(p.Copy());
+                }
+                eventResult.Add(key, tempEvents);
+            }
+            AnomaliSerializer.SaveAnomalis(anomali, path, STEP_SIZE);
+            AnomaliSerializer.SaveEvents(eventResult, path);
+            AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
+            Log.LogMessage("Done saving Anomalis, Events, and POIs");
+        }
+
+        private void load_data_from_files_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
             {
 
-                for (int i = 0; i < events.Count; i++)
-                {
-                    foreach (OneClassFV outlier in predictions[s])
-                    {
-                        if (i != events.Count - 1)
-                        {
-                            if (outlier.TimeStamp < events[i].timestamp && i == 0)
-                            {
-                                //The outlier is prior any events, should be added to the rest period.
-                                rest_event.AddOutlier(outlier);
-                                events.Add(rest_event);
+                path = fbd.SelectedPath;
+                string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+                sw.Start();
+                Log.LogMessage($"Loading Data");
+                featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
+                string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
+                LoadEvents(tmpevents);
+                SetupMachines();
+                Log.LogMessage("Done setting up machines");
+                btn_getData.Enabled = true;
 
-                            }
-                            else if (outlier.TimeStamp >= events[i].timestamp && outlier.TimeStamp < events[i + 1].timestamp)
-                            {
-                                events[i].AddOutlier(outlier);
-                            }
-                            else
-                            {
-                                var wrong = outlier;
-                            }
-                        }
-                        else
+            }
+        }
+
+        public void LoadEvents(string[] tmpevents)
+        {
+            events.Clear();
+            List<string> eventList = tmpevents.ToList();
+            #region [Instant]
+            //Add Attachment
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("AddAttachmentButtonClick:"))
+                {
+                    //+2000 for delay for the failed message shown
+                    events.Add(new InstantEvents(int.Parse(temp[0]) + 2000, int.Parse(temp[0]) + 2000, temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            //Send draft
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("SendDraft error shown"))
+                {
+                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            //Not responding
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("NotResponding"))
+                {
+                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            //Remove contact
+            for (int i = 0; i < eventList.Count; i++)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("RemoveContact clicked"))
+                {
+                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    eventList.RemoveAt(i);
+                }
+            }
+            #endregion
+            #region [Non-instant]
+            //Add contact
+            int firstContactClick = 0;
+            int lastContactClick = 0;
+            for (int i = eventList.Count - 1; i >= 0; i--)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("Add Contact Button click: 1"))
+                {
+                    firstContactClick = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    break;
+                }
+                else if (temp[1].Contains("Add Contact Button click: 2"))
+                {
+                    firstContactClick = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    continue;
+                }
+                else if (temp[1].Contains("Add Contact Button click: 3"))
+                {
+                    lastContactClick = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    continue;
+                }
+            }
+            events.Add(new SpanningEvent(firstContactClick, lastContactClick, "Send Draft", 0.7));
+
+            //Caret Movement
+            int firstCaretMoved = 0;
+            int lastCaretMoved = 0;
+            bool lastSet = true;
+            for (int i = eventList.Count - 1; i >= 0; i--)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("Caret Moved"))
+                {
+                    if (lastSet)
+                    {
+                        lastCaretMoved = int.Parse(temp[0]);
+                        eventList.RemoveAt(i);
+                        lastSet = false;
+                        continue;
+                    }
+                    else
+                    {
+                        firstCaretMoved = int.Parse(temp[0]);
+                        eventList.RemoveAt(i);
+                        continue;
+                    }
+
+                }
+                else if (temp[1].Contains("BogusMessage: Text Changed"))
+                {
+                    eventList.RemoveAt(i);
+                }
+            }
+            events.Add(new SpanningEvent(firstCaretMoved, lastCaretMoved, "CaretMoved", 0.5));
+
+            //Language
+            int langugeChanged = 0;
+            int languageTaskDone = 0;
+            for (int i = eventList.Count - 1; i >= 0; i--)
+            {
+                string[] temp = eventList[i].Split('#');
+                if (temp[1].Contains("CreateDraft, language changed to: US") || temp[1].Contains("CreateDraft, language changed to: Amerikansk"))
+                {
+                    langugeChanged = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                    continue;
+                }
+                else if (temp[1].Contains("TaskWizard - BtnCompleteClicked - CreateDraft") || temp[1].Contains("TaskWizard - BtnIncompleteClicked - CreateDraft"))
+                {
+                    languageTaskDone = int.Parse(temp[0]);
+                    eventList.RemoveAt(i);
+                }
+            }
+            events.Add(new SpanningEvent(langugeChanged, languageTaskDone, "Language Changed", 0.75));
+
+
+            #endregion
+        }
+
+        private async void runAllButton_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
+                {
+                    path = folder;
+                    path += "\test";
+                    string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+                    sw.Start();
+                    Log.LogMessage($"Loading Data");
+                    var KeepRunning = _fdAnomaly.LoadFromFile(new string[] { path + @"\EEG.dat", path + @"\GSR.dat", path + @"\HR.dat", path + @"\KINECT.dat" }, DateTime.Now, false);
+                    foreach (var k in KeepRunning.Keys)
+                    {
+                        if (KeepRunning[k] == false)
                         {
-                            if (outlier.TimeStamp >= events[i].timestamp)
-                            {
-                                events[i].AddOutlier(outlier);
-                            }
-                            else
-                            {
-                                var wrong = outlier;
-                            }
+                            Log.LogMessage($"Skipping: " + testSubjectId + " due to missing " + k.ToString());
+                            continue;
                         }
                     }
+
+                    Log.LogMessage($"Getting Events: {sw.Elapsed}");
+                    string[] tmpevents;
+                    try
+                    {
+                        tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.LogMessage($"Skipping {testSubjectId} due to {ex.Message}");
+                        continue;
+                    }
+                    LoadEvents(tmpevents);
+
+                    Task gsrThread = Task.Run(() => CreateGSRFeatures(_fdAnomaly.gsrData));
+                    Task eegThread = Task.Run(() => CreateEEGFeatures(_fdAnomaly.eegData.ToList<DataReading>()));
+                    Task hrThread = Task.Run(() => CreateHRFeatures(_fdAnomaly.hrData));
+                    Task faceThread = Task.Run(() => CreateFACEFeatures(_fdAnomaly.faceData.ToList<DataReading>()));
+                    List<Task> threads = new List<Task>();
+                    threads.Add(gsrThread);
+                    threads.Add(eegThread);
+                    threads.Add(hrThread);
+                    threads.Add(faceThread);
+                    await Task.WhenAll(threads.ToArray());
+
+                    Log.LogMessage("");
+
+
+                    Log.LogMessage($"Normalizing GSR Feature: {sw.Elapsed}");
+                    featureVectors[SENSOR.GSR] = featureVectors[SENSOR.GSR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                    Log.LogMessage($"Normalizing EEG Feature: {sw.Elapsed}");
+                    featureVectors[SENSOR.EEG] = featureVectors[SENSOR.EEG].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                    Log.LogMessage($"Normalizing HR Feature: {sw.Elapsed}");
+                    featureVectors[SENSOR.HR] = featureVectors[SENSOR.HR].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                    Log.LogMessage($"Normalizing FACE Feature: {sw.Elapsed}");
+                    featureVectors[SENSOR.FACE] = featureVectors[SENSOR.FACE].NormalizeFeatureVectorList(Normalize.ZeroOne).ToList();
+
+                    Log.LogMessage("Saving Feature Vectors");
+                    AnomaliSerializer.SaveFeatureVectors(featureVectors, path);
+
+                    SetupMachines();
+                    Log.LogMessage($"Done setting up machines for {testSubjectId}");
                 }
             }
         }
 
-
-        private void btn_getData_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            Dictionary<SENSOR,List<OneClassFV>> anomali = new Dictionary<SENSOR, List<OneClassFV>>();
-            List<OneClassFV> outliersFromSam = new List<OneClassFV>();
-            sw.Restart();
-            /*  foreach (Events ev in events)
-              {
-                  var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], ev.timestamp));
-                  anomali.AddRange(preds);
-              }
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
 
-              foreach (samEvents sev in sEvents)
-              {
-                  var preds = PredictSlice(SENSOR.GSR, FindNearestTimeStamp(featureVectors[SENSOR.GSR], sev.timestamp));
-                  outliersFromSam.AddRange(preds);
-              }*/
-            foreach (SENSOR key in featureVectors.Keys)
+            if (fbd.ShowDialog() == DialogResult.OK)
             {
-                Log.LogMessage($"Predicting {key}: {sw.Elapsed}");
-                anomali.Add(key,PredictSlice(key, featureVectors[key]));
+                foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
+                {
+                    path = fbd.SelectedPath;
+                    string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+                    Log.LogMessage($"Loading Data: " + testSubjectId);
+                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
+                    string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
+                    LoadEvents(tmpevents);
+                    //Do gridsearch
+                 
+                    AnomaliSerializer.SaveAnomalis(anomali, path, STEP_SIZE);
+                    AnomaliSerializer.SaveEvents(eventResult, path);
+                    AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
+                    Log.LogMessage("Done saving Anomalis, Events, and POIs for " + testSubjectId.ToString());
+                }
             }
+        }
 
-            AnomaliSerializer.SaveAnomalis(anomali, path, STEP_SIZE);
+        private NoveltyResult DoNoveltyDetection(SENSOR sensor)
+        {
+            var data = featureVectors[sensor].Select(x => x.Features).ToList();
+
+            OneClassClassifier occ = new OneClassClassifier(data);
+            List<SVMParameter> svmParams = GenerateSVMParameters();
+            NoveltyResult bestResult = null;
+            foreach (SVMParameter param in svmParams)
+            {
+                List<OneClassFV> anomali = new List<OneClassFV>();
+                List<Events> eventResult = new List<Events>();
+                List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+                anomali.AddRange(PredictSlice(sensor, featureVectors[sensor]));
+                PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
+
+                List<Events> tempEvents = new List<Events>();
+                foreach (Events p in events)
+                {
+                    var evt = p.Copy();
+                    evt.SetPointOfInterest(dPointsOfInterest);
+                    tempEvents.Add(evt);
+                }
+                eventResult.AddRange(tempEvents);
+                NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, events.Find(x => x.eventName.Contains("ReplyToMail")).startTimestamp, events.Last().startTimestamp, param);
+                if (tempResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
+                {
+                    bestResult = tempResult;
+                }
+            }
+            return bestResult;
+        }
+        private const double HIT_WEIGHT = 2;
+        private const double TIME_WEIGHT = 1;
+        private List<SVMParameter> GenerateSVMParameters()
+        {
+            List<double> cTypes = new List<double>() { };
+            List<double> gammaTypes = new List<double>() { };
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
+            for (int t = -5; t <= 15; t++)
+            {
+                cTypes.Add(Math.Pow(2, t));
+            }
+            for (int t = -15; t <= 3; t++)
+            {
+                gammaTypes.Add(Math.Pow(2, t));
+            }
+            //Generate SVMParams
+            List<SVMParameter> svmParams = new List<SVMParameter>();
+            foreach (SVMKernelType kernel in kernels)
+            {
+                foreach (double c in cTypes)
+                {
+                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                    {
+                        SVMParameter t = new SVMParameter();
+                        t.Kernel = kernel;
+                        t.C = c;
+                        t.Gamma = gammaTypes[i];
+                        svmParams.Add(t);
+                    }
+                }
+            }
+            return svmParams;
         }
     }
 }
