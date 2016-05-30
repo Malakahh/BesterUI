@@ -141,9 +141,9 @@ namespace BesterUI
                         if (!checkSize || size > MINIMUM_GSR_FILE_SIZE && File.Exists(file))
                         {
                             Log.LogMessage("Loading GSR data");
-                            //gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
+                            gsrData = GSRMedianFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             //gsrData = GSRSTDEVFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT));
-                            gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 100);
+                            //gsrData = GSRMoveAvgFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 100);
                             //gsrData = GSRMoveStdFilter(DataReading.LoadFromFile<GSRDataReading>(file, dT), 25);
                             shouldRun.Add(s, true);
                         }
