@@ -211,7 +211,6 @@ namespace Classification_App
             var tempCopy = original.ToList();
             double maxNormalize = 0;
             double minNormalize = 0;
-
             switch (nMethod)
             {
                 case Normalize.OneMinusOne:
@@ -239,7 +238,7 @@ namespace Classification_App
                         //Scale to -1 to 1 (normalized_value *(max-min)+min)
                         tempCopy.ElementAt(j).Features[i].Value = (temp * (maxNormalize - (minNormalize)) + (minNormalize));
                     }
-
+                        
                 }
             }
             catch (Exception e)

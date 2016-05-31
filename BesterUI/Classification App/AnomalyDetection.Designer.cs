@@ -36,6 +36,14 @@
             this.load_data_from_files = new System.Windows.Forms.Button();
             this.runAllButton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.gsrProgress = new System.Windows.Forms.ProgressBar();
+            this.eegProgress = new System.Windows.Forms.ProgressBar();
+            this.hrProgress = new System.Windows.Forms.ProgressBar();
+            this.faceProgress = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // btn_loadData
@@ -117,11 +125,87 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(252, 87);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(30, 13);
+            this.label2.TabIndex = 8;
+            this.label2.Text = "GSR";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(252, 135);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(29, 13);
+            this.label3.TabIndex = 9;
+            this.label3.Text = "EEG";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(252, 196);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(23, 13);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "HR";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(252, 245);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(34, 13);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "FACE";
+            // 
+            // gsrProgress
+            // 
+            this.gsrProgress.Location = new System.Drawing.Point(255, 103);
+            this.gsrProgress.Maximum = 1098;
+            this.gsrProgress.Name = "gsrProgress";
+            this.gsrProgress.Size = new System.Drawing.Size(319, 23);
+            this.gsrProgress.TabIndex = 12;
+            // 
+            // eegProgress
+            // 
+            this.eegProgress.Location = new System.Drawing.Point(255, 157);
+            this.eegProgress.Maximum = 1098;
+            this.eegProgress.Name = "eegProgress";
+            this.eegProgress.Size = new System.Drawing.Size(319, 23);
+            this.eegProgress.TabIndex = 13;
+            // 
+            // hrProgress
+            // 
+            this.hrProgress.Location = new System.Drawing.Point(255, 212);
+            this.hrProgress.Maximum = 1098;
+            this.hrProgress.Name = "hrProgress";
+            this.hrProgress.Size = new System.Drawing.Size(319, 23);
+            this.hrProgress.TabIndex = 14;
+            // 
+            // faceProgress
+            // 
+            this.faceProgress.Location = new System.Drawing.Point(255, 261);
+            this.faceProgress.Maximum = 1098;
+            this.faceProgress.Name = "faceProgress";
+            this.faceProgress.Size = new System.Drawing.Size(319, 23);
+            this.faceProgress.TabIndex = 15;
+            // 
             // AnomalyDetection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(662, 368);
+            this.Controls.Add(this.faceProgress);
+            this.Controls.Add(this.hrProgress);
+            this.Controls.Add(this.eegProgress);
+            this.Controls.Add(this.gsrProgress);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.runAllButton);
             this.Controls.Add(this.load_data_from_files);
@@ -147,5 +231,13 @@
         private System.Windows.Forms.Button load_data_from_files;
         private System.Windows.Forms.Button runAllButton;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ProgressBar gsrProgress;
+        private System.Windows.Forms.ProgressBar eegProgress;
+        private System.Windows.Forms.ProgressBar hrProgress;
+        private System.Windows.Forms.ProgressBar faceProgress;
     }
 }

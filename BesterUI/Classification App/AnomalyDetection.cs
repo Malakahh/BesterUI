@@ -20,9 +20,41 @@ using Microsoft.Kinect.Face;
 
 namespace Classification_App
 {
-    enum SENSOR { GSR, EEG, HR, FACE };
+    public enum SENSOR { GSR, EEG, HR, FACE };
     public partial class AnomalyDetection : Form
     {
+
+        public void SetProgress(int value, SENSOR sensor, int max)
+        {
+            
+            switch (sensor)
+            {
+                case SENSOR.EEG:
+                    this.Invoke((MethodInvoker)delegate {
+                        eegProgress.Maximum = max;
+                        eegProgress.Value = value;
+                    });
+                    break;
+                case SENSOR.HR:
+                    this.Invoke((MethodInvoker)delegate {
+                        hrProgress.Value = value;
+                        hrProgress.Maximum = max;
+                    });
+                    break;
+                case SENSOR.GSR:
+                    this.Invoke((MethodInvoker)delegate {
+                        gsrProgress.Value = value;
+                        gsrProgress.Maximum = max;
+                    });
+                    break;
+                case SENSOR.FACE:
+                    this.Invoke((MethodInvoker)delegate {
+                        faceProgress.Value = value;
+                        faceProgress.Maximum = max;
+                    });
+                    break;
+            }
+        }
 
         FusionData _fdAnomaly = new FusionData();
 
@@ -595,7 +627,7 @@ namespace Classification_App
                 foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
                     path = folder;
-                    path += "\test";
+                    path += "/test";
                     string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
                     sw.Start();
                     Log.LogMessage($"Loading Data");
@@ -657,64 +689,100 @@ namespace Classification_App
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
+                sw.Start();
                 foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
-                    path = fbd.SelectedPath;
+                    path = folder + "/test";
                     string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
                     Log.LogMessage($"Loading Data: " + testSubjectId);
-                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
-                    string[] tmpevents = File.ReadAllLines(path + @"\SecondTest.dat");
+                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path );
+                    string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
+                    int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
+                    int end = int.Parse(tmpevents.Last().Split('#')[0]);
                     LoadEvents(tmpevents);
-                    //Do gridsearch
-                 
-                    AnomaliSerializer.SaveAnomalis(anomali, path, STEP_SIZE);
+                    Dictionary<SENSOR, NoveltyResult> predictionResults = new Dictionary<SENSOR, NoveltyResult>();
+                    //Do gridsearch       
+                    Task gsrThread = Task.Run(() => predictionResults.Add(SENSOR.GSR, DoNoveltyDetection(SENSOR.GSR, start, end)));
+                    Task eegThread = Task.Run(() => predictionResults.Add(SENSOR.EEG, DoNoveltyDetection(SENSOR.EEG, start, end)));
+                    Task hrThread = Task.Run(() => predictionResults.Add(SENSOR.HR, DoNoveltyDetection(SENSOR.HR, start, end)));
+                    Task faceThread = Task.Run(() => predictionResults.Add(SENSOR.FACE, DoNoveltyDetection(SENSOR.FACE, start, end)));
+                    List<Task> threads = new List<Task>();
+                    threads.Add(gsrThread);
+                    threads.Add(eegThread);
+                    threads.Add(hrThread);
+                    threads.Add(faceThread);
+                    await Task.WhenAll(threads.ToArray());
+                    Dictionary<SENSOR, List<OneClassFV>> anomalis = new Dictionary<SENSOR, List<OneClassFV>>();
+                    Dictionary<SENSOR, List<Events>> eventResult = new Dictionary<SENSOR, List<Evnt.Events>>();
+                    Dictionary<SENSOR, PointsOfInterest> dPointsOfInterest = new Dictionary<SENSOR, PointsOfInterest>();
+                    foreach (var key in predictionResults.Keys)
+                    {
+                        anomalis.Add(key, predictionResults[key].anomalis);
+                        eventResult.Add(key, predictionResults[key].events);
+                        dPointsOfInterest.Add(key, predictionResults[key].poi);
+                        Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore(2, 1)}");
+
+                    }
+                    AnomaliSerializer.SaveAnomalis(anomalis, path, STEP_SIZE);
                     AnomaliSerializer.SaveEvents(eventResult, path);
                     AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
-                    Log.LogMessage("Done saving Anomalis, Events, and POIs for " + testSubjectId.ToString());
                 }
             }
         }
 
-        private NoveltyResult DoNoveltyDetection(SENSOR sensor)
+        private const double HIT_WEIGHT = 2;
+        private const double TIME_WEIGHT = 1;
+
+        private NoveltyResult DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
-
             OneClassClassifier occ = new OneClassClassifier(data);
-            List<SVMParameter> svmParams = GenerateSVMParameters();
+            List<SVMParameter> svmParams = GenerateOneClassSVMParameters();
             NoveltyResult bestResult = null;
+            int count = 1;
+            List<OneClassFV> anomali = new List<OneClassFV>();
+            List<Events> eventResult = new List<Events>();
+            List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+            PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
+            foreach (Events p in events)
+            {
+                var evt = p.Copy();
+                eventResult.Add(evt);
+            }
             foreach (SVMParameter param in svmParams)
             {
-                List<OneClassFV> anomali = new List<OneClassFV>();
-                List<Events> eventResult = new List<Events>();
-                List<OneClassFV> outliersFromSam = new List<OneClassFV>();
-                anomali.AddRange(PredictSlice(sensor, featureVectors[sensor]));
-                PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
+                anomali.Clear();
+                SetProgress(count, sensor, svmParams.Count+1);
+                occ.CreateModel(param);
+                anomali.AddRange(occ.PredictOutliers(featureVectors[sensor]));
 
-                List<Events> tempEvents = new List<Events>();
-                foreach (Events p in events)
+                foreach (Events evt in eventResult)
                 {
-                    var evt = p.Copy();
                     evt.SetPointOfInterest(dPointsOfInterest);
-                    tempEvents.Add(evt);
                 }
-                eventResult.AddRange(tempEvents);
-                NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, events.Find(x => x.eventName.Contains("ReplyToMail")).startTimestamp, events.Last().startTimestamp, param);
-                if (tempResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
+                NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali);
+
+                if (bestResult == null)
                 {
                     bestResult = tempResult;
                 }
+                else if (tempResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
+                {
+                    bestResult = tempResult;
+                }
+                count++;
+                double tt = bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT);
             }
             return bestResult;
         }
-        private const double HIT_WEIGHT = 2;
-        private const double TIME_WEIGHT = 1;
-        private List<SVMParameter> GenerateSVMParameters()
+
+        private List<SVMParameter> GenerateOneClassSVMParameters()
         {
             List<double> cTypes = new List<double>() { };
             List<double> gammaTypes = new List<double>() { };
@@ -738,6 +806,7 @@ namespace Classification_App
                         SVMParameter t = new SVMParameter();
                         t.Kernel = kernel;
                         t.C = c;
+                        t.Nu = 0.01;
                         t.Gamma = gammaTypes[i];
                         svmParams.Add(t);
                     }

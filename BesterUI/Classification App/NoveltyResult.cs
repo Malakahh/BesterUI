@@ -11,17 +11,19 @@ namespace Classification_App
     {
         public PointsOfInterest poi;
         public List<Events> events;
+        public List<OneClassFV> anomalis;
         public int start;
         public int end;
         public LibSVMsharp.SVMParameter parameter;
 
-        public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter)
+        public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
             this.poi = poi;
             this.events = events;
             this.start = start;
             this.end = end;
             this.parameter = parameter;
+            this.anomalis = anomalis;
         }
 
         public double CalculateScore(double hitWeight, double timeReductionWeight)
