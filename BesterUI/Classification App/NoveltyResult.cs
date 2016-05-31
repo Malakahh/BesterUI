@@ -28,16 +28,16 @@ namespace Classification_App
 
         public double CalculateScore(double hitWeight, double timeReductionWeight)
         {
-            double timeReduction = 1 - poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start);
-            double eventsHit = events.Where(x=>x.isHit).Count()/events.Count;
+            double timeReduction = (double)1 - (poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start));
+            double eventsHit = (double)events.Where(x=>x.isHit).Count()/events.Count;
 
             return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
         }
 
         public static double CalculateEarlyScore(PointsOfInterest poi, List<Events> events, int start, int end, double hitWeight, double timeReductionWeight)
         {
-            double timeReduction = 1 - poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start);
-            double eventsHit = events.Where(x => x.isHit).Count() / events.Count;
+            double timeReduction = (double)1 - (poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start));
+            double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
 
             return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
 

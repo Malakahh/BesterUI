@@ -770,10 +770,12 @@ namespace Classification_App
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali);
+                    Log.LogMessage(bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT).ToString());
                 }
                 else if (NoveltyResult.CalculateEarlyScore(dPointsOfInterest, eventResult, start, end, HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali); ;
+                    Log.LogMessage(bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT).ToString());
                 }
                 count++;
                 double tt = bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT);
