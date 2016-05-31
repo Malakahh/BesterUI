@@ -26,7 +26,7 @@ namespace Classification_App
                 for (int i = 1; i < data.Length; i++)
                 {
                     int time = int.Parse(data[i].Split(':')[0]);
-                    List<double> values = data[i].Split(':')[1].Split(';').Select(x=> double.Parse(x)).ToList();
+                    List<double> values = data[i].Split(':')[1].Split(';').Select(x=> double.Parse(x, System.Globalization.CultureInfo.InvariantCulture)).ToList();
                     LibSVMsharp.SVMNode[] node = new LibSVMsharp.SVMNode[values.Count];
                     for(int j = 0; j < values.Count; j++)
                     {

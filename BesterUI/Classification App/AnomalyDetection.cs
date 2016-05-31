@@ -787,14 +787,19 @@ namespace Classification_App
         {
             List<double> cTypes = new List<double>() { };
             List<double> gammaTypes = new List<double>() { };
+            List<double> nuValue = new List<double>() { };
             List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -5; t <= 15; t++)
+            for (int t = -5; t <= 15; t+=5)
             {
                 cTypes.Add(Math.Pow(2, t));
             }
-            for (int t = -15; t <= 3; t++)
+            for (int t = -15; t <= 3; t += 5)
             {
                 gammaTypes.Add(Math.Pow(2, t));
+            }
+            for (decimal t = 0.1m; t <= 0.5m; t += 0.3m)
+            {
+                nuValue.Add((double) t);
             }
             //Generate SVMParams
             List<SVMParameter> svmParams = new List<SVMParameter>();
@@ -802,14 +807,17 @@ namespace Classification_App
             {
                 foreach (double c in cTypes)
                 {
-                    for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                    foreach (double nu in nuValue)
                     {
-                        SVMParameter t = new SVMParameter();
-                        t.Kernel = kernel;
-                        t.C = c;
-                        t.Nu = 0.01;
-                        t.Gamma = gammaTypes[i];
-                        svmParams.Add(t);
+                        for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                        {
+                            SVMParameter t = new SVMParameter();
+                            t.Kernel = kernel;
+                            t.C = c;
+                            t.Nu = nu;
+                            t.Gamma = gammaTypes[i];
+                            svmParams.Add(t);
+                        }
                     }
                 }
             }
