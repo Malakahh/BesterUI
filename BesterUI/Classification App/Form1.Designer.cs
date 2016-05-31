@@ -116,6 +116,7 @@
             this.chk_useControlValues = new System.Windows.Forms.CheckBox();
             this.btn_CalculateResults = new System.Windows.Forms.Button();
             this.btn_anomalyDetection = new System.Windows.Forms.Button();
+            this.btn_CalcSam = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -981,11 +982,22 @@
             this.btn_anomalyDetection.UseVisualStyleBackColor = true;
             this.btn_anomalyDetection.Click += new System.EventHandler(this.btn_anomalyDetection_Click);
             // 
+            // btn_CalcSam
+            // 
+            this.btn_CalcSam.Location = new System.Drawing.Point(167, 22);
+            this.btn_CalcSam.Name = "btn_CalcSam";
+            this.btn_CalcSam.Size = new System.Drawing.Size(149, 24);
+            this.btn_CalcSam.TabIndex = 18;
+            this.btn_CalcSam.Text = "Calculate All SAMS";
+            this.btn_CalcSam.UseVisualStyleBackColor = true;
+            this.btn_CalcSam.Click += new System.EventHandler(this.btn_CalcSam_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(689, 557);
+            this.Controls.Add(this.btn_CalcSam);
             this.Controls.Add(this.btn_anomalyDetection);
             this.Controls.Add(this.btn_CalculateResults);
             this.Controls.Add(this.chk_useControlValues);
@@ -1103,6 +1115,7 @@
         private System.Windows.Forms.CheckBox samEvents;
         private System.Windows.Forms.Button btn_anomalyDetection;
         private System.Windows.Forms.Button btn_CreateResultTable;
+        private System.Windows.Forms.Button btn_CalcSam;
     }
 }
 

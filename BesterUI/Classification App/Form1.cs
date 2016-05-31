@@ -1815,7 +1815,7 @@ namespace Classification_App
                     {
                         //"EEG.dat",
                         "GSR.dat",
-                        //"HR.dat",
+                        "HR.dat",
                         //"KINECT.dat"
                     };
 
@@ -1882,6 +1882,7 @@ namespace Classification_App
                             //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
                             SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                            SavePngScatter(csvTimePath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
                             SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                             //SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
 
@@ -1889,8 +1890,9 @@ namespace Classification_App
                             if (int.TryParse(time, out t) && t != 0)
                             {
                                 SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                                SavePngScatter(csvStimuliPath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
                                 SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
-                                //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+
                             }
                         }
                         Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
@@ -1910,16 +1912,18 @@ namespace Classification_App
                         if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
                         {
                             var hrNorm = NormalizeFilterData(hr);
-                            var setA = hrNorm.Item1.MedianFilter(25);
-                            var setB = hrNorm.Item2.MedianFilter(25);
+                            var setA = hrNorm.Item1;//.MedianFilter(25);
+                            var setB = hrNorm.Item2;//.MedianFilter(25);
                             var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, Math.Min(setA.Count, setB.Count)), setB.GetRange(0, Math.Min(setA.Count, setB.Count)));
                             SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
+                            SavePngScatter(csvTimePath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
                             SaveZip(csvTimePath + "HR.csv", setA, setB);
 
                             int t;
                             if (int.TryParse(time, out t) && t != 0)
                             {
                                 SavePng(csvStimuliPath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
+                                SavePngScatter(csvStimuliPath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
                                 SaveZip(csvStimuliPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
                                 //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
                             }
@@ -2090,6 +2094,28 @@ namespace Classification_App
             model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
             //model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
 
+
+            pngify.ExportToFile(model, path);
+        }
+
+        static void SavePngScatter(string path, string name, List<double> A, List<double> B)
+        {
+            PngExporter pngify = new PngExporter();
+            pngify.Width = 1000;
+            pngify.Height = 1000;
+
+            var model = new PlotModel() { Title = name };
+
+            var scatterSeries = new OxyPlot.Series.ScatterSeries();
+
+            for (int i = 0; i < A.Count && i < B.Count; i++)
+            {
+                scatterSeries.Points.Add(new OxyPlot.Series.ScatterPoint(A[i], B[i]));
+            }
+
+            model.Series.Add(scatterSeries);
+            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
+            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
 
             pngify.ExportToFile(model, path);
         }
@@ -2941,6 +2967,22 @@ namespace Classification_App
             }
 
             return retVal;
+        }
+
+        private void btn_CalcSam_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                string[] dirs = Directory.GetDirectories(fbd.SelectedPath);
+                List<string> skipped = File.ReadAllLines(fbd.SelectedPath + "/anova_skipped.txt").Select(x => x.Split(new string[] { "_", "tp" }, StringSplitOptions.RemoveEmptyEntries).First()).Distinct().ToList();
+
+                foreach (var dir in dirs)
+                {
+                    SAMData.LoadFromPath(dir + "/SAMData.json");
+                }
+            }
         }
     }
 }
