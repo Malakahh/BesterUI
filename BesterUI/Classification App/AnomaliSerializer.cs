@@ -25,8 +25,16 @@ namespace Classification_App
                 List<OneClassFV> featureVector = new List<OneClassFV>();
                 for (int i = 1; i < data.Length; i++)
                 {
-                    int time = int.Parse(data[i].Split(':')[0]);
-                    List<double> values = data[i].Split(':')[1].Split(';').Select(x=> double.Parse(x, System.Globalization.CultureInfo.InvariantCulture)).ToList();
+                    string[] firstSplit = data[i].Split(':');
+                    int time = int.Parse(firstSplit[0]);
+                    string[] secondSplit = firstSplit[1].Split(';');
+                    List<double> values = new List<double>();
+                    foreach (string s in secondSplit)
+                    {
+
+                        values.Add(double.Parse(s.Replace(',', '.')));
+                    }
+
                     LibSVMsharp.SVMNode[] node = new LibSVMsharp.SVMNode[values.Count];
                     for(int j = 0; j < values.Count; j++)
                     {
