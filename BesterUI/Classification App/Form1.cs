@@ -2101,8 +2101,8 @@ namespace Classification_App
         static void SavePngScatter(string path, string name, List<double> A, List<double> B)
         {
             PngExporter pngify = new PngExporter();
-            pngify.Width = 1000;
-            pngify.Height = 1000;
+            pngify.Width = 2000;
+            pngify.Height = 2000;
 
             var model = new PlotModel() { Title = name };
 
@@ -2110,7 +2110,7 @@ namespace Classification_App
             {
                 MarkerSize = 0.1f,
                 MarkerType = MarkerType.Circle,
-                MarkerFill = OxyColors.Red
+                MarkerFill = OxyColors.Black
             };
 
 
@@ -2987,6 +2987,32 @@ namespace Classification_App
                 foreach (var dir in dirs)
                 {
                     SAMData.LoadFromPath(dir + "/SAMData.json");
+                }
+            }
+        }
+
+        private void btn_GenerateScatter_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                foreach (var file in Directory.GetFiles(fbd.SelectedPath).Where(x => x.EndsWith(".txt")))
+                {
+                    string[] lines = File.ReadAllLines(file);
+
+                    List<double> As = new List<double>(lines.Length);
+                    List<double> Bs = new List<double>(lines.Length);
+
+                    foreach (var line in lines)
+                    {
+                        double aVal = double.Parse(line.Split(';')[0]);
+                        double bVal = double.Parse(line.Split(';')[1]);
+                        As.Add(aVal);
+                        Bs.Add(bVal);
+                    }
+
+                    SavePngScatter(file + "_scatter.png", file, As, Bs);
+                    Log.LogMessage("Donno" + file);
                 }
             }
         }
