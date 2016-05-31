@@ -2106,7 +2106,13 @@ namespace Classification_App
 
             var model = new PlotModel() { Title = name };
 
-            var scatterSeries = new OxyPlot.Series.ScatterSeries();
+            var scatterSeries = new OxyPlot.Series.ScatterSeries()
+            {
+                MarkerSize = 0.1f,
+                MarkerType = MarkerType.Circle,
+                MarkerFill = OxyColors.Red
+            };
+
 
             for (int i = 0; i < A.Count && i < B.Count; i++)
             {
