@@ -32,7 +32,7 @@ namespace Classification_App
                     foreach (string s in secondSplit)
                     {
 
-                        values.Add(double.Parse(s.Replace(',', '.')));
+                        values.Add(double.Parse(s.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture));
                     }
 
                     LibSVMsharp.SVMNode[] node = new LibSVMsharp.SVMNode[values.Count];

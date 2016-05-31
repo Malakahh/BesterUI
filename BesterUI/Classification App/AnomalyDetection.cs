@@ -797,7 +797,7 @@ namespace Classification_App
             {
                 gammaTypes.Add(Math.Pow(2, t));
             }
-            for (decimal t = 0.1m; t <= 0.5m; t += 0.3m)
+            for (decimal t = 0.01m; t <= 0.5m; t += 0.3m)
             {
                 nuValue.Add((double) t);
             }

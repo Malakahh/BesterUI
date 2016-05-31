@@ -49,7 +49,7 @@ namespace BesterUI.Data
             foreach (var item in bits)
             {
                 var dat = item.Split(':');
-                data.Add((FaceShapeAnimations)int.Parse(dat[0]), float.Parse(dat[1].Replace(',','.')));
+                data.Add((FaceShapeAnimations)int.Parse(dat[0]), float.Parse(dat[1].Replace(',','.'), System.Globalization.CultureInfo.InvariantCulture));
             }
 
             return this;
