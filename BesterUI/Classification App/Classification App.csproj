@@ -64,6 +64,10 @@
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ILNumerics">
       <HintPath>.\ILNumerics.dll</HintPath>

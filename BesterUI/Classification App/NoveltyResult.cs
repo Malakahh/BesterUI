@@ -19,11 +19,11 @@ namespace Classification_App
         public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
             this.poi = poi;
-            this.events = events;
+            this.events = events.ToList();
             this.start = start;
             this.end = end;
             this.parameter = parameter;
-            this.anomalis = anomalis;
+            this.anomalis = anomalis.ToList();
         }
 
         public double CalculateScore(double hitWeight, double timeReductionWeight)
@@ -32,6 +32,15 @@ namespace Classification_App
             double eventsHit = events.Where(x=>x.isHit).Count()/events.Count;
 
             return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
+        }
+
+        public static double CalculateEarlyScore(PointsOfInterest poi, List<Events> events, int start, int end, double hitWeight, double timeReductionWeight)
+        {
+            double timeReduction = 1 - poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start);
+            double eventsHit = events.Where(x => x.isHit).Count() / events.Count;
+
+            return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
+
         }
     }
 }

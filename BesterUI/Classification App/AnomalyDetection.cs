@@ -749,7 +749,6 @@ namespace Classification_App
             List<OneClassFV> anomali = new List<OneClassFV>();
             List<Events> eventResult = new List<Events>();
             List<OneClassFV> outliersFromSam = new List<OneClassFV>();
-            PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
             foreach (Events p in events)
             {
                 var evt = p.Copy();
@@ -761,20 +760,20 @@ namespace Classification_App
                 SetProgress(count, sensor, svmParams.Count+1);
                 occ.CreateModel(param);
                 anomali.AddRange(occ.PredictOutliers(featureVectors[sensor]));
+                PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
 
                 foreach (Events evt in eventResult)
                 {
                     evt.SetPointOfInterest(dPointsOfInterest);
                 }
-                NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali);
 
                 if (bestResult == null)
                 {
-                    bestResult = tempResult;
+                    bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali);
                 }
-                else if (tempResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
+                else if (NoveltyResult.CalculateEarlyScore(dPointsOfInterest, eventResult, start, end, HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
                 {
-                    bestResult = tempResult;
+                    bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali); ;
                 }
                 count++;
                 double tt = bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT);
