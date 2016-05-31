@@ -84,7 +84,7 @@ namespace Classification_App
         const int HR_DELAY = 4000;
         const int HR_DURATION = 3000;
 
-        const int STEP_SIZE = 100;
+        const int STEP_SIZE = 500;
 
 
         ConcurrentDictionary<SENSOR, List<OneClassFV>> featureVectors = new ConcurrentDictionary<SENSOR, List<OneClassFV>>();

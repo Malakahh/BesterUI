@@ -19,7 +19,7 @@ namespace Classification_App
         public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
             this.poi = poi;
-            this.events = events.ToList();
+            this.events = events.Select(x => x.Copy()).ToList();
             this.start = start;
             this.end = end;
             this.parameter = parameter;
@@ -28,18 +28,18 @@ namespace Classification_App
 
         public double CalculateScore(double hitWeight, double timeReductionWeight)
         {
-            double timeReduction = (double)1 - (poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start));
+            double timeReduction = 1 - ((double)poi.GetFlaggedAreas().Where(x => x.Item1 > start).Sum(x => (x.Item2 - x.Item1)) / (end - start));
             double eventsHit = (double)events.Where(x=>x.isHit).Count()/events.Count;
 
             return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
         }
 
-        public static double CalculateEarlyScore(PointsOfInterest poi, List<Events> events, int start, int end, double hitWeight, double timeReductionWeight)
+        public static double CalculateEarlyScore(PointsOfInterest poiT, List<Events> eventsT, int startT, int endT, double hitWeightT, double timeReductionWeightT)
         {
-            double timeReduction = (double)1 - (poi.GetFlaggedAreas().Sum(x => (x.Item2 - x.Item1)) / (end - start));
-            double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
+            double timeReduction = 1 - ((double)poiT.GetFlaggedAreas().Where(x=>x.Item1> startT).Sum(x => (x.Item2 - x.Item1)) / (endT - startT));
+            double eventsHit = (double)eventsT.Where(x => x.isHit).Count() / eventsT.Count;
 
-            return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
+            return ((timeReductionWeightT * timeReduction) + (hitWeightT * eventsHit)) / (hitWeightT + timeReductionWeightT);
 
         }
     }
