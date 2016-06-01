@@ -1941,41 +1941,17 @@ namespace Classification_App
                                 fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
                                 8
                                 );
-                            var eeg2 = FilterData(
-                                fdTest.eegData.SkipWhile(x => x.timestamp < firstTwoTasksDone).TakeWhile(x => x.timestamp < firstTwoTasksDone + 180000).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                                fdRecall.eegData.SkipWhile(x => x.timestamp - offset < firstTwoTasksDone).TakeWhile(x => x.timestamp - offset < firstTwoTasksDone + 180000).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
-                                8
-                                );
 
                             if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
 
                             var eegNorm = NormalizeFilterData(eeg);
-                            var setA = eegNorm.Item1.AveragePointReductionFilter(10);
-                            var setB = eegNorm.Item2.AveragePointReductionFilter(10);
+                            var setA = eegNorm.Item1.VarianceFilter(64);
+                            var setB = eegNorm.Item2.VarianceFilter(64);
                             var min = Math.Min(setA.Count, setB.Count);
                             Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
                             var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
                             SavePng(csvTimePath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
                             SaveZip(csvTimePath + "EEG_" + item + ".csv", setA, setB);
-
-                            if (eeg2.Item2.Count != 0 && eeg.Item3.Count != 0)
-                            {
-                                var eegNorm2 = NormalizeFilterData(eeg2);
-                                var setA2 = eegNorm2.Item1;
-                                var setB2 = eegNorm2.Item2;
-                                var min2 = Math.Min(setA2.Count, setB2.Count);
-                                Log.LogMessage($"{item} done, data filtered: {eeg2.Item1.ToString("0.0")}%");
-                                var pearsCorr2 = MathNet.Numerics.Statistics.Correlation.Pearson(setA2.GetRange(0, min2), setB2.GetRange(0, min2));
-                                SavePng(csvTimePath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
-                                SaveZip(csvTimePath + "EEG2_" + item + ".csv", setA2, setB2);
-                                int t2;
-                                if (int.TryParse(time, out t2) && t2 != 0)
-                                {
-                                    SavePng(csvStimuliPath + "EEG2_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr2.ToString("0.000")}) - Red = test, blue = recall", setA2, setB2);
-                                    SaveZip(csvStimuliPath + "EEG2_" + item + ".csv", setA2, setB2);
-
-                                }
-                            }
 
                             int t;
                             if (int.TryParse(time, out t) && t != 0)
