@@ -789,12 +789,12 @@ namespace Classification_App
         {
             List<double> cTypes = new List<double>() { };
             List<double> gammaTypes = new List<double>() { };
-            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -5; t <= 15; t+=5)
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
+            for (int t = -4; t <= 12; t+=1)
             {
                 cTypes.Add(Math.Pow(2, t));
             }
-            for (int t = -15; t <= 3; t += 5)
+            for (int t = -14; t <= 2; t += 1)
             {
                 gammaTypes.Add(Math.Pow(2, t));
             }
@@ -804,12 +804,12 @@ namespace Classification_App
             {
                 foreach (double c in cTypes)
                 {
-                        for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                        for (int i = 0;i < gammaTypes.Count ; i++)
                         {
                             SVMParameter t = new SVMParameter();
                             t.Kernel = kernel;
                             t.C = c;
-                            t.Nu = 0.01;
+                            t.Nu = 0.05;
                             t.Gamma = gammaTypes[i];
                             svmParams.Add(t);
                         }
