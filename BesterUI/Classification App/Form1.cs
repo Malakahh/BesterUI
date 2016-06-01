@@ -2481,9 +2481,9 @@ namespace Classification_App
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
         {
-            string corrType = "Pearson";
+            //string corrType = "Pearson";
             //string corrType = "Kendall";
-            //string corrType = "Spearman";
+            string corrType = "Spearman";
 
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -2566,7 +2566,7 @@ namespace Classification_App
 
                             resultFiles.Add(resultFile.Split('\\').Last());
 
-                            string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
+                            string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).SkipWhile(x => x != '_').Skip(1).ToArray());
 
                             if (!sensors.Contains(sensor)) sensors.Add(sensor);
 
@@ -2580,8 +2580,8 @@ namespace Classification_App
                                 continue;
                             }
 
-                            double pearsCorrelation = double.Parse(correlationLine.Split('|', '*')[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
-                            double pearsSignificance = double.Parse(significanceLine.Split('|', '*')[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*'}, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
 
                             var result = Tuple.Create(pearsCorrelation, pearsSignificance);
 
