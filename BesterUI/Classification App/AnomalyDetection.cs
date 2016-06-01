@@ -561,7 +561,7 @@ namespace Classification_App
                     continue;
                 }
             }
-            events.Add(new SpanningEvent(firstContactClick, lastContactClick, "Send Draft", 0.7));
+            events.Add(new SpanningEvent(firstContactClick, lastContactClick, "Send Draft", 0.5));
 
             //Caret Movement
             int firstCaretMoved = 0;
@@ -592,7 +592,7 @@ namespace Classification_App
                     eventList.RemoveAt(i);
                 }
             }
-            events.Add(new SpanningEvent(firstCaretMoved, lastCaretMoved, "CaretMoved", 0.5));
+            events.Add(new SpanningEvent(firstCaretMoved, lastCaretMoved, "CaretMoved", 0.20));
 
             //Language
             int langugeChanged = 0;
@@ -612,7 +612,7 @@ namespace Classification_App
                     eventList.RemoveAt(i);
                 }
             }
-            events.Add(new SpanningEvent(langugeChanged, languageTaskDone, "Language Changed", 0.75));
+            events.Add(new SpanningEvent(langugeChanged, languageTaskDone, "Language Changed", 0.25));
 
 
             #endregion
@@ -726,7 +726,7 @@ namespace Classification_App
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
-                        Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore(2, 1)}");
+                        Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore(1, 1)}");
 
                     }
                     AnomaliSerializer.SaveAnomalis(anomalis, path, STEP_SIZE);
@@ -736,7 +736,7 @@ namespace Classification_App
             }
         }
 
-        private const double HIT_WEIGHT = 2;
+        private const double HIT_WEIGHT = 1;
         private const double TIME_WEIGHT = 1;
 
         private NoveltyResult DoNoveltyDetection(SENSOR sensor, int start, int end)
@@ -756,7 +756,7 @@ namespace Classification_App
             }
             foreach (SVMParameter param in svmParams)
             {
-                anomali.Clear();
+                anomali = new List<OneClassFV>();
                 SetProgress(count, sensor, svmParams.Count+1);
                 occ.CreateModel(param);
                 anomali.AddRange(occ.PredictOutliers(featureVectors[sensor]));
@@ -775,7 +775,9 @@ namespace Classification_App
                 else if (NoveltyResult.CalculateEarlyScore(dPointsOfInterest, eventResult, start, end, HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali); ;
-                    Log.LogMessage(bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT).ToString());
+                    Log.LogMessage(bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT).ToString() + " with param ");
+                    Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
+                        + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
                 }
                 count++;
                 double tt = bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT);
@@ -787,19 +789,14 @@ namespace Classification_App
         {
             List<double> cTypes = new List<double>() { };
             List<double> gammaTypes = new List<double>() { };
-            List<double> nuValue = new List<double>() { };
-            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.LINEAR, SVMKernelType.POLY, SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -5; t <= 15; t+=5)
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
+            for (int t = -4; t <= 12; t+=1)
             {
                 cTypes.Add(Math.Pow(2, t));
             }
-            for (int t = -15; t <= 3; t += 5)
+            for (int t = -14; t <= 2; t += 1)
             {
                 gammaTypes.Add(Math.Pow(2, t));
-            }
-            for (decimal t = 0.01m; t <= 0.5m; t += 0.3m)
-            {
-                nuValue.Add((double) t);
             }
             //Generate SVMParams
             List<SVMParameter> svmParams = new List<SVMParameter>();
@@ -807,18 +804,15 @@ namespace Classification_App
             {
                 foreach (double c in cTypes)
                 {
-                    foreach (double nu in nuValue)
-                    {
-                        for (int i = 0; (kernel != SVMKernelType.LINEAR) ? i < gammaTypes.Count : i < 1; i++)
+                        for (int i = 0;i < gammaTypes.Count ; i++)
                         {
                             SVMParameter t = new SVMParameter();
                             t.Kernel = kernel;
                             t.C = c;
-                            t.Nu = nu;
+                            t.Nu = 0.05;
                             t.Gamma = gammaTypes[i];
                             svmParams.Add(t);
                         }
-                    }
                 }
             }
             return svmParams;
