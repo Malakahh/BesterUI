@@ -1813,11 +1813,12 @@ namespace Classification_App
                     if (dirPath == "results") continue;
                     List<string> files = new List<string>()
                     {
-                        //"EEG.dat",
+                        "EEG.dat",
                         "GSR.dat",
                         "HR.dat",
                         //"KINECT.dat"
                     };
+                    bool runIndividualTasks = true;
 
                     files.RemoveAll(f => !File.Exists($"{dirPath}/test/{f}") || !File.Exists($"{dirPath}/recall/{f}"));
 
@@ -1848,158 +1849,179 @@ namespace Classification_App
                     string time = metaLines[0].Split('=').Last();
 
                     int waitPeriodDone = int.Parse(testEvents[0].Split('#')[0]);
-                    int firstTwoTasksDone = int.Parse(testEvents[2].Split('#')[0]);
-                    int wholePeriodDone = int.Parse(testEvents[testEvents.Length - 2].Split('#')[0]);
+                    //int firstTwoTasksDone = int.Parse(testEvents[2].Split('#')[0]);
+                    int wholePeriodDone = int.Parse(testEvents[testEvents.Length - 1].Split('#')[0]);
                     //int waitPeriodDone = 180000;
 
+                    List<TaskStartEnd> tasks = new List<TaskStartEnd>();
 
-                    string csvTimePath = "csv/Time " + time + "/" + subject + "_";
-                    string csvStimuliPath = "csv/Stimuli " + (stimul == "neu" ? "low" : "high") + "/" + subject + "_";
-                    //string csvPath = "csv/" + subject + "_";
-
-                    Directory.CreateDirectory("csv/Time " + time);
-                    Directory.CreateDirectory("csv/Stimuli " + (stimul == "neu" ? "low" : "high"));
-
-                    if (files.Contains("GSR.dat"))
+                    if (!runIndividualTasks)
                     {
-
-                        Log.LogMessage("Starting GSR");
-
-                        var fdTestGsr = fdTest.gsrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList();
-                        var fdRecallGsr = fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList();
-
-                        var gsr = FilterData(
-                                fdTestGsr,
-                                fdRecallGsr
-                            );
-
-                        if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
-                        {
-                            var gsrNorm = NormalizeFilterData(gsr);
-                            var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1.GetRange(0, Math.Min(gsrNorm.Item1.Count, gsrNorm.Item2.Count)), gsrNorm.Item2.GetRange(0, Math.Min(gsrNorm.Item1.Count, gsrNorm.Item2.Count)));
-                            //var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
-                            //var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
-                            //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
-
-                            SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
-                            SavePngScatter(csvTimePath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
-                            SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
-                            //SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
-
-                            int t;
-                            if (int.TryParse(time, out t) && t != 0)
-                            {
-                                SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
-                                SavePngScatter(csvStimuliPath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
-                                SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
-
-                            }
+                        tasks.Add(new TaskStartEnd(waitPeriodDone, wholePeriodDone, "full"));
+                    }
+                    else
+                    {
+                        List<string> taskEvents = testEvents.Where(x => x.Contains("TaskWizard - ")).ToList();
+                        int start = waitPeriodDone;
+                        for (int s = 0; s < taskEvents.Count; s++)
+                        { 
+                            string[] currentEvent = taskEvents[s].Split(new char[] { '-', ' ', '#' }, StringSplitOptions.RemoveEmptyEntries);
+                            int end = int.Parse(currentEvent[0]);
+                            tasks.Add(new TaskStartEnd(start, end, currentEvent[currentEvent.Length - 1]));
+                            start = end;
                         }
-                        Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
                     }
 
-                    if (files.Contains("HR.dat"))
+                    for (int ta = 0; ta < tasks.Count; ta++)
                     {
+                        string csvTimePath = "csv/Time " + time + "/" + subject + "_" + tasks[ta].filenameAppend + "_";
+                        string csvStimuliPath = "csv/Stimuli " + (stimul == "neu" ? "low" : "high") + "/" + subject + "_" + tasks[ta].filenameAppend + "_";
+                        //string csvPath = "csv/" + subject + "_";
 
-                        Log.LogMessage("Starting HR");
-                        var hr = FilterData(
-                            fdTest.hrData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
-                            fdRecall.hrData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
-                            20
-                            );
+                        Directory.CreateDirectory("csv/Time " + time);
+                        Directory.CreateDirectory("csv/Stimuli " + (stimul == "neu" ? "low" : "high"));
 
-
-                        if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
+                        if (files.Contains("GSR.dat"))
                         {
-                            var hrNorm = NormalizeFilterData(hr);
-                            var setA = hrNorm.Item1;//.MedianFilter(25);
-                            var setB = hrNorm.Item2;//.MedianFilter(25);
-                            var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, Math.Min(setA.Count, setB.Count)), setB.GetRange(0, Math.Min(setA.Count, setB.Count)));
-                            SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
-                            SavePngScatter(csvTimePath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
-                            SaveZip(csvTimePath + "HR.csv", setA, setB);
 
-                            int t;
-                            if (int.TryParse(time, out t) && t != 0)
-                            {
-                                SavePng(csvStimuliPath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
-                                SavePngScatter(csvStimuliPath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
-                                SaveZip(csvStimuliPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
-                                //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
-                            }
-                        }
-                        Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
-                    }
+                            Log.LogMessage("Starting GSR");
 
-                    if (files.Contains("EEG.dat"))
-                    {
-                        Log.LogMessage("Starting EEG");
-                        foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
-                        {
-                            var eeg = FilterData(
-                                fdTest.eegData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                                fdRecall.eegData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
-                                8
+                            var fdTestGsr = fdTest.gsrData.SkipWhile(x => x.timestamp < tasks[ta].start).TakeWhile(x => x.timestamp < tasks[ta].end).Select(x => Tuple.Create(x.timestamp, (double)x.resistance)).ToList();
+                            var fdRecallGsr = fdRecall.gsrData.SkipWhile(x => x.timestamp - offset < tasks[ta].start).TakeWhile(x => x.timestamp - offset < tasks[ta].end).Select(x => Tuple.Create(x.timestamp - offset, (double)x.resistance)).ToList();
+
+                            var gsr = FilterData(
+                                    fdTestGsr,
+                                    fdRecallGsr
                                 );
 
-                            if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
-
-                            var eegNorm = NormalizeFilterData(eeg);
-                            var setA = eegNorm.Item1.VarianceFilter(64);
-                            var setB = eegNorm.Item2.VarianceFilter(64);
-                            var min = Math.Min(setA.Count, setB.Count);
-                            Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
-                            var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
-                            SavePng(csvTimePath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
-                            SaveZip(csvTimePath + "EEG_" + item + ".csv", setA, setB);
-
-                            int t;
-                            if (int.TryParse(time, out t) && t != 0)
+                            if (gsr.Item2.Count != 0 || gsr.Item3.Count != 0)
                             {
-                                SavePng(csvStimuliPath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
-                                SaveZip(csvStimuliPath + "EEG_" + item + ".csv", setA, setB);
+                                var gsrNorm = NormalizeFilterData(gsr);
+                                var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(gsrNorm.Item1.GetRange(0, Math.Min(gsrNorm.Item1.Count, gsrNorm.Item2.Count)), gsrNorm.Item2.GetRange(0, Math.Min(gsrNorm.Item1.Count, gsrNorm.Item2.Count)));
+                                //var nonTemporal = gsrNorm.Item1.Zip(gsrNorm.Item2, (a, b) => Tuple.Create(a, b)).OrderBy(x => x.Item1);
+                                //var nonTempA = nonTemporal.Select(x => x.Item1).ToList();
+                                //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
+                                SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                                SavePngScatter(csvTimePath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
+                                SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+                                //SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+
+                                int t;
+                                if (int.TryParse(time, out t) && t != 0)
+                                {
+                                    SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
+                                    SavePngScatter(csvStimuliPath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
+                                    SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
+
+                                }
                             }
+                            Log.LogMessage("GSR done, data filtered: " + gsr.Item1.ToString("0.0") + "%");
                         }
-                        Log.LogMessage("EEG done");
-                    }
 
-                    if (files.Contains("KINECT.dat"))
-                    {
-                        Log.LogMessage("Starting Kinect");
-                        foreach (Microsoft.Kinect.Face.FaceShapeAnimations item in Enum.GetValues(typeof(Microsoft.Kinect.Face.FaceShapeAnimations)))
+                        if (files.Contains("HR.dat"))
                         {
-                            if (item == Microsoft.Kinect.Face.FaceShapeAnimations.Count) continue;
 
-                            var kinect = FilterData(
-                                fdTest.faceData.SkipWhile(x => x.timestamp < waitPeriodDone).TakeWhile(x => x.timestamp < wholePeriodDone).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
-                                fdRecall.faceData.SkipWhile(x => x.timestamp - offset < waitPeriodDone).TakeWhile(x => x.timestamp - offset < wholePeriodDone).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
-                                34
+                            Log.LogMessage("Starting HR");
+                            var hr = FilterData(
+                                fdTest.hrData.SkipWhile(x => x.timestamp < tasks[ta].start).TakeWhile(x => x.timestamp < tasks[ta].end).Select(x => Tuple.Create(x.timestamp, (double)x.BPM)).ToList(),
+                                fdRecall.hrData.SkipWhile(x => x.timestamp - offset < tasks[ta].start).TakeWhile(x => x.timestamp - offset < tasks[ta].end).Select(x => Tuple.Create(x.timestamp - offset, (double)x.BPM)).ToList(),
+                                20
                                 );
 
-                            if (kinect.Item2.Count == 0 || kinect.Item3.Count == 0) continue;
 
-
-                            var kiNorm = NormalizeFilterData(kinect);
-                            var setA = kiNorm.Item1.MovingAverageFilter(25);
-                            var setB = kiNorm.Item2.MovingAverageFilter(25);
-                            var min = Math.Min(setA.Count, setB.Count);
-                            Log.LogMessage($"{item} done, data filtered: {kinect.Item1.ToString("0.0")}%");
-
-                            var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
-                            SavePng(csvTimePath + "FACE_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
-                            SaveZip(csvTimePath + "FACE_" + item + ".csv", setA, setB);
-
-                            int t;
-                            if (int.TryParse(time, out t) && t != 0)
+                            if (hr.Item2.Count != 0 && hr.Item3.Count != 0)
                             {
-                                SavePng(csvStimuliPath + "FACE_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
-                                SaveZip(csvStimuliPath + "FACE_" + item + ".csv", setA, setB);
-                                //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                                var hrNorm = NormalizeFilterData(hr);
+                                var setA = hrNorm.Item1;//.MedianFilter(25);
+                                var setB = hrNorm.Item2;//.MedianFilter(25);
+                                var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, Math.Min(setA.Count, setB.Count)), setB.GetRange(0, Math.Min(setA.Count, setB.Count)));
+                                SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
+                                SavePngScatter(csvTimePath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
+                                SaveZip(csvTimePath + "HR.csv", setA, setB);
+
+                                int t;
+                                if (int.TryParse(time, out t) && t != 0)
+                                {
+                                    SavePng(csvStimuliPath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
+                                    SavePngScatter(csvStimuliPath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
+                                    SaveZip(csvStimuliPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
+                                    //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                                }
                             }
+                            Log.LogMessage($"HR done, data filtered: {hr.Item1.ToString("0.0")}%");
                         }
-                        Log.LogMessage("Kinect done");
-                    }
+
+                        if (files.Contains("EEG.dat"))
+                        {
+                            Log.LogMessage("Starting EEG");
+                            foreach (var item in Enum.GetNames(typeof(EEGDataReading.ELECTRODE)))
+                            {
+                                var eeg = FilterData(
+                                    fdTest.eegData.SkipWhile(x => x.timestamp < tasks[ta].start).TakeWhile(x => x.timestamp < tasks[ta].end).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                                    fdRecall.eegData.SkipWhile(x => x.timestamp - offset < tasks[ta].start).TakeWhile(x => x.timestamp - offset < tasks[ta].end).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                                    8
+                                    );
+
+                                if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
+
+                                var eegNorm = NormalizeFilterData(eeg);
+                                var setA = eegNorm.Item1.VarianceFilter(64);
+                                var setB = eegNorm.Item2.VarianceFilter(64);
+                                var min = Math.Min(setA.Count, setB.Count);
+                                Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
+                                var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
+                                SavePng(csvTimePath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
+                                SaveZip(csvTimePath + "EEG_" + item + ".csv", setA, setB);
+
+                                int t;
+                                if (int.TryParse(time, out t) && t != 0)
+                                {
+                                    SavePng(csvStimuliPath + "EEG_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
+                                    SaveZip(csvStimuliPath + "EEG_" + item + ".csv", setA, setB);
+
+                                }
+                            }
+                            Log.LogMessage("EEG done");
+                        }
+
+                        if (files.Contains("KINECT.dat"))
+                        {
+                            Log.LogMessage("Starting Kinect");
+                            foreach (Microsoft.Kinect.Face.FaceShapeAnimations item in Enum.GetValues(typeof(Microsoft.Kinect.Face.FaceShapeAnimations)))
+                            {
+                                if (item == Microsoft.Kinect.Face.FaceShapeAnimations.Count) continue;
+
+                                var kinect = FilterData(
+                                    fdTest.faceData.SkipWhile(x => x.timestamp < tasks[ta].start).TakeWhile(x => x.timestamp < tasks[ta].end).Select(x => Tuple.Create(x.timestamp, (double)x.data[item])).ToList(),
+                                    fdRecall.faceData.SkipWhile(x => x.timestamp - offset < tasks[ta].start).TakeWhile(x => x.timestamp - offset < tasks[ta].end).Select(x => Tuple.Create(x.timestamp - offset, (double)x.data[item])).ToList(),
+                                    34
+                                    );
+
+                                if (kinect.Item2.Count == 0 || kinect.Item3.Count == 0) continue;
+
+
+                                var kiNorm = NormalizeFilterData(kinect);
+                                var setA = kiNorm.Item1.MovingAverageFilter(25);
+                                var setB = kiNorm.Item2.MovingAverageFilter(25);
+                                var min = Math.Min(setA.Count, setB.Count);
+                                Log.LogMessage($"{item} done, data filtered: {kinect.Item1.ToString("0.0")}%");
+
+                                var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
+                                SavePng(csvTimePath + "FACE_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
+                                SaveZip(csvTimePath + "FACE_" + item + ".csv", setA, setB);
+
+                                int t;
+                                if (int.TryParse(time, out t) && t != 0)
+                                {
+                                    SavePng(csvStimuliPath + "FACE_" + item + ".png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", setA, setB);
+                                    SaveZip(csvStimuliPath + "FACE_" + item + ".csv", setA, setB);
+                                    //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
+                                }
+                            }
+                            Log.LogMessage("Kinect done");
+                        }
+                    }                   
 
 
 
@@ -3005,5 +3027,19 @@ namespace Classification_App
                 }
             }
         }
+    }
+}
+
+class TaskStartEnd
+{
+    public int start;
+    public int end;
+    public string filenameAppend;
+
+    public TaskStartEnd(int start, int end, string filenameAppend)
+    {
+        this.start = start;
+        this.end = end;
+        this.filenameAppend = filenameAppend;
     }
 }
