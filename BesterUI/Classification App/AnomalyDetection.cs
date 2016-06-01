@@ -756,7 +756,7 @@ namespace Classification_App
             }
             foreach (SVMParameter param in svmParams)
             {
-                anomali.Clear();
+                anomali = new List<OneClassFV>();
                 SetProgress(count, sensor, svmParams.Count+1);
                 occ.CreateModel(param);
                 anomali.AddRange(occ.PredictOutliers(featureVectors[sensor]));
