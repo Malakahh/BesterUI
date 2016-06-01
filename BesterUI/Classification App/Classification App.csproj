@@ -149,6 +149,7 @@
     </Compile>
     <Compile Include="MetaClassifier.cs" />
     <Compile Include="MetaSVMConfiguration.cs" />
+    <Compile Include="NoveltyExcel.cs" />
     <Compile Include="NoveltyResult.cs" />
     <Compile Include="OneClassClassifier.cs" />
     <Compile Include="OneClassFV.cs" />
