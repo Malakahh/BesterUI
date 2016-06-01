@@ -28,11 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
@@ -117,6 +117,7 @@
             this.btn_CalculateResults = new System.Windows.Forms.Button();
             this.btn_anomalyDetection = new System.Windows.Forms.Button();
             this.btn_CalcSam = new System.Windows.Forms.Button();
+            this.btn_GenerateScatter = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -632,13 +633,13 @@
             // chart_TestData
             // 
             this.chart_TestData.BackColor = System.Drawing.Color.DarkGray;
-            chartArea1.Name = "ChartArea1";
-            this.chart_TestData.ChartAreas.Add(chartArea1);
+            chartArea3.Name = "ChartArea1";
+            this.chart_TestData.ChartAreas.Add(chartArea3);
             this.chart_TestData.Location = new System.Drawing.Point(275, 69);
             this.chart_TestData.Name = "chart_TestData";
-            series1.ChartArea = "ChartArea1";
-            series1.Name = "Series1";
-            this.chart_TestData.Series.Add(series1);
+            series3.ChartArea = "ChartArea1";
+            series3.Name = "Series1";
+            this.chart_TestData.Series.Add(series3);
             this.chart_TestData.Size = new System.Drawing.Size(362, 201);
             this.chart_TestData.TabIndex = 13;
             this.chart_TestData.Text = "chart1";
@@ -841,17 +842,17 @@
             // noveltyChart
             // 
             this.noveltyChart.BackColor = System.Drawing.Color.Transparent;
-            chartArea2.Name = "ChartArea1";
-            this.noveltyChart.ChartAreas.Add(chartArea2);
+            chartArea4.Name = "ChartArea1";
+            this.noveltyChart.ChartAreas.Add(chartArea4);
             this.noveltyChart.Cursor = System.Windows.Forms.Cursors.Default;
-            legend1.Name = "Legend1";
-            this.noveltyChart.Legends.Add(legend1);
+            legend2.Name = "Legend1";
+            this.noveltyChart.Legends.Add(legend2);
             this.noveltyChart.Location = new System.Drawing.Point(16, 102);
             this.noveltyChart.Name = "noveltyChart";
-            series2.ChartArea = "ChartArea1";
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            this.noveltyChart.Series.Add(series2);
+            series4.ChartArea = "ChartArea1";
+            series4.Legend = "Legend1";
+            series4.Name = "Series1";
+            this.noveltyChart.Series.Add(series4);
             this.noveltyChart.Size = new System.Drawing.Size(606, 232);
             this.noveltyChart.TabIndex = 2;
             this.noveltyChart.Text = "chart1";
@@ -878,6 +879,7 @@
             // 
             // tabPage6
             // 
+            this.tabPage6.Controls.Add(this.btn_GenerateScatter);
             this.tabPage6.Controls.Add(this.btn_CreateResultTable);
             this.tabPage6.Controls.Add(this.btn_ExportDataCompare);
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
@@ -991,6 +993,16 @@
             this.btn_CalcSam.Text = "Calculate All SAMS";
             this.btn_CalcSam.UseVisualStyleBackColor = true;
             this.btn_CalcSam.Click += new System.EventHandler(this.btn_CalcSam_Click);
+            // 
+            // btn_GenerateScatter
+            // 
+            this.btn_GenerateScatter.Location = new System.Drawing.Point(239, 159);
+            this.btn_GenerateScatter.Name = "btn_GenerateScatter";
+            this.btn_GenerateScatter.Size = new System.Drawing.Size(168, 23);
+            this.btn_GenerateScatter.TabIndex = 2;
+            this.btn_GenerateScatter.Text = "Generate Scatterplot";
+            this.btn_GenerateScatter.UseVisualStyleBackColor = true;
+            this.btn_GenerateScatter.Click += new System.EventHandler(this.btn_GenerateScatter_Click);
             // 
             // Form1
             // 
@@ -1116,6 +1128,7 @@
         private System.Windows.Forms.Button btn_anomalyDetection;
         private System.Windows.Forms.Button btn_CreateResultTable;
         private System.Windows.Forms.Button btn_CalcSam;
+        private System.Windows.Forms.Button btn_GenerateScatter;
     }
 }
 

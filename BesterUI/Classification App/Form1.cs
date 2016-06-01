@@ -2074,19 +2074,19 @@ namespace Classification_App
             pngify.ExportToFile(model, path);
         }
 
-        static void SavePngScatter(string path, string name, List<double> A, List<double> B)
+        static void SavePngScatter(string path, string name, List<double> A, List<double> B, double axisMin = 0, double axisMax = 0)
         {
             PngExporter pngify = new PngExporter();
-            pngify.Width = 1000;
-            pngify.Height = 1000;
+            pngify.Width = 2000;
+            pngify.Height = 2000;
 
             var model = new PlotModel() { Title = name };
 
             var scatterSeries = new OxyPlot.Series.ScatterSeries()
             {
-                MarkerSize = 0.1f,
+                MarkerSize = 0.8f,
                 MarkerType = MarkerType.Circle,
-                MarkerFill = OxyColors.Red
+                MarkerFill = OxyColors.Black
             };
 
 
@@ -2096,8 +2096,8 @@ namespace Classification_App
             }
 
             model.Series.Add(scatterSeries);
-            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Left });
-            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = 0, Maximum = 1, Position = OxyPlot.Axes.AxisPosition.Bottom });
+            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = axisMin, Maximum = axisMax, Position = OxyPlot.Axes.AxisPosition.Left });
+            model.Axes.Add(new OxyPlot.Axes.LinearAxis() { Minimum = axisMin, Maximum = axisMax, Position = OxyPlot.Axes.AxisPosition.Bottom });
 
             pngify.ExportToFile(model, path);
         }
@@ -2963,6 +2963,45 @@ namespace Classification_App
                 foreach (var dir in dirs)
                 {
                     SAMData.LoadFromPath(dir + "/SAMData.json");
+                }
+            }
+        }
+
+        private void btn_GenerateScatter_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                foreach (var file in Directory.GetFiles(fbd.SelectedPath).Where(x => x.EndsWith(".txt")))
+                {
+                    using (var f = File.OpenText(file))
+                    {
+                        List<double> As = new List<double>(2000);
+                        List<double> Bs = new List<double>(2000);
+
+                        double min = 1;
+                        double max = 0;
+
+                        do
+                        {
+                            string line = f.ReadLine();
+                            if (line != "")
+                            {
+                                double aVal = double.Parse(line.Split(';')[0].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                                double bVal = double.Parse(line.Split(';')[1].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+
+                                min = Math.Min(aVal, Math.Min(bVal, min));
+                                max = Math.Max(aVal, Math.Max(bVal, max));
+
+                                As.Add(aVal);
+                                Bs.Add(bVal);
+                            }
+                        }
+                        while (!f.EndOfStream);
+
+                        SavePngScatter(file + "_scatter.png", file, As, Bs, min, max);
+                        Log.LogMessage("Donno" + file);
+                    }
                 }
             }
         }
