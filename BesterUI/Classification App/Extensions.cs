@@ -326,5 +326,11 @@ namespace Classification_App
 
             return newValues;
         }
+
+        public static List<double> CalculateNormalized(this List<double> input)
+        {
+            double max = input.Max();
+            return input.Select(x => x / max).ToList();
+        }
     }
 }
