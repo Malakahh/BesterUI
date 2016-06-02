@@ -1814,8 +1814,8 @@ namespace Classification_App
                     List<string> files = new List<string>()
                     {
                         "EEG.dat",
-                        "GSR.dat",
-                        "HR.dat",
+                        //"GSR.dat",
+                        //"HR.dat",
                         //"KINECT.dat"
                     };
                     bool runIndividualTasks = true;
@@ -1864,7 +1864,7 @@ namespace Classification_App
                         List<string> taskEvents = testEvents.Where(x => x.Contains("TaskWizard - ")).ToList();
                         int start = waitPeriodDone;
                         for (int s = 0; s < taskEvents.Count; s++)
-                        { 
+                        {
                             string[] currentEvent = taskEvents[s].Split(new char[] { '-', ' ', '#' }, StringSplitOptions.RemoveEmptyEntries);
                             int end = int.Parse(currentEvent[0]);
                             tasks.Add(new TaskStartEnd(start, end, currentEvent[currentEvent.Length - 1]));
@@ -1903,7 +1903,7 @@ namespace Classification_App
                                 //var nonTempB = nonTemporal.Select(x => x.Item2).ToList();
 
                                 SavePng(csvTimePath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
-                                SavePngScatter(csvTimePath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
+                                //SavePngScatter(csvTimePath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
                                 SaveZip(csvTimePath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
                                 //SavePng(csvTimePath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
 
@@ -1911,7 +1911,7 @@ namespace Classification_App
                                 if (int.TryParse(time, out t) && t != 0)
                                 {
                                     SavePng(csvStimuliPath + "GSR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: ) - Red = test, blue = recall", gsrNorm.Item1, gsrNorm.Item2);
-                                    SavePngScatter(csvStimuliPath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
+                                    //SavePngScatter(csvStimuliPath + "GSR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", gsrNorm.Item1, gsrNorm.Item2);
                                     SaveZip(csvStimuliPath + "GSR.csv", gsrNorm.Item1, gsrNorm.Item2);
 
                                 }
@@ -1937,14 +1937,14 @@ namespace Classification_App
                                 var setB = hrNorm.Item2;//.MedianFilter(25);
                                 var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, Math.Min(setA.Count, setB.Count)), setB.GetRange(0, Math.Min(setA.Count, setB.Count)));
                                 SavePng(csvTimePath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
-                                SavePngScatter(csvTimePath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
+                                //SavePngScatter(csvTimePath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
                                 SaveZip(csvTimePath + "HR.csv", setA, setB);
 
                                 int t;
                                 if (int.TryParse(time, out t) && t != 0)
                                 {
                                     SavePng(csvStimuliPath + "HR.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", hrNorm.Item1, hrNorm.Item2);
-                                    SavePngScatter(csvStimuliPath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
+                                    //SavePngScatter(csvStimuliPath + "HR_Scatter.png", $"{subject} (Time: {time}, Stim: {stimul})", hrNorm.Item1, hrNorm.Item2);
                                     SaveZip(csvStimuliPath + "HR.csv", hrNorm.Item1, hrNorm.Item2);
                                     //SavePng(csvStimuliPath + "GSR_nonTemporal.png", $"{subject} (Time: {time}, Stim: {stimul}, Corr: {pearsCorr.ToString("0.000")}) - Red = test, blue = recall", nonTempA, nonTempB);
                                 }
@@ -1965,9 +1965,15 @@ namespace Classification_App
 
                                 if (eeg.Item2.Count == 0 || eeg.Item3.Count == 0) continue;
 
+                                /*
                                 var eegNorm = NormalizeFilterData(eeg);
                                 var setA = eegNorm.Item1.VarianceFilter(64);
                                 var setB = eegNorm.Item2.VarianceFilter(64);
+                                */
+
+                                var setA = eeg.Item2.VarianceFilter(64).CalculateNormalized();
+                                var setB = eeg.Item3.VarianceFilter(64).CalculateNormalized();
+
                                 var min = Math.Min(setA.Count, setB.Count);
                                 Log.LogMessage($"{item} done, data filtered: {eeg.Item1.ToString("0.0")}%");
                                 var pearsCorr = MathNet.Numerics.Statistics.Correlation.Pearson(setA.GetRange(0, min), setB.GetRange(0, min));
@@ -2021,7 +2027,7 @@ namespace Classification_App
                             }
                             Log.LogMessage("Kinect done");
                         }
-                    }                   
+                    }
 
 
 
@@ -2475,6 +2481,10 @@ namespace Classification_App
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
         {
+            //string corrType = "Pearson";
+            //string corrType = "Kendall";
+            string corrType = "Spearman";
+
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
             {
@@ -2556,23 +2566,24 @@ namespace Classification_App
 
                             resultFiles.Add(resultFile.Split('\\').Last());
 
-                            string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).ToArray());
+                            string sensor = new String(resultFile.Split('.').First().SkipWhile(x => x != '_').Skip(1).SkipWhile(x => x != '_').Skip(1).ToArray());
 
                             if (!sensors.Contains(sensor)) sensors.Add(sensor);
 
                             var resultLines = File.ReadAllLines(resultFile);
-                            string correlationLine = resultLines.First(x => x.Contains("|Pearson"));
-                            string significanceLine = resultLines.First(x => x.Contains("|Sig."));
+                            string correlationLine = resultLines.First(x => x.Contains("|" + corrType));
+                            int corrId = resultLines.ToList().IndexOf(correlationLine);
+                            string significanceLine = resultLines[corrId + 2];
 
                             if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
                             {
                                 continue;
                             }
 
-                            double correlation = double.Parse(correlationLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
-                            double significance = double.Parse(significanceLine.Split('|', '*')[4], System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*'}, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
 
-                            var result = Tuple.Create(correlation, significance);
+                            var result = Tuple.Create(pearsCorrelation, pearsSignificance);
 
 
                             if (!timeTable.ContainsKey(sensor))
@@ -2594,7 +2605,7 @@ namespace Classification_App
                             totalList[sensor].Add(result);
                             stimuliTable[sensor][stimuli].Add(result);
 
-                            if (correlation > 0)
+                            if (pearsCorrelation > 0)
                             {
                                 big5List["corr"].Add(big5);
                             }
@@ -2624,7 +2635,7 @@ namespace Classification_App
                     totalToWrite.Add(item + " Mean: " + big5List["total"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["total"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
                 }
 
-                File.WriteAllLines(fbd.SelectedPath + "/totals.txt", totalToWrite);
+                File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_totals.txt", totalToWrite);
 
                 foreach (var time in times)
                 {
@@ -2641,7 +2652,7 @@ namespace Classification_App
                         timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                     }
 
-                    File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", timeToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
 
                 /*
@@ -2719,7 +2730,7 @@ namespace Classification_App
                     timeToWrite.Add("\\label{[TABLE] res time" + time + "}");
                     timeToWrite.Add("\\end{table}");
 
-                    File.WriteAllLines(fbd.SelectedPath + "/time" + time + ".txt", timeToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
 
                 foreach (var stimuli in stimulis)
@@ -2754,7 +2765,7 @@ namespace Classification_App
                     stimuliToWrite.Add("\\end{table}");
 
 
-                    File.WriteAllLines(fbd.SelectedPath + "/stimuli_" + stimuli + ".txt", stimuliToWrite);
+                    File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_stimuli_" + stimuli + ".txt", stimuliToWrite);
                 }
 
 

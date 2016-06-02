@@ -33,16 +33,17 @@ namespace Classification_App
         {
             double timeReduction = 1 - ((double)poi.GetFlaggedAreas().Where(x => x.Item2 > start).Sum(x => (x.Item2 - x.Item1)) / (end - start));
             double eventsHit = (double)events.Where(x=>x.isHit).Count()/events.Count;
+            
+            return ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
 
-            return ((TIME_WEIGHT * timeReduction) + (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
         }
 
         public static double CalculateEarlyScore(PointsOfInterest poiT, List<Events> eventsT, int startT, int endT)
         {
             double timeReduction = 1 - ((double)poiT.GetFlaggedAreas().Where(x=>x.Item2> startT).Sum(x => (x.Item2 - x.Item1)) / (endT - startT));
             double eventsHit = (double)eventsT.Where(x => x.isHit).Count() / eventsT.Count;
-
-            return ((TIME_WEIGHT * timeReduction) + (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
+            
+            return ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
 
         }
     }
