@@ -785,7 +785,7 @@ namespace Classification_App
                 Task task = Task.Run(()=>PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
                 tasks.Add(task);
             }
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll(tasks);
             bestResultMu.Dispose();
             return bestResult;
         }
@@ -819,6 +819,9 @@ namespace Classification_App
                     evt.SetPointOfInterest(dPointsOfInterest);
                 }
 
+                try
+                {
+                    mutex.WaitOne();
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
@@ -831,9 +834,6 @@ namespace Classification_App
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
                         + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
                 }
-                try
-                {
-                    mutex.WaitOne();
                     count++;
                     SetProgress(count, sensor, svmCount + 1);
                     mutex.ReleaseMutex();
