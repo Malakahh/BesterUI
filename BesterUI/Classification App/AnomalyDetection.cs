@@ -23,34 +23,41 @@ namespace Classification_App
     public enum SENSOR { GSR, EEG, HR, FACE };
     public partial class AnomalyDetection : Form
     {
-
+        private bool maxSet = false;
         public void SetProgress(int value, SENSOR sensor, int max)
         {
+            if (!maxSet)
+            {
+                this.Invoke((MethodInvoker)delegate
+                {
+                    eegProgress.Maximum = max + 1;
+                    hrProgress.Maximum = max + 1;
+                    gsrProgress.Maximum = max + 1;
+                    faceProgress.Maximum = max + 1;
+                });
+                maxSet = true;
+            }
             
             switch (sensor)
             {
                 case SENSOR.EEG:
                     this.Invoke((MethodInvoker)delegate {
-                        eegProgress.Maximum = max;
                         eegProgress.Value = value;
                     });
                     break;
                 case SENSOR.HR:
                     this.Invoke((MethodInvoker)delegate {
                         hrProgress.Value = value;
-                        hrProgress.Maximum = max;
                     });
                     break;
                 case SENSOR.GSR:
                     this.Invoke((MethodInvoker)delegate {
                         gsrProgress.Value = value;
-                        gsrProgress.Maximum = max;
                     });
                     break;
                 case SENSOR.FACE:
                     this.Invoke((MethodInvoker)delegate {
                         faceProgress.Value = value;
-                        faceProgress.Maximum = max;
                     });
                     break;
             }
@@ -775,7 +782,19 @@ namespace Classification_App
         {
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
+           //Debug purpose
+            /* for (int i = 0; i < 20; i++)
+            {
+                SVMParameter s = new SVMParameter();
+                s.C = 100;
+                s.Gamma = 0.01;
+                s.Kernel = SVMKernelType.SIGMOID;
+                s.Type = SVMType.ONE_CLASS;
+                s.Nu = 0.01;
+                svmParams.Push(s);
+            }*/
             svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            SetProgress(0, SENSOR.GSR, svmParams.Count);
             NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
             int count = 1;
@@ -796,6 +815,7 @@ namespace Classification_App
             List<OneClassFV> anomali = new List<OneClassFV>();
             List<Events> eventResult = new List<Events>();
             List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+            int maxCount = svmCount;
             foreach (Events p in events)
             {
                 var evt = p.Copy();
@@ -819,9 +839,7 @@ namespace Classification_App
                     evt.SetPointOfInterest(dPointsOfInterest);
                 }
 
-                try
-                {
-                    mutex.WaitOne();
+                mutex.WaitOne();
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
@@ -834,14 +852,9 @@ namespace Classification_App
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
                         + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
                 }
-                    count++;
-                    SetProgress(count, sensor, svmCount + 1);
-                    mutex.ReleaseMutex();
-                }
-                catch
-                {
-                    break;
-                }
+                count++;
+                SetProgress(count, sensor, maxCount + 1);
+                mutex.ReleaseMutex();
             }
             Log.LogMessage(sensor + " done!");
         }
