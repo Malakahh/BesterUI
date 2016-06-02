@@ -73,80 +73,57 @@ namespace Classification_App
 
         }
 
+        public static void WriteSheetMeta(Excel.Worksheet workSheet, string name)
+        {
+            /*
+            % hit
+            % covered
+            Score value
+            Parameter
+            */
+            workSheet.Cells[1, 1] = name;
+            workSheet.Cells[3, 1] = "Recall";
+            workSheet.Cells[4, 1] = "Covered";
+            workSheet.Cells[5, 1] = "Score";
+            workSheet.Cells[6, 1] = "C";
+            workSheet.Cells[7, 1] = "Gamma";
+            workSheet.Cells[8, 1] = "Kernel";
+
+        }
+
+
+        public static void WriteResult(Excel.Worksheet workSheet, string name, NoveltyResult result)
+        {
+            /*
+            % hit
+            % covered
+            Score value
+            Parameter
+            */
+            workSheet.Cells[1, 2] = name;
+            workSheet.Cells[3, 2] = (double)result.events.Where(x => x.isHit).Count() / result.events.Count; ;
+            workSheet.Cells[4, 2] = ((double)result.poi.GetFlaggedAreas().Where(x => x.Item2 > result.start).Sum(x => (x.Item2 - x.Item1)) / (result.start - result.end));
+            workSheet.Cells[5, 2] = result.CalculateScore();
+            workSheet.Cells[6, 2] = result.parameter.C;
+            workSheet.Cells[7, 2] = result.parameter.Gamma;
+            workSheet.Cells[8, 2] = result.parameter.Kernel.ToString();
+
+        }
+
+
         private static void WriteOverviewMeta(Excel.Worksheet workSheet)
         {
             #region [Names]
             workSheet.Cells[1, 1] = "A2High";
-            workSheet.Cells[6, 1] = "A2Low";
-            workSheet.Cells[11, 1] = "A3";
-            workSheet.Cells[16, 1] = "V2High";
-            workSheet.Cells[21, 1] = "V2Low";
-            workSheet.Cells[26, 1] = "V3";
             #endregion
 
             #region [Average & standard deviation markers]
-            //A2High
-            workSheet.Cells[3, 1] = "AVG";
-            workSheet.Cells[4, 1] = "STD";
-            //A2Low
-            workSheet.Cells[8, 1] = "AVG";
-            workSheet.Cells[9, 1] = "STD";
-            //A3
-            workSheet.Cells[13, 1] = "AVG";
-            workSheet.Cells[14, 1] = "STD";
-            //V2High
-            workSheet.Cells[18, 1] = "AVG";
-            workSheet.Cells[19, 1] = "STD";
-            //V2Low
-            workSheet.Cells[23, 1] = "AVG";
-            workSheet.Cells[24, 1] = "STD";
-            //V3
-            workSheet.Cells[28, 1] = "AVG";
-            workSheet.Cells[29, 1] = "STD";
             #endregion
 
             #region [Score Labels]
-            List<string> scoring2Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "P1", "P2", "R1", "R2" };
-            List<string> scoring3Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "F3", "P1", "P2", "P3", "R1", "R2", "R3" };
-            //A2High
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[2, i + 2] = scoring2Labels[i];
-            }
-
-            //A2Low
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[7, i + 2] = scoring2Labels[i];
-            }
-
-            //A3
-            for (int i = 0; i < scoring3Labels.Count; i++)
-            {
-                workSheet.Cells[12, i + 2] = scoring3Labels[i];
-            }
-
-            //V2High
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[17, i + 2] = scoring2Labels[i];
-            }
-
-            //V2Low
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[22, i + 2] = scoring2Labels[i];
-            }
-
-            //V3
-            for (int i = 0; i < scoring3Labels.Count; i++)
-            {
-                workSheet.Cells[27, i + 2] = scoring3Labels[i];
-            }
-
             #endregion
 
-            #region[Score Formulas]
+            #region[Formulas]
          /*   string avgFormula = "=AVERAGE(First:Last!C";
             string stdevFormula = "=STDEV.P(First:Last!C";
             string endFormula = ")";
@@ -156,10 +133,10 @@ namespace Classification_App
                 workSheet.Cells[3, i + 2] = avgFormula + (i + A2HighStart) + endFormula;
                 workSheet.Cells[4, i + 2] = stdevFormula + (i + A2HighStart) + endFormula;
             }
-          */ 
+          */
 
 
-            #endregion
+#endregion
 
         }
     }

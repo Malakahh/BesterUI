@@ -15,6 +15,9 @@ namespace Classification_App
         public int start;
         public int end;
         public LibSVMsharp.SVMParameter parameter;
+        
+        private const double HIT_WEIGHT = 1;
+        private const double TIME_WEIGHT = 1;
 
         public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
@@ -26,20 +29,20 @@ namespace Classification_App
             this.anomalis = anomalis.ToList();
         }
 
-        public double CalculateScore(double hitWeight, double timeReductionWeight)
+        public double CalculateScore()
         {
             double timeReduction = 1 - ((double)poi.GetFlaggedAreas().Where(x => x.Item2 > start).Sum(x => (x.Item2 - x.Item1)) / (end - start));
             double eventsHit = (double)events.Where(x=>x.isHit).Count()/events.Count;
 
-            return ((timeReductionWeight * timeReduction) + (hitWeight * eventsHit)) / (hitWeight + timeReductionWeight);
+            return ((TIME_WEIGHT * timeReduction) + (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
         }
 
-        public static double CalculateEarlyScore(PointsOfInterest poiT, List<Events> eventsT, int startT, int endT, double hitWeightT, double timeReductionWeightT)
+        public static double CalculateEarlyScore(PointsOfInterest poiT, List<Events> eventsT, int startT, int endT)
         {
             double timeReduction = 1 - ((double)poiT.GetFlaggedAreas().Where(x=>x.Item2> startT).Sum(x => (x.Item2 - x.Item1)) / (endT - startT));
             double eventsHit = (double)eventsT.Where(x => x.isHit).Count() / eventsT.Count;
 
-            return ((timeReductionWeightT * timeReduction) + (hitWeightT * eventsHit)) / (hitWeightT + timeReductionWeightT);
+            return ((TIME_WEIGHT * timeReduction) + (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
 
         }
     }

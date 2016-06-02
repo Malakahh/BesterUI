@@ -726,7 +726,7 @@ namespace Classification_App
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
-                        Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore(1, 1)}");
+                        Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
 
                     }
                     AnomaliSerializer.SaveAnomalis(anomalis, path, STEP_SIZE);
@@ -735,9 +735,6 @@ namespace Classification_App
                 }
             }
         }
-
-        private const double HIT_WEIGHT = 1;
-        private const double TIME_WEIGHT = 1;
 
         private NoveltyResult DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
@@ -770,17 +767,17 @@ namespace Classification_App
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali);
-                    Log.LogMessage(bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT).ToString());
+                    Log.LogMessage(bestResult.CalculateScore().ToString());
                 }
-                else if (NoveltyResult.CalculateEarlyScore(dPointsOfInterest, eventResult, start, end, HIT_WEIGHT, TIME_WEIGHT) > bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT))
+                else if (NoveltyResult.CalculateEarlyScore(dPointsOfInterest, eventResult, start, end) > bestResult.CalculateScore())
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, param, anomali); ;
-                    Log.LogMessage(bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT).ToString() + " with param ");
+                    Log.LogMessage(bestResult.CalculateScore().ToString() + " with param ");
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
                         + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
                 }
                 count++;
-                double tt = bestResult.CalculateScore(HIT_WEIGHT, TIME_WEIGHT);
+                double tt = bestResult.CalculateScore();
             }
             return bestResult;
         }
