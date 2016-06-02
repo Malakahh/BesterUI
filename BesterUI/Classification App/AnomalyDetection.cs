@@ -777,7 +777,7 @@ namespace Classification_App
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             NoveltyResult bestResult = null;
-            Mutex bestResultMu = new Mutex();
+            Mutex bestResultMu = new Mutex(false, sensor.ToString());
             int count = 1;
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < numberOfTasks; i++)
@@ -786,7 +786,7 @@ namespace Classification_App
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks.ToArray());
-
+            bestResultMu.Dispose();
             return bestResult;
         }
 
@@ -831,10 +831,17 @@ namespace Classification_App
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
                         + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
                 }
-                mutex.WaitOne();
-                count++;
-                SetProgress(count, sensor, svmCount + 1);
-                mutex.ReleaseMutex();
+                try
+                {
+                    mutex.WaitOne();
+                    count++;
+                    SetProgress(count, sensor, svmCount + 1);
+                    mutex.ReleaseMutex();
+                }
+                catch
+                {
+                    break;
+                }
             }
             Log.LogMessage(sensor + " done!");
         }

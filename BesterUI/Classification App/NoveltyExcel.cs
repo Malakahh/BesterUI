@@ -16,6 +16,7 @@ namespace Classification_App
         public static object missingValue = System.Reflection.Missing.Value; //Used for filler purpose
         public bool BooksOpen { get; private set; }
         private string statsFolderPath = null;
+        public Excel.Workbook currentBook;
 
         public NoveltyExcel(string path)
         {
@@ -35,7 +36,7 @@ namespace Classification_App
                 if (!Directory.Exists(statsFolderPath))
                 {
                     Directory.CreateDirectory(statsFolderPath);
-                    Excel.Workbook currentBook = MyApp.Workbooks.Add(missingValue);
+                    currentBook = MyApp.Workbooks.Add(missingValue);
                     //Added Standard (Front, first, last)
                     CreateStandardBookSetup(currentBook);
                     //Remove default sheet
@@ -55,7 +56,7 @@ namespace Classification_App
             return true;
         }
 
-        public static void CreateStandardBookSetup(Excel.Workbook workBook)
+        public void CreateStandardBookSetup(Excel.Workbook workBook)
         {
             //Create frontpage
             Excel.Worksheet overview = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
@@ -72,8 +73,18 @@ namespace Classification_App
             WriteOverviewMeta(overview);
 
         }
-
-        public static void WriteSheetMeta(Excel.Worksheet workSheet, string name)
+        public void AddDataToPerson(string name, NoveltyResult predictResult)
+        {
+            Log.LogMessage("Writing results from " + name + " to excel files");
+            foreach (Excel.Worksheet ws in currentBook.Sheets)
+            {
+                if (ws.Name == name)
+                {
+                    WriteResult(ws, name, predictResult);
+                }
+            }
+        }
+        public void WriteSheetMeta(Excel.Worksheet workSheet, string name)
         {
             /*
             % hit
@@ -91,8 +102,9 @@ namespace Classification_App
 
         }
 
+        
 
-        public static void WriteResult(Excel.Worksheet workSheet, string name, NoveltyResult result)
+        public void WriteResult(Excel.Worksheet workSheet, string name, NoveltyResult result)
         {
             /*
             % hit
@@ -102,7 +114,7 @@ namespace Classification_App
             */
             workSheet.Cells[1, 2] = name;
             workSheet.Cells[3, 2] = (double)result.events.Where(x => x.isHit).Count() / result.events.Count; ;
-            workSheet.Cells[4, 2] = ((double)result.poi.GetFlaggedAreas().Where(x => x.Item2 > result.start).Sum(x => (x.Item2 - x.Item1)) / (result.start - result.end));
+            workSheet.Cells[4, 2] = (((double)result.poi.GetFlaggedAreas().Where(x => x.Item2 > result.start).Sum(x => (x.Item2 - x.Item1)) > 0) ? ((double)result.poi.GetFlaggedAreas().Where(x => x.Item2 > result.start).Sum(x => (x.Item2 - x.Item1)))/(result.start - result.end) : 0);
             workSheet.Cells[5, 2] = result.CalculateScore();
             workSheet.Cells[6, 2] = result.parameter.C;
             workSheet.Cells[7, 2] = result.parameter.Gamma;
@@ -111,32 +123,30 @@ namespace Classification_App
         }
 
 
-        private static void WriteOverviewMeta(Excel.Worksheet workSheet)
+        private void WriteOverviewMeta(Excel.Worksheet workSheet)
         {
-            #region [Names]
-            workSheet.Cells[1, 1] = "A2High";
-            #endregion
-
             #region [Average & standard deviation markers]
-            #endregion
-
-            #region [Score Labels]
+            //hits, covered, Score 
+            workSheet.Cells[1, 1] = "Overview";
+            workSheet.Cells[3, 1] = "HitAverage";
+            workSheet.Cells[4, 1] = "CoveredAverage";
+            workSheet.Cells[2, 2] = "Average";
+            workSheet.Cells[2, 3] = "SD";
             #endregion
 
             #region[Formulas]
-         /*   string avgFormula = "=AVERAGE(First:Last!C";
+            string avgFormula = "=AVERAGE(First:Last!C";
             string stdevFormula = "=STDEV.P(First:Last!C";
             string endFormula = ")";
-            //A2High AVG and Stdev
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[3, i + 2] = avgFormula + (i + A2HighStart) + endFormula;
-                workSheet.Cells[4, i + 2] = stdevFormula + (i + A2HighStart) + endFormula;
-            }
-          */
 
+            //Average
+            workSheet.Cells[3, 2] = $"{avgFormula}B3{endFormula}";
+            workSheet.Cells[4, 2] = $"{avgFormula}B4{endFormula}";
 
-#endregion
+            //SD
+            workSheet.Cells[3, 3] = $"{stdevFormula}B3{endFormula}";
+            workSheet.Cells[4, 3] = $"{stdevFormula}B4{endFormula}";
+            #endregion
 
         }
     }
