@@ -705,10 +705,16 @@ namespace Classification_App
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 sw.Start();
+                NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath);
                 foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
+                    if (folder.Contains("Stats"))
+                    {
+                        continue;
+                    }
                     path = folder + "/test";
-                    string testSubjectId = path.Split('\\')[path.Split('\\').Length - 2];
+                    string testSubjectId = folder.Split('\\').Last();
+                    excel.AddPersonToBooks(testSubjectId);
                     Log.LogMessage($"Loading Data: " + testSubjectId);
                     featureVectors = AnomaliSerializer.LoadFeatureVectors(path );
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
@@ -730,7 +736,7 @@ namespace Classification_App
                     threads.Add(eegThread);
                     threads.Add(hrThread);
                     threads.Add(faceThread);
-                    await Task.WhenAll(threads.ToArray());
+                    await Task.WhenAll(threads);
                     foreach (Task<NoveltyResult> t in threads)
                     {
                         if (t.Id == gsrId)
@@ -770,11 +776,15 @@ namespace Classification_App
                         Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
 
                     }
+                    excel.AddDataToPerson(testSubjectId, predictionResults);
+                    excel.Save();
                     AnomaliSerializer.SaveAnomalis(anomalis, path, STEP_SIZE);
                     AnomaliSerializer.SaveEvents(eventResult, path);
                     AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
                 }
+                excel.CloseHandler();
             }
+            
         }
         
         private const int numberOfTasks = 10;
@@ -783,7 +793,7 @@ namespace Classification_App
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
            //Debug purpose
-            /* for (int i = 0; i < 20; i++)
+             for (int i = 0; i < 20; i++)
             {
                 SVMParameter s = new SVMParameter();
                 s.C = 100;
@@ -792,8 +802,8 @@ namespace Classification_App
                 s.Type = SVMType.ONE_CLASS;
                 s.Nu = 0.01;
                 svmParams.Push(s);
-            }*/
-            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            }
+            //svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgress(0, SENSOR.GSR, svmParams.Count);
             NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());

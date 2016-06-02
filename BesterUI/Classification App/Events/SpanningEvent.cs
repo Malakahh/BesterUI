@@ -9,9 +9,9 @@ namespace Classification_App.Evnt
     class SpanningEvent : Events
     {
 
-        public SpanningEvent(int startTimeStamp, int endTimestamp, string eventName, double percentageToHit): base(startTimeStamp, endTimestamp, eventName)
+        public SpanningEvent(int startTimeStamp, int endTimestamp, string eventName, double PercentageToHit): base(startTimeStamp, endTimestamp, eventName)
         {
-            this.percentageToHit = percentageToHit;
+            this.percentageToHit = PercentageToHit;
         }
 
         protected override bool CalculateHit()

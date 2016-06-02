@@ -20,6 +20,8 @@ namespace Classification_App
         private const double TIME_WEIGHT = 1;
         private bool _scoreIsCalculated = false;
         private double score;
+        private bool _flaggedAreaIsCalculated = false;
+        private double _area;
 
         public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
@@ -31,11 +33,25 @@ namespace Classification_App
             this.anomalis = anomalis.ToList();
         }
 
+        public double FlaggedAreaSize()
+        {
+            if (!_flaggedAreaIsCalculated)
+            {
+                _area = (double)poi.GetFlaggedAreas().Where(x => x.Item2 > start).Sum(x => (x.Item1 < start) ? x.Item2 - start : (x.Item2 - x.Item1));
+                _flaggedAreaIsCalculated = true;
+                return _area;
+            }
+            else
+            {
+                return _area;
+            }
+        }
+
         public double CalculateScore()
         {
             if (!_scoreIsCalculated)
             {
-                double timeReduction = 1 - ((double)poi.GetFlaggedAreas().Where(x => x.Item2 > start).Sum(x => (x.Item2 - x.Item1)) / (end - start));
+                double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
                 double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
                 score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
                 _scoreIsCalculated = true;
