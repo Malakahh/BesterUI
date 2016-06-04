@@ -850,15 +850,17 @@ namespace Classification_App
                     evt.SetPointOfInterest(dPointsOfInterest);
                 }
 
+                NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
                 mutex.WaitOne();
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
                     Log.LogMessage(bestResult.CalculateScore().ToString());
                 }
-                else if (NoveltyResult.CalculateEarlyScore(dPointsOfInterest, eventResult, start, end) > bestResult.CalculateScore())
+                else if (tempResult.CalculateScore() > bestResult.CalculateScore())
                 {
-                    bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali); ;
+                    //bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali); ;
+                    bestResult = tempResult;
                     Log.LogMessage(bestResult.CalculateScore().ToString() + " with param ");
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
                         + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);

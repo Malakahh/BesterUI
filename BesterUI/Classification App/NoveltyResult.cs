@@ -15,13 +15,15 @@ namespace Classification_App
         public int start;
         public int end;
         public LibSVMsharp.SVMParameter parameter;
-        
+
         private const double HIT_WEIGHT = 1;
         private const double TIME_WEIGHT = 1;
         private bool _scoreIsCalculated = false;
         private double score;
         private bool _flaggedAreaIsCalculated = false;
         private double _area;
+        private bool _calculatedConfusionMatrix = false;
+        private ConfusionMatrix _confusionMatrix;
 
         public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
@@ -49,55 +51,97 @@ namespace Classification_App
 
         public ConfusionMatrix CalculateConfusionMatrix()
         {
-            int TruePostive = 0;
-            int FalsePostive = 0;
-            int FalseNegative = 0;
-            int TrueNegative = 0;
-            //Positives
-              List<Events> tempEvents = events.Select(x => x.Copy()).ToList();
-            List<Tuple<int, int>> tempPoi = poi.GetFlaggedAreas();
-            /*  foreach (Events ev in tempEvents)
-              {
-                  if (ev.isHit)
-                  {
-                      TruePostive++;
-                  }
-                  else
-                  {
-                      FalsePostive++;
-                  }
-              }*/
-            foreach (Tuple<int, int> pointOfInterest in tempPoi)
+            if (!_calculatedConfusionMatrix)
             {
-                for (int iterator = pointOfInterest.Item1; iterator <= pointOfInterest.Item2; iterator++)
+                int TruePostive = 0;
+                int FalsePostive = 0;
+                int FalseNegative = 0;
+                int TrueNegative = 0;
+                //Positives
+                List<Events> tempEvents = events.Select(x => x.Copy()).ToList();
+                List<Tuple<int, int>> tempPoi = poi.GetFlaggedAreas();
+                /*  foreach (Events ev in tempEvents)
+                  {
+                      if (ev.isHit)
+                      {
+                          TruePostive++;
+                      }
+                      else
+                      {
+                          FalsePostive++;
+                      }
+                  }*/
+                foreach (Tuple<int, int> pointOfInterest in tempPoi)
                 {
-                    foreach (Events ev in events)
+                    for (int iterator = pointOfInterest.Item1; iterator <= pointOfInterest.Item2; iterator++)
                     {
-                        if (ev.endTimestamp < iterator)
+                        if (iterator < start)
                         {
                             continue;
                         }
-                        else if (ev.startTimestamp < iterator && iterator < ev.endTimestamp)
+                        foreach (Events ev in events)
                         {
-                            TruePostive++;
-                            continue;
+                            if (ev.endTimestamp < iterator)
+                            {
+                                continue;
+                            }
+                            else if (ev.startTimestamp < iterator && iterator < ev.endTimestamp)
+                            {
+                                TruePostive++;
+                                continue;
+                            }
+                        }
+                        FalsePostive++;
+                    }
+                }
+
+
+                tempEvents = events.Select(x => x.Copy()).ToList();
+                tempPoi = poi.GetFlaggedAreas();
+                //Negatives
+                for (int time = start; time < end; time += 1)
+                {
+                    if (tempPoi.Count != 0 && tempEvents.Count != 0)
+                    {
+                        if (!(tempPoi.First().Item1 < time && time < tempPoi.First().Item2))
+                        {
+                            if (tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp)
+                            {
+                                FalseNegative++;
+                            }
+                            else
+                            {
+                                TrueNegative++;
+                            }
+                        }
+                        if (time + 1 > tempPoi.First().Item2)
+                        {
+                            tempPoi.RemoveAt(0);
+                        }
+                        if (time + 1 > tempEvents.First().endTimestamp)
+                        {
+                            tempEvents.RemoveAt(0);
                         }
                     }
-                    FalsePostive++;
-                }
-            }
-
-
-            tempEvents = events.Select(x => x.Copy()).ToList();
-            tempPoi = poi.GetFlaggedAreas();
-            //Negatives
-            for (int time = start; time<end; time += 1)
-            {
-                if (tempPoi.Count != 0 && tempEvents.Count != 0)
-                {
-                    if (!(tempPoi.First().Item1 < time && time < tempPoi.First().Item2))
+                    else if (tempEvents.Count != 0 && tempPoi.Count == 0)
                     {
-                        if (tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp)
+                        if (!(tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp))
+                        {
+                            TrueNegative++;
+                        }
+                        else
+                        {
+                            FalseNegative++;
+                        }
+
+                        if (time + 1 > tempEvents.First().endTimestamp)
+                        {
+                            tempEvents.RemoveAt(0);
+                        }
+                    }
+                    else if (tempEvents.Count == 0 && tempPoi.Count != 0)
+                    {
+                        if (tempPoi.First().Item1 < time && time < tempPoi.First().Item2)
                         {
                             FalseNegative++;
                         }
@@ -105,52 +149,27 @@ namespace Classification_App
                         {
                             TrueNegative++;
                         }
-                    }
-                    if (time + 1 > tempPoi.First().Item2)
-                    {
-                        tempPoi.RemoveAt(0);
-                    }
-                    if (time + 1 > tempEvents.First().endTimestamp)
-                    {
-                        tempEvents.RemoveAt(0);
-                    }
-                }
-                else if (tempEvents.Count != 0 && tempPoi.Count == 0)
-                {
-                    if (!(tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp))
-                    {
-                         TrueNegative++;
-                    }
 
-                    if (time + 1 > tempEvents.First().endTimestamp)
-                    {
-                        tempEvents.RemoveAt(0);
-                    }
-                }
-                else if (tempEvents.Count == 0 && tempPoi.Count != 0)
-                {
-                    if (tempPoi.First().Item1 < time && time < tempPoi.First().Item2)
-                    {
-                        FalseNegative++;
+                        if (time + 1 > tempPoi.First().Item2)
+                        {
+                            tempPoi.RemoveAt(0);
+                        }
                     }
                     else
                     {
                         TrueNegative++;
                     }
-
-                    if (time + 1 > tempPoi.First().Item2)
-                    {
-                        tempPoi.RemoveAt(0);
-                    }
                 }
-                else
-                {
-                    TrueNegative++;
-                }
+                _confusionMatrix = new ConfusionMatrix(TruePostive, FalsePostive, TrueNegative, FalseNegative);
+                _calculatedConfusionMatrix = true;
+                return _confusionMatrix;
             }
-
-            return new ConfusionMatrix(TruePostive, FalsePostive, TrueNegative, FalseNegative);
+            else
+            {
+                return _confusionMatrix;
+            }
         }
+
         public class ConfusionMatrix
         {
             public int TruePostive { get; set; }
@@ -182,10 +201,13 @@ namespace Classification_App
             if (!_scoreIsCalculated)
             {
                 double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
-                double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
-                score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
-                _scoreIsCalculated = true;
-                return score;
+                 double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
+                 score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
+                 _scoreIsCalculated = true;
+                 return score;
+                /*ConfusionMatrix conf = CalculateConfusionMatrix();
+                return ((conf.TruePostive / ((double)conf.TruePostive + conf.FalsePostive)) * (conf.TruePostive / ((double)conf.TruePostive + conf.FalseNegative))) / 2;
+    */
             }
             else
             {
