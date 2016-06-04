@@ -188,7 +188,7 @@ namespace Classification_App
                 featureVector[0] = new SVMNode(1, d.Select(x => (double)x.IBI).Average());
                 double sd = Math.Sqrt(d.Average(x => Math.Pow((double)x.IBI - featureVector[0].Value, 2)));
                 featureVector[1] = new SVMNode(2, sd);
-                featureVector[2] = new SVMNode(4, FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
+                featureVector[2] = new SVMNode(3, FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
                 featureVectors[SENSOR.HR].Add(new OneClassFV(featureVector, time));
             }
             Log.LogMessage($"Calculation HR Feature Done: {sw.Elapsed}");
@@ -209,13 +209,14 @@ namespace Classification_App
                 foreach (string name in names)
                 {
                     //Arousal 
-                    featureVector[counter++] = new SVMNode(1, FeatureCreator.DASM(slice, name,
+                    featureVector[counter] = new SVMNode(counter+1, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
-
-                    featureVector[counter++] = new SVMNode(2, FeatureCreator.DASM(slice, name,
+                    counter++;
+                    featureVector[counter] = new SVMNode(counter + 1, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
+                    counter++;
                 }
                 featureVectors[SENSOR.EEG].Add(new OneClassFV(featureVector, time));
             }
@@ -264,9 +265,9 @@ namespace Classification_App
                 }
                 featureVector[0] = new SVMNode(1, slice.Average());
                 double sd = Math.Sqrt(slice.Average(x => Math.Pow(x - slice.Average(), 2)));
-                featureVector[1] = new SVMNode(4, sd);
-                featureVector[2] = new SVMNode(2, slice.Max());
-                featureVector[3] = new SVMNode(3, slice.Min());
+                featureVector[1] = new SVMNode(2, sd);
+                featureVector[2] = new SVMNode(3, slice.Max());
+                featureVector[3] = new SVMNode(4, slice.Min());
                 featureVectors[SENSOR.GSR].Add(new OneClassFV(featureVector, time));
             }
 
