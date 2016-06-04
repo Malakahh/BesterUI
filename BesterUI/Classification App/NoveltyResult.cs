@@ -47,6 +47,136 @@ namespace Classification_App
             }
         }
 
+        public ConfusionMatrix CalculateConfusionMatrix()
+        {
+            int TruePostive = 0;
+            int FalsePostive = 0;
+            int FalseNegative = 0;
+            int TrueNegative = 0;
+            //Positives
+              List<Events> tempEvents = events.Select(x => x.Copy()).ToList();
+            List<Tuple<int, int>> tempPoi = poi.GetFlaggedAreas();
+            /*  foreach (Events ev in tempEvents)
+              {
+                  if (ev.isHit)
+                  {
+                      TruePostive++;
+                  }
+                  else
+                  {
+                      FalsePostive++;
+                  }
+              }*/
+            foreach (Tuple<int, int> pointOfInterest in tempPoi)
+            {
+                for (int iterator = pointOfInterest.Item1; iterator <= pointOfInterest.Item2; iterator++)
+                {
+                    foreach (Events ev in events)
+                    {
+                        if (ev.endTimestamp < iterator)
+                        {
+                            continue;
+                        }
+                        else if (ev.startTimestamp < iterator && iterator < ev.endTimestamp)
+                        {
+                            TruePostive++;
+                            continue;
+                        }
+                    }
+                    FalsePostive++;
+                }
+            }
+
+
+            tempEvents = events.Select(x => x.Copy()).ToList();
+            tempPoi = poi.GetFlaggedAreas();
+            //Negatives
+            for (int time = start; time<end; time += 1)
+            {
+                if (tempPoi.Count != 0 && tempEvents.Count != 0)
+                {
+                    if (!(tempPoi.First().Item1 < time && time < tempPoi.First().Item2))
+                    {
+                        if (tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp)
+                        {
+                            FalseNegative++;
+                        }
+                        else
+                        {
+                            TrueNegative++;
+                        }
+                    }
+                    if (time + 1 > tempPoi.First().Item2)
+                    {
+                        tempPoi.RemoveAt(0);
+                    }
+                    if (time + 1 > tempEvents.First().endTimestamp)
+                    {
+                        tempEvents.RemoveAt(0);
+                    }
+                }
+                else if (tempEvents.Count != 0 && tempPoi.Count == 0)
+                {
+                    if (!(tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp))
+                    {
+                         TrueNegative++;
+                    }
+
+                    if (time + 1 > tempEvents.First().endTimestamp)
+                    {
+                        tempEvents.RemoveAt(0);
+                    }
+                }
+                else if (tempEvents.Count == 0 && tempPoi.Count != 0)
+                {
+                    if (tempPoi.First().Item1 < time && time < tempPoi.First().Item2)
+                    {
+                        FalseNegative++;
+                    }
+                    else
+                    {
+                        TrueNegative++;
+                    }
+
+                    if (time + 1 > tempPoi.First().Item2)
+                    {
+                        tempPoi.RemoveAt(0);
+                    }
+                }
+                else
+                {
+                    TrueNegative++;
+                }
+            }
+
+            return new ConfusionMatrix(TruePostive, FalsePostive, TrueNegative, FalseNegative);
+        }
+        public class ConfusionMatrix
+        {
+            public int TruePostive { get; set; }
+            public int FalsePostive { get; set; }
+            public int FalseNegative { get; set; }
+            public int TrueNegative { get; set; }
+
+            public double CalculateTruePositiveRate()
+            {
+                return (TruePostive) / (TruePostive + FalseNegative);
+            }
+
+            public double CalculateFalsePositiveRate()
+            {
+                return (TruePostive) / (TruePostive + FalseNegative);
+            }
+
+            public ConfusionMatrix(int TPositive, int FPositive, int TNegative, int FNegative)
+            {
+                TruePostive = TPositive;
+                FalsePostive = FPositive;
+                FalseNegative = FNegative;
+                TrueNegative = TNegative;
+            }
+        }
+
         public double CalculateScore()
         {
             if (!_scoreIsCalculated)

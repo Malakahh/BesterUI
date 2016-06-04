@@ -188,10 +188,7 @@ namespace Classification_App
                 featureVector[0] = new SVMNode(1, d.Select(x => (double)x.IBI).Average());
                 double sd = Math.Sqrt(d.Average(x => Math.Pow((double)x.IBI - featureVector[0].Value, 2)));
                 featureVector[1] = new SVMNode(2, sd);
-                featureVector[2] = new SVMNode(3, d.Select(x => (double)x.BPM).Average());
                 featureVector[3] = new SVMNode(4, FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
-                featureVector[4] = new SVMNode(5, d.Max(x => x.BPM));
-                featureVector[5] = new SVMNode(6, d.Min(x => x.BPM));
                 featureVectors[SENSOR.HR].Add(new OneClassFV(featureVector, time));
             }
             Log.LogMessage($"Calculation HR Feature Done: {sw.Elapsed}");
@@ -218,16 +215,6 @@ namespace Classification_App
                     featureVector[1] = new SVMNode(2, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
-
-                    //Valence
-                    featureVector[2] = new SVMNode(3, FeatureCreator.DASM(slice, name,
-                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
-                        (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
-
-                    featureVector[3] = new SVMNode(4, FeatureCreator.DASM(slice, name,
-                       (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
-                       (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
-
                 }
                 featureVectors[SENSOR.EEG].Add(new OneClassFV(featureVector, time));
             }
@@ -243,32 +230,20 @@ namespace Classification_App
             {
                 List<DataReading> dataSlice = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < FACE_DELAY + time).TakeWhile(x => time + FACE_DELAY + FACE_DURATION > (x.timestamp - data.First().timestamp)).ToList();
                 if (dataSlice.Count == 0)
+                {
                     continue;
+                }
 
                 SVMNode[] featureVector = new SVMNode[4];
-                foreach (int fsa in leftSide)
-                {
-                    double mean = FeatureCreator.FaceMean(dataSlice,
-                    (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                    (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
+                double average12 = dataSlice.Average(d => ((FaceDataReading)d).data[FaceShapeAnimations.RighteyeClosed]);
+                double average11 = dataSlice.Average(d => ((FaceDataReading)d).data[FaceShapeAnimations.LefteyeClosed]);
 
-                    double sd = FeatureCreator.FaceStandardDeviation(dataSlice,
-                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                    double max = FeatureCreator.FaceMax(dataSlice,
-                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                    double min = FeatureCreator.FaceMin(dataSlice,
-                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa)),
-                         (x => FeatureCreator.KinectValueAccessor(x, (FaceShapeAnimations)fsa + 1)));
-
-                    featureVector[0] = new SVMNode(1, mean);
-                    featureVector[1] = new SVMNode(2, sd);
-                    featureVector[2] = new SVMNode(3, max);
-                    featureVector[3] = new SVMNode(4, min);
-                }
+                double sd12 = Math.Sqrt(dataSlice.Average(x => Math.Pow(((FaceDataReading)x).data[FaceShapeAnimations.RighteyeClosed] - average12, 2)));
+                double sd11 = Math.Sqrt(dataSlice.Average(x => Math.Pow(((FaceDataReading)x).data[FaceShapeAnimations.LefteyeClosed] - average11, 2)));
+                featureVector[0] = new SVMNode(1, average11);
+                featureVector[1] = new SVMNode(2, average12);
+                featureVector[2] = new SVMNode(3, sd11);
+                featureVector[3] = new SVMNode(4, sd12);
 
                 featureVectors[SENSOR.FACE].Add(new OneClassFV(featureVector, time));
             }
@@ -287,10 +262,10 @@ namespace Classification_App
                     continue;
                 }
                 featureVector[0] = new SVMNode(1, slice.Average());
-                featureVector[1] = new SVMNode(2, slice.Max());
-                featureVector[2] = new SVMNode(3, slice.Min());
                 double sd = Math.Sqrt(slice.Average(x => Math.Pow(x - slice.Average(), 2)));
                 featureVector[3] = new SVMNode(4, sd);
+                featureVector[1] = new SVMNode(2, slice.Max());
+                featureVector[2] = new SVMNode(3, slice.Min());
                 featureVectors[SENSOR.GSR].Add(new OneClassFV(featureVector, time));
             }
 
@@ -633,6 +608,10 @@ namespace Classification_App
             {
                 foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
+                    if (folder.Contains("Stats"))
+                    {
+                        continue;
+                    }
                     featureVectors.Clear();
                     foreach (var k in Enum.GetValues(typeof(SENSOR)))
                     {
@@ -768,13 +747,19 @@ namespace Classification_App
                     Dictionary<SENSOR, List<OneClassFV>> anomalis = new Dictionary<SENSOR, List<OneClassFV>>();
                     Dictionary<SENSOR, List<Events>> eventResult = new Dictionary<SENSOR, List<Evnt.Events>>();
                     Dictionary<SENSOR, PointsOfInterest> dPointsOfInterest = new Dictionary<SENSOR, PointsOfInterest>();
+                    Dictionary<SENSOR, NoveltyResult.ConfusionMatrix> confusionMatrices = new Dictionary<SENSOR, NoveltyResult.ConfusionMatrix>();
                     foreach (var key in predictionResults.Keys)
                     {
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
+                        confusionMatrices.Add(key,predictionResults[key].CalculateConfusionMatrix());
                         Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
-
+                        NoveltyResult.ConfusionMatrix confu = confusionMatrices[key];
+                        Log.LogMessage($"TP: {confu.TruePostive}");
+                        Log.LogMessage($"FP: {confu.FalsePostive}");
+                        Log.LogMessage($"TN: {confu.TrueNegative}");
+                        Log.LogMessage($"FN: {confu.FalseNegative}");
                     }
                     excel.AddDataToPerson(testSubjectId, predictionResults);
                     excel.Save();
@@ -792,8 +777,8 @@ namespace Classification_App
         {
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
-           //Debug purpose
-             for (int i = 0; i < 20; i++)
+            //Debug purpose
+          /*  for (int i = 0; i < 20; i++)
             {
                 SVMParameter s = new SVMParameter();
                 s.C = 100;
@@ -802,8 +787,8 @@ namespace Classification_App
                 s.Type = SVMType.ONE_CLASS;
                 s.Nu = 0.01;
                 svmParams.Push(s);
-            }
-            //svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            }*/
+            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgress(0, SENSOR.GSR, svmParams.Count);
             NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
@@ -811,10 +796,24 @@ namespace Classification_App
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < numberOfTasks; i++)
             {
-                Task task = Task.Run(()=>PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
+                Task task = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
+            List<int> numberList = Enumerable.Range(1, 98).ToList();
+            List<double> nuValues = numberList.Select(x => ((double)(x) / 100)).ToList();
+            count = 1;
+            foreach (double nuV in nuValues)
+            {
+                SVMParameter svmP = bestResult.parameter.Clone();
+                svmP.Nu = nuV;
+                svmParams.Push(svmP);
+            }
+            Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
+            Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
+            tasks.Add(taskT);
+            await Task.WhenAll(tasks);
+            Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;
         }

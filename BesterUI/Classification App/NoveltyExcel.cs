@@ -84,6 +84,7 @@ namespace Classification_App
                             wS.Delete();
                         }
                     }
+                    BooksOpen = true;
                 }
                 else
                 {
@@ -99,6 +100,7 @@ namespace Classification_App
                                                             missingValue,
                                                             missingValue,
                                                             missingValue);
+                    BooksOpen = true;
                 }
             }
             catch (Exception ex)
