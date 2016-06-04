@@ -179,7 +179,7 @@ namespace Classification_App
         {
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (HR_DELAY + HR_DURATION); time += STEP_SIZE)
             {
-                SVMNode[] featureVector = new SVMNode[6];
+                SVMNode[] featureVector = new SVMNode[3];
                 List<HRDataReading> d = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < time + HR_DELAY).TakeWhile(x => time + HR_DURATION + HR_DELAY > (x.timestamp - data.First().timestamp)).Where(x => x.isBeat).ToList();
                 if (d.Count == 0)
                 {
@@ -188,7 +188,7 @@ namespace Classification_App
                 featureVector[0] = new SVMNode(1, d.Select(x => (double)x.IBI).Average());
                 double sd = Math.Sqrt(d.Average(x => Math.Pow((double)x.IBI - featureVector[0].Value, 2)));
                 featureVector[1] = new SVMNode(2, sd);
-                featureVector[3] = new SVMNode(4, FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
+                featureVector[2] = new SVMNode(4, FeatureCreator.HRVRMSSD(d.ToList<DataReading>()));
                 featureVectors[SENSOR.HR].Add(new OneClassFV(featureVector, time));
             }
             Log.LogMessage($"Calculation HR Feature Done: {sw.Elapsed}");
@@ -198,21 +198,22 @@ namespace Classification_App
         {
             for (int time = 0; time < data.Last().timestamp - data.First().timestamp - (EEG_DELAY + EEG_DURATION); time += STEP_SIZE)
             {
-                SVMNode[] featureVector = new SVMNode[4];
+                SVMNode[] featureVector = new SVMNode[10];
                 List<DataReading> slice = data.SkipWhile(x => (x.timestamp - data.First().timestamp) < EEG_DELAY + time).TakeWhile(x => time + EEG_DELAY + EEG_DURATION > (x.timestamp - data.First().timestamp)).ToList();
                 List<string> names = new List<string>() { "Delta", "Theta", "Alpha", "Beta", "Gamma" };
                 if (slice.Count == 0)
                 {
                     continue;
                 }
+                int counter = 0;
                 foreach (string name in names)
                 {
                     //Arousal 
-                    featureVector[0] = new SVMNode(1, FeatureCreator.DASM(slice, name,
+                    featureVector[counter++] = new SVMNode(1, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
 
-                    featureVector[1] = new SVMNode(2, FeatureCreator.DASM(slice, name,
+                    featureVector[counter++] = new SVMNode(2, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.F4.ToString()))));
                 }
@@ -263,9 +264,9 @@ namespace Classification_App
                 }
                 featureVector[0] = new SVMNode(1, slice.Average());
                 double sd = Math.Sqrt(slice.Average(x => Math.Pow(x - slice.Average(), 2)));
-                featureVector[3] = new SVMNode(4, sd);
-                featureVector[1] = new SVMNode(2, slice.Max());
-                featureVector[2] = new SVMNode(3, slice.Min());
+                featureVector[1] = new SVMNode(4, sd);
+                featureVector[2] = new SVMNode(2, slice.Max());
+                featureVector[3] = new SVMNode(3, slice.Min());
                 featureVectors[SENSOR.GSR].Add(new OneClassFV(featureVector, time));
             }
 
