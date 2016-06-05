@@ -51,7 +51,7 @@ namespace Classification_App
 
         public List<Tuple<int, int>> GetFlaggedAreas()
         {
-            return flaggedAreas;
+            return flaggedAreas.ToList();
         }
 
         public bool IsPointFlagged(int timePoint)
