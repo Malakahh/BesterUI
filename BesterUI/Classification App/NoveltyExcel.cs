@@ -180,18 +180,18 @@ namespace Classification_App
         public void WriteSheetMeta(Excel.Worksheet workSheet, string name)
         {
             workSheet.Cells[1, 1] = name;
-            workSheet.Cells[2, 1] = "EventHits";
-            workSheet.Cells[3, 1] = "EventMisses";
-            workSheet.Cells[4, 1] = "Covered";
-            workSheet.Cells[5, 1] = "Score";
-            workSheet.Cells[6, 1] = "TP";
-            workSheet.Cells[7, 1] = "FP";
-            workSheet.Cells[8, 1] = "TN";
-            workSheet.Cells[9, 1] = "FN";
-            workSheet.Cells[10, 1] = "C";
-            workSheet.Cells[11, 1] = "Gamma";
-            workSheet.Cells[12, 1] = "Nu";
-            workSheet.Cells[13, 1] = "Kernel";
+            workSheet.Cells[3, 1] = "EventHits";
+            workSheet.Cells[4, 1] = "EventMisses";
+            workSheet.Cells[5, 1] = "Covered";
+            workSheet.Cells[6, 1] = "Score";
+            workSheet.Cells[7, 1] = "TP";
+            workSheet.Cells[8, 1] = "FP";
+            workSheet.Cells[9, 1] = "TN";
+            workSheet.Cells[10, 1] = "FN";
+            workSheet.Cells[11, 1] = "C";
+            workSheet.Cells[12, 1] = "Gamma";
+            workSheet.Cells[13, 1] = "Nu";
+            workSheet.Cells[14, 1] = "Kernel";
 
         }
 
