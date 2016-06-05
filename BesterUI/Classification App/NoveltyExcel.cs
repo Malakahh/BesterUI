@@ -182,6 +182,7 @@ namespace Classification_App
             workSheet.Cells[1, 1] = name;
             workSheet.Cells[3, 1] = "EventHits";
             workSheet.Cells[4, 1] = "EventMisses";
+            workSheet.Cells[5, 1] = "EventsTotal";
             workSheet.Cells[5, 1] = "Covered";
             workSheet.Cells[6, 1] = "Score";
             workSheet.Cells[7, 1] = "TP";
@@ -206,13 +207,13 @@ namespace Classification_App
             Parameter
             */
             int counter = 3;
-
+            /*Numre passer ikke mere*/
             //GSR
-            workSheet.Cells[1, 2] = name;
             workSheet.Cells[2, 2] = "GSR";
             /*3*/
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TruePostive;
@@ -230,6 +231,7 @@ namespace Classification_App
             /*15*/
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Where(x => x.isHit).Count();
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TruePostive;
@@ -247,6 +249,7 @@ namespace Classification_App
             /*27*/
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Where(x => x.isHit).Count();
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TruePostive;
@@ -265,6 +268,7 @@ namespace Classification_App
             /*39*/
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Where(x => x.isHit).Count();
             workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TruePostive;
