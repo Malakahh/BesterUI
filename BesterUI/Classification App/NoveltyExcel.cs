@@ -84,6 +84,7 @@ namespace Classification_App
                             wS.Delete();
                         }
                     }
+                    BooksOpen = true;
                 }
                 else
                 {
@@ -99,6 +100,7 @@ namespace Classification_App
                                                             missingValue,
                                                             missingValue,
                                                             missingValue);
+                    BooksOpen = true;
                 }
             }
             catch (Exception ex)
@@ -177,19 +179,20 @@ namespace Classification_App
         }
         public void WriteSheetMeta(Excel.Worksheet workSheet, string name)
         {
-            /*
-            % hit
-            % covered
-            Score value
-            Parameter
-            */
             workSheet.Cells[1, 1] = name;
-            workSheet.Cells[3, 1] = "Recall";
-            workSheet.Cells[4, 1] = "Covered";
-            workSheet.Cells[5, 1] = "Score";
-            workSheet.Cells[6, 1] = "C";
-            workSheet.Cells[7, 1] = "Gamma";
-            workSheet.Cells[8, 1] = "Kernel";
+            workSheet.Cells[3, 1] = "EventHits";
+            workSheet.Cells[4, 1] = "EventMisses";
+            workSheet.Cells[5, 1] = "EventsTotal";
+            workSheet.Cells[5, 1] = "Covered";
+            workSheet.Cells[6, 1] = "Score";
+            workSheet.Cells[7, 1] = "TP";
+            workSheet.Cells[8, 1] = "FP";
+            workSheet.Cells[9, 1] = "TN";
+            workSheet.Cells[10, 1] = "FN";
+            workSheet.Cells[11, 1] = "C";
+            workSheet.Cells[12, 1] = "Gamma";
+            workSheet.Cells[13, 1] = "Nu";
+            workSheet.Cells[14, 1] = "Kernel";
 
         }
 
@@ -204,51 +207,78 @@ namespace Classification_App
             Parameter
             */
             int counter = 3;
-
+            /*Numre passer ikke mere*/
             //GSR
-            workSheet.Cells[1, 2] = name;
             workSheet.Cells[2, 2] = "GSR";
             /*3*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count() / result[SENSOR.GSR].events.Count; ;
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().FalseNegative;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Gamma;
-            /*8*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Nu;
+            /*12*/
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Kernel.ToString();
             counter++;
 
             workSheet.Cells[counter++, 2] = "EEG";
-            /*11*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Where(x => x.isHit).Count() / result[SENSOR.EEG].events.Count; ;
+            /*15*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().FalseNegative;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Gamma;
-            /*16*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Nu;
+            /*24*/
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Kernel.ToString();
             counter++;
 
             workSheet.Cells[counter++, 2] = "FACE";
-            /*19*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Where(x => x.isHit).Count() / result[SENSOR.FACE].events.Count; ;
+            /*27*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().FalseNegative;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Gamma;
-            /*24*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Nu;
+            /*36*/
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Kernel.ToString();
 
             counter++;
 
             workSheet.Cells[counter++, 2] = "HR";
-            /*27*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Where(x => x.isHit).Count() / result[SENSOR.HR].events.Count;
+            /*39*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().FalseNegative;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Gamma;
-            /*32*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Nu;
+            /*48*/
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Kernel.ToString();
 
         }
