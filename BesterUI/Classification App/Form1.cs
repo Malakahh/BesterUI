@@ -2505,7 +2505,10 @@ namespace Classification_App
                         folder.Contains("Stimuli low") ||
                         folder.Contains("Time 0") ||
                         folder.Contains("Time 1") ||
-                        folder.Contains("Time 2"))
+                        folder.Contains("Time 2") ||
+                        folder.Split('\\').Last() == "3" ||
+                        folder.Split('\\').Last() == "6" ||
+                        folder.Split('\\').Last() == "13")
                     {
                         continue;
                     }
@@ -2554,7 +2557,10 @@ namespace Classification_App
                     }
 
                     big5List["time" + time].Add(big5);
-                    big5List["stim" + stimuli].Add(big5);
+                    if (time != 0)
+                    {
+                        big5List["stim" + stimuli].Add(big5);
+                    }
                     big5List["total"].Add(big5);
                     foreach (var folderToExamine in foldersToExamine)
                     {
@@ -2790,7 +2796,7 @@ namespace Classification_App
                 //boxModel.Series.Add(avgLineSeries);
                 PngExporter pnger = new PngExporter();
 
-                pnger.ExportToFile(timeModel, fbd.SelectedPath + "/BOXPLOT.png");
+                pnger.ExportToFile(timeModel, fbd.SelectedPath + "/timeBox.png");
 
                 /*
                 //correlation and reverse correlation
@@ -2882,6 +2888,18 @@ namespace Classification_App
                 int stimId = 0;
                 sensorsAdded.Clear();
                 avgLineSeries.Points.Clear();
+
+                var Big5StimBox = new PlotModel() { Title = "Big5 Stimuli Box Plots", LegendPlacement = LegendPlacement.Outside };
+                Dictionary<Big5, OxyPlot.Series.BoxPlotSeries> big5Series = new Dictionary<Big5, OxyPlot.Series.BoxPlotSeries>();
+                foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                {
+                    big5Series.Add(item, new OxyPlot.Series.BoxPlotSeries() { Fill = colors[(int)item * 2], Title = item.ToString(), BoxWidth = 0.1, WhiskerWidth = 0.1 });
+                    Big5StimBox.Series.Add(big5Series[item]);
+                }
+
+                Big5StimBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Maximum = 50, Minimum = 10, Title = "Score" });
+                Big5StimBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 1.5, Minimum = -0.5, MajorStep = 1, Title = "Category", MinorTickSize = 0 });
+
                 foreach (var stimuli in stimulis)
                 {
                     List<string> stimuliToWrite = new List<string>();
@@ -2934,6 +2952,8 @@ namespace Classification_App
                     foreach (Big5 item in Enum.GetValues(typeof(Big5)))
                     {
                         stimuliToWrite.Add(item + " Mean: " + big5List["stim" + stimuli].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["stim" + stimuli].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                        var orderino = big5List["stim" + stimuli].Select(x => x[item]).OrderBy(x => x).ToList();
+                        big5Series[item].Items.Add(new OxyPlot.Series.BoxPlotItem(((1 + stimId) % 2) - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
                     }
                     stimuliToWrite.Add("}");
                     stimuliToWrite.Add("\\label{[TABLE] res stimuli" + stimuli + "}");
@@ -2943,6 +2963,7 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_stimuli_" + stimuli + ".txt", stimuliToWrite);
                     stimId++;
                 }
+                pnger.ExportToFile(Big5StimBox, fbd.SelectedPath + "/stimBoxBig5.png");
 
                 stimModel.LegendPlacement = LegendPlacement.Outside;
 
@@ -2956,7 +2977,7 @@ namespace Classification_App
                 var botAx = new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 1.5, Minimum = -0.5, MajorStep = 1, Title = "Stimuli", MinorTickSize = 0 };
                 stimModel.Axes.Add(botAx);
 
-                pnger.ExportToFile(stimModel, fbd.SelectedPath + "/STIM_BOX.png");
+                pnger.ExportToFile(stimModel, fbd.SelectedPath + "/stimBox.png");
 
                 Log.LogMessage("DonnoDK");
             }
