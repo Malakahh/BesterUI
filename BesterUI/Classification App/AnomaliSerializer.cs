@@ -121,9 +121,9 @@ namespace Classification_App
                 foreach (Events ev in events[key])
                 {
                     data.Add($"{ev.eventName}, {ev.isHit}," 
-                        + ((ev.endTimestamp == 0) ? 
-                            $"{ ev.startTimestamp.ToString()} ; { ev.startTimestamp.ToString()}" :
-                            $"{ ev.startTimestamp.ToString()} + { ev.endTimestamp.ToString()}"
+                        + ((ev.GetTimestampEnd() == 0) ? 
+                            $"{ ev.GetTimestampStart().ToString()} ; { ev.GetTimestampStart().ToString()}" :
+                            $"{ ev.GetTimestampStart().ToString()} + { ev.GetTimestampEnd().ToString()}"
                             ));
                 }
                 File.WriteAllLines(path + "/Events/" + key.ToString() + ".txt", data);

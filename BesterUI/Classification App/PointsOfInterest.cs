@@ -60,7 +60,7 @@ namespace Classification_App
             {
                 if (flaggedAreas.Count == 0)
                 {
-                    flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                    flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH+1));
                 }
                 else
                 {
@@ -82,7 +82,7 @@ namespace Classification_App
                     }
                     else
                     {
-                        flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                        flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH + 1));
                     }
                 }
             }

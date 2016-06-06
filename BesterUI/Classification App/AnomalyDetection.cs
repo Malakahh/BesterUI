@@ -319,7 +319,7 @@ namespace Classification_App
         {
             machines.Clear();
             int trainingStart = (useRestInTraining.Checked) ? 180000 : 0;
-            int trainingEnd = events[2].endTimestamp;
+            int trainingEnd = events[2].GetTimestampEnd();
             foreach (SENSOR sensor in Enum.GetValues(typeof(SENSOR)))
             {
                 CreateSVM(sensor, featureVectors[sensor].TakeWhile(x => x.TimeStamp <= trainingEnd).ToList());
@@ -757,7 +757,7 @@ namespace Classification_App
                     Dictionary<SENSOR, NoveltyResult.ConfusionMatrix> confusionMatrices = new Dictionary<SENSOR, NoveltyResult.ConfusionMatrix>();
                     foreach (var key in predictionResults.Keys)
                     {
-                        File.WriteAllLines(path+"/"+key.ToString(), NuResults[key]);
+                        File.WriteAllLines(path+"/"+key.ToString()+"/"+key.ToString()+".txt", NuResults[key]);
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
@@ -780,7 +780,7 @@ namespace Classification_App
             
         }
         
-        private const int numberOfTasks = 5;
+        private const int numberOfTasks = 10;
         private async Task<NoveltyResult> DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
             string sensorPath = path + "/" + sensor.ToString();
@@ -792,17 +792,17 @@ namespace Classification_App
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             //Debug purpose
-          /*  for (int i = 0; i < 1; i++)
+          /*  for (int i = 0; i < 10; i++)
             {
                 SVMParameter s = new SVMParameter();
                 s.C = 100;
                 s.Gamma = 0.01;
-                s.Kernel = SVMKernelType.SIGMOID;
+                s.Kernel = SVMKernelType.RBF;
                 s.Type = SVMType.ONE_CLASS;
                 s.Nu = 0.01;
                 svmParams.Push(s);
             }*/
-             svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgressMax(svmParams.Count + 1);
             NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
@@ -814,8 +814,8 @@ namespace Classification_App
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-            List<int> numberList = Enumerable.Range(1, 98).ToList();
-            List<double> nuValues = numberList.Select(x => ((double)(x) / 100)).ToList();
+          /*  List<int> numberList = Enumerable.Range(1, 9).ToList();
+            List<double> nuValues = numberList.Select(x => (((double)(x) / 100)*10)).ToList();
             count = 1;
             foreach (double nuV in nuValues)
             {
@@ -832,7 +832,7 @@ namespace Classification_App
                 Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
                 nutasks.Add(taskT);
             }
-            await Task.WhenAll(nutasks);
+            await Task.WhenAll(nutasks);*/
             Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;

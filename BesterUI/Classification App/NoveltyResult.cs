@@ -81,11 +81,11 @@ namespace Classification_App
                         }
                         foreach (Events ev in events)
                         {
-                            if (ev.endTimestamp < iterator)
+                            if (ev.GetTimestampEnd() < iterator)
                             {
                                 continue;
                             }
-                            else if (ev.startTimestamp < iterator && iterator < ev.endTimestamp)
+                            else if (ev.GetTimestampStart() < iterator && iterator < ev.GetTimestampEnd())
                             {
                                 TruePostive++;
                                 continue;
@@ -103,9 +103,11 @@ namespace Classification_App
                 {
                     if (tempPoi.Count != 0 && tempEvents.Count != 0)
                     {
-                        if (!(tempPoi.First().Item1 < time && time < tempPoi.First().Item2))
+                        if (!(tempPoi.First().Item1 <= time && time <= tempPoi.First().Item2))
                         {
-                            if (tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp)
+                            int eventTimeStampStart = tempEvents.First().GetTimestampStart();
+                            int eventTimestampEnd = tempEvents.First().GetTimestampEnd();
+                            if (eventTimeStampStart < time && time < eventTimestampEnd)
                             {
                                 FalseNegative++;
                             }
@@ -118,14 +120,14 @@ namespace Classification_App
                         {
                             tempPoi.RemoveAt(0);
                         }
-                        if (time + 1 > tempEvents.First().endTimestamp)
+                        if (time + 1 > tempEvents.First().GetTimestampEnd())
                         {
                             tempEvents.RemoveAt(0);
                         }
                     }
                     else if (tempEvents.Count != 0 && tempPoi.Count == 0)
                     {
-                        if (!(tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp))
+                        if (!(tempEvents.First().GetTimestampStart() <= time && time <= tempEvents.First().GetTimestampEnd()))
                         {
                             TrueNegative++;
                         }
@@ -134,14 +136,14 @@ namespace Classification_App
                             FalseNegative++;
                         }
 
-                        if (time + 1 > tempEvents.First().endTimestamp)
+                        if (time + 1 >= tempEvents.First().GetTimestampEnd())
                         {
                             tempEvents.RemoveAt(0);
                         }
                     }
                     else if (tempEvents.Count == 0 && tempPoi.Count != 0)
                     {
-                        if (tempPoi.First().Item1 < time && time < tempPoi.First().Item2)
+                        if (tempPoi.First().Item1 <= time && time <= tempPoi.First().Item2)
                         {
                             FalseNegative++;
                         }
@@ -150,7 +152,7 @@ namespace Classification_App
                             TrueNegative++;
                         }
 
-                        if (time + 1 > tempPoi.First().Item2)
+                        if (time + 1 >= tempPoi.First().Item2)
                         {
                             tempPoi.RemoveAt(0);
                         }

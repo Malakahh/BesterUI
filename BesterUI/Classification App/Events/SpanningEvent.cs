@@ -16,7 +16,7 @@ namespace Classification_App.Evnt
 
         protected override bool CalculateHit()
         {
-            return POI.PercentageAreaHit(endTimestamp, startTimestamp) >= percentageToHit;
+            return POI.PercentageAreaHit(GetTimestampStart(), GetTimestampEnd()) >= 0;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Classification_App.Evnt
 
         protected override bool CalculateHit()
         {
-            return POI.IsPointFlagged(endTimestamp);
+            return POI.IsPointFlagged(GetTimestampStart());
         }
     }
 }
