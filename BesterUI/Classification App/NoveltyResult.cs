@@ -200,14 +200,23 @@ namespace Classification_App
         {
             if (!_scoreIsCalculated)
             {
-                double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
+                /*double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
                  double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
                  score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
                  _scoreIsCalculated = true;
-                 return score;
-                /*ConfusionMatrix conf = CalculateConfusionMatrix();
-                return ((conf.TruePostive / ((double)conf.TruePostive + conf.FalsePostive)) * (conf.TruePostive / ((double)conf.TruePostive + conf.FalseNegative))) / 2;
-    */
+                 return score;*/
+                ConfusionMatrix conf = CalculateConfusionMatrix();
+                int hits = 0;
+                foreach (Events ev in events)
+                {
+                    if (ev.isHit)
+                    {
+                        hits++;
+                    }
+                }
+                score = (double)(((hits / (decimal)events.Count) * ((2 * (conf.TruePostive / ((decimal)conf.TruePostive + conf.FalsePostive)))) * (conf.TruePostive / ((decimal)conf.TruePostive + conf.FalseNegative))) / 2);
+                _scoreIsCalculated = true;
+                return score;
             }
             else
             {

@@ -161,6 +161,7 @@
     <Compile Include="samEvents.cs" />
     <Compile Include="StdClassifier.cs" />
     <Compile Include="SVMConfiguration.cs" />
+    <Compile Include="Voting.cs" />
     <EmbeddedResource Include="AnomalyDetection.resx">
       <DependentUpon>AnomalyDetection.cs</DependentUpon>
     </EmbeddedResource>

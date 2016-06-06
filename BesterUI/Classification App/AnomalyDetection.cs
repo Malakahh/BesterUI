@@ -23,10 +23,9 @@ namespace Classification_App
     public enum SENSOR { GSR, EEG, HR, FACE };
     public partial class AnomalyDetection : Form
     {
-        private bool maxSet = false;
-        public void SetProgress(int value, SENSOR sensor, int max)
+        public void SetProgressMax(int max)
         {
-            if (!maxSet)
+            if (max > eegProgress.Maximum)
             {
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -35,8 +34,10 @@ namespace Classification_App
                     gsrProgress.Maximum = max + 1;
                     faceProgress.Maximum = max + 1;
                 });
-                maxSet = true;
             }
+        }
+        public void SetProgress(int value, SENSOR sensor)
+        {
             
             switch (sensor)
             {
@@ -701,6 +702,7 @@ namespace Classification_App
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
+                    NuResults.Clear();
                     LoadEvents(tmpevents);
                     Dictionary<SENSOR, NoveltyResult> predictionResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
@@ -752,6 +754,7 @@ namespace Classification_App
                     Dictionary<SENSOR, NoveltyResult.ConfusionMatrix> confusionMatrices = new Dictionary<SENSOR, NoveltyResult.ConfusionMatrix>();
                     foreach (var key in predictionResults.Keys)
                     {
+                        File.WriteAllLines(path+"/"+key.ToString(), NuResults[key]);
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
@@ -774,13 +777,19 @@ namespace Classification_App
             
         }
         
-        private const int numberOfTasks = 10;
+        private const int numberOfTasks = 5;
         private async Task<NoveltyResult> DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
+            string sensorPath = path + "/" + sensor.ToString();
+            if (!Directory.Exists(sensorPath))
+            {
+                Directory.CreateDirectory(sensorPath);
+            }
+            NuResults.TryAdd(sensor, new ConcurrentBag<string>());
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             //Debug purpose
-          /*  for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 1; i++)
             {
                 SVMParameter s = new SVMParameter();
                 s.C = 100;
@@ -789,9 +798,9 @@ namespace Classification_App
                 s.Type = SVMType.ONE_CLASS;
                 s.Nu = 0.01;
                 svmParams.Push(s);
-            }*/
-            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
-            SetProgress(0, SENSOR.GSR, svmParams.Count);
+            }
+            // svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            SetProgressMax(svmParams.Count + 1);
             NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
             int count = 1;
@@ -811,14 +820,21 @@ namespace Classification_App
                 svmP.Nu = nuV;
                 svmParams.Push(svmP);
             }
+
+            SetProgressMax(nuValues.Count + 1);
             Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
-            Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
-            tasks.Add(taskT);
-            await Task.WhenAll(tasks);
+            List<Task> nutasks = new List<Task>();
+            for (int i = 0; i < numberOfTasks; i++)
+            {
+                Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
+                nutasks.Add(taskT);
+            }
+            await Task.WhenAll(nutasks);
             Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;
         }
+        ConcurrentDictionary<SENSOR, ConcurrentBag<string>> NuResults = new ConcurrentDictionary<SENSOR, ConcurrentBag<string>>();
 
         private void PredictionThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestResult, Mutex mutex)
         {
@@ -827,6 +843,7 @@ namespace Classification_App
             List<Events> eventResult = new List<Events>();
             List<OneClassFV> outliersFromSam = new List<OneClassFV>();
             int maxCount = svmCount;
+            string sensorPath = path + "/" + sensor.ToString();
             foreach (Events p in events)
             {
                 var evt = p.Copy();
@@ -851,6 +868,10 @@ namespace Classification_App
                 }
 
                 NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
+                NoveltyResult.ConfusionMatrix cfm = tempResult.CalculateConfusionMatrix();
+                decimal tpr = ((decimal)cfm.TruePostive) / ((decimal)cfm.TruePostive + cfm.FalseNegative);
+                decimal fpr = 1 - ((decimal)cfm.TrueNegative / ((decimal)cfm.TrueNegative + cfm.FalsePostive));
+                NuResults[sensor].Add($"{svmParam.Nu.ToString()}: {tpr} ; {fpr}");
                 mutex.WaitOne();
                 if (bestResult == null)
                 {
@@ -866,7 +887,7 @@ namespace Classification_App
                         + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
                 }
                 count++;
-                SetProgress(count, sensor, maxCount + 1);
+                SetProgress(count, sensor);
                 mutex.ReleaseMutex();
             }
             Log.LogMessage(sensor + " done!");
@@ -904,6 +925,37 @@ namespace Classification_App
                 }
             }
             return svmParams;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                sw.Start();
+                NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath);
+                foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
+                {
+                    if (folder.Contains("Stats"))
+                    {
+                        continue;
+                    }
+
+                    path = folder + "/test";
+                    string testSubjectId = folder.Split('\\').Last();
+                    excel.AddPersonToBooks(testSubjectId);
+                    Log.LogMessage($"Loading Data: " + testSubjectId);
+                    string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
+                    int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
+                    int end = int.Parse(tmpevents.Last().Split('#')[0]);
+                    Dictionary<SENSOR, PointsOfInterest> pois = AnomaliSerializer.LoadPointOfInterest(path);
+                    LoadEvents(tmpevents);
+                    Voting vote = new Voting(start, end, pois, events, 2);
+                    NoveltyResult noveltyResult = vote.GetNoveltyResult();
+                    noveltyResult.CalculateConfusionMatrix();
+                }
+            }
         }
     }
 }

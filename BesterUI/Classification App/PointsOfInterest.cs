@@ -8,8 +8,47 @@ namespace Classification_App
 {
     class PointsOfInterest
     {
-        private const int ANOMALI_WIDTH = 2500;
+        private const int ANOMALI_WIDTH = 0;
         private List<Tuple<int, int>> flaggedAreas = new List<Tuple<int, int>>();
+
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="flags">Flags has to be sorted for the constructor to work correctly</param>
+        public PointsOfInterest(List<int> flags)
+        {
+            for (int i = 0; i < flags.Count; i++)
+            {
+                if (flaggedAreas.Count == 0)
+                {
+                    flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                }
+                else
+                {
+                    Tuple<int, int> latestFlaggedArea = flaggedAreas.Last();
+                    if (flags[i] > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                        && flags[i] < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                    {
+                        continue;
+                    }
+                    else if (flags[i] > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                        && flags[i] < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
+                    {
+                        flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(flags[i] - ANOMALI_WIDTH, latestFlaggedArea.Item2);
+                    }
+                    else if (flags[i] < latestFlaggedArea.Item2 + ANOMALI_WIDTH
+                        && flags[i] > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                    {
+                        flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i] + ANOMALI_WIDTH);
+                    }
+                    else
+                    {
+                        flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Constructor
