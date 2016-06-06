@@ -2700,6 +2700,17 @@ namespace Classification_App
 
                 List<string> sensorsAdded = new List<string>();
 
+                foreach (var sensor in sensors)
+                {
+                    List<string> timeAnova = new List<string>();
+                    foreach (var time in times)
+                    {
+                        timeTable[sensor][time].ForEach(x => timeAnova.Add(time + ";" + x.Item1));
+                    }
+                    File.WriteAllLines(fbd.SelectedPath + "/" + sensor + ".csv", timeAnova);
+                }
+
+
                 foreach (var time in times)
                 {
                     int sensorId = 0;
@@ -2716,6 +2727,7 @@ namespace Classification_App
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Select(x => x.Item2).ToArray());
 
                         var orderedAll = timeTable[sensor][time].Where(x => x.Item2 * 100 < (int)5).OrderBy(x => x.Item1).ToList();
+
                         var boxItem = new OxyPlot.Series.BoxPlotItem(time + sensorId * widthTime - (0.5 * widthTime * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
                         var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
                         boxSeries.BoxWidth = widthTime;
@@ -2763,6 +2775,7 @@ namespace Classification_App
                     avgLineSeries.Points.Add(new OxyPlot.DataPoint(time, avgs.Average()));
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
+
                 timeModel.LegendPlacement = LegendPlacement.Outside;
 
                 //avg ordering is reversed
