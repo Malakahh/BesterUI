@@ -2637,6 +2637,8 @@ namespace Classification_App
 
                 File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_totals.txt", totalToWrite);
 
+                var model = new PlotModel() { Title = $"Boxplot" };
+                var series = new OxyPlot.Series.BoxPlotSeries() { };
                 foreach (var time in times)
                 {
                     List<string> timeToWrite = new List<string>();
@@ -2657,10 +2659,19 @@ namespace Classification_App
                         {
                             timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                         }
+
+                        var ordered = timeTable[sensor][time].OrderBy(x => x.Item1).ToList();
+
+                        var test = new OxyPlot.Series.BoxPlotItem(time, ordered[0].Item1, ordered[(int)(ordered.Count * 0.25)].Item1, ordered[ordered.Count / 2].Item1, ordered[(int)(ordered.Count * 0.75)].Item1, ordered.Last().Item1);
+                        series.Items.Add(test);
                     }
+
+
 
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
+                PngExporter pnger = new PngExporter();
+                pnger.ExportToFile(model, fbd.SelectedPath + "/BOXPLOT.png");
 
                 /*
                 //correlation and reverse correlation
