@@ -2484,6 +2484,7 @@ namespace Classification_App
             string corrType = "Pearson";
             //string corrType = "Kendall";
             //string corrType = "Spearman";
+            double minMilliseconds = 10000;
 
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -2573,15 +2574,42 @@ namespace Classification_App
                             var resultLines = File.ReadAllLines(resultFile);
                             string correlationLine = resultLines.First(x => x.Contains("|" + corrType));
                             int corrId = resultLines.ToList().IndexOf(correlationLine);
-                            string significanceLine = resultLines[corrId + 2];
+                            int sigId = corrId + 2;
+                            string significanceLine = resultLines[sigId];
+                            string N = resultLines[sigId + 2];
 
-                            if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
+                            double highPassThreshold = minMilliseconds / 1000;
+
+                            if (sensor.Contains("EEG"))
                             {
+                                highPassThreshold *= 128;
+                            }
+                            else if (sensor.Contains("GSR"))
+                            {
+                                highPassThreshold *= 20;
+                            }
+                            else if (sensor.Contains("HR"))
+                            {
+                                highPassThreshold *= 1;
+                            }
+
+                            string[] Nsplit = N.Split(new char[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            
+                            if (correlationLine.Contains(".a") || significanceLine.Contains(".a") || int.Parse(Nsplit[2]) < highPassThreshold)
+                            {
+                                if (int.Parse(Nsplit[2]) < highPassThreshold)
+                                {
+                                    Log.LogMessage("Removing - " + Nsplit[2] + ": " + resultFile);
+                                }
+
                                 continue;
                             }
 
-                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
-                            double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            int splitIndex = (corrType == "Pearson") ? 3 : 4;
+
+                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[splitIndex].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[splitIndex].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+
 
                             var result = Tuple.Create(pearsCorrelation, pearsSignificance);
 
