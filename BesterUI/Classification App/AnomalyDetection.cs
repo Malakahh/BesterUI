@@ -38,26 +38,30 @@ namespace Classification_App
         }
         public void SetProgress(int value, SENSOR sensor)
         {
-            
+
             switch (sensor)
             {
                 case SENSOR.EEG:
-                    this.Invoke((MethodInvoker)delegate {
+                    this.Invoke((MethodInvoker)delegate
+                    {
                         eegProgress.Value = value;
                     });
                     break;
                 case SENSOR.HR:
-                    this.Invoke((MethodInvoker)delegate {
+                    this.Invoke((MethodInvoker)delegate
+                    {
                         hrProgress.Value = value;
                     });
                     break;
                 case SENSOR.GSR:
-                    this.Invoke((MethodInvoker)delegate {
+                    this.Invoke((MethodInvoker)delegate
+                    {
                         gsrProgress.Value = value;
                     });
                     break;
                 case SENSOR.FACE:
-                    this.Invoke((MethodInvoker)delegate {
+                    this.Invoke((MethodInvoker)delegate
+                    {
                         faceProgress.Value = value;
                     });
                     break;
@@ -66,31 +70,32 @@ namespace Classification_App
 
         FusionData _fdAnomaly = new FusionData();
 
+        const double WINDOW_FACTOR = 1.0;
         // MS
 
         /**
            GSR Window 2-7s
            */
         const int GSR_DELAY = 2000;
-        const int GSR_DURATION = 5000;
+        const int GSR_DURATION = (int)(5000 * WINDOW_FACTOR);
 
         /**
             EEG Window 0.350-1.060s
             */
         const int EEG_DELAY = 350;
-        const int EEG_DURATION = 710;
+        const int EEG_DURATION = (int)(710 * WINDOW_FACTOR);
 
         /**
             Face Window 0.5-1s
             */
         const int FACE_DELAY = 500;
-        const int FACE_DURATION = 500;
+        const int FACE_DURATION = (int)(500 * WINDOW_FACTOR);
 
         /**
             HR Window 4-7s
             */
         const int HR_DELAY = 4000;
-        const int HR_DURATION = 3000;
+        const int HR_DURATION = (int)(3000 * WINDOW_FACTOR);
 
         const int STEP_SIZE = 300;
 
@@ -210,7 +215,7 @@ namespace Classification_App
                 foreach (string name in names)
                 {
                     //Arousal 
-                    featureVector[counter] = new SVMNode(counter+1, FeatureCreator.DASM(slice, name,
+                    featureVector[counter] = new SVMNode(counter + 1, FeatureCreator.DASM(slice, name,
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF3.ToString())),
                         (x => FeatureCreator.EEGValueAccessor(x, EEGDataReading.ELECTRODE.AF4.ToString()))));
                     counter++;
@@ -701,7 +706,7 @@ namespace Classification_App
                     string testSubjectId = folder.Split('\\').Last();
                     excel.AddPersonToBooks(testSubjectId);
                     Log.LogMessage($"Loading Data: " + testSubjectId);
-                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path );
+                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
@@ -709,7 +714,7 @@ namespace Classification_App
                     LoadEvents(tmpevents);
                     Dictionary<SENSOR, NoveltyResult> predictionResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
-                    Task<NoveltyResult> gsrThread = Task.Run<NoveltyResult>(()=> DoNoveltyDetection(SENSOR.GSR, start, end));
+                    Task<NoveltyResult> gsrThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.GSR, start, end));
                     int gsrId = gsrThread.Id;
                     Task<NoveltyResult> eegThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.EEG, start, end));
                     int eegId = eegThread.Id;
@@ -758,10 +763,11 @@ namespace Classification_App
                     foreach (var key in predictionResults.Keys)
                     {
                         File.WriteAllLines(path+"/"+key.ToString()+"/"+key.ToString()+".txt", NuResults[key]);
+
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
-                        confusionMatrices.Add(key,predictionResults[key].CalculateConfusionMatrix());
+                        confusionMatrices.Add(key, predictionResults[key].CalculateConfusionMatrix());
                         Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
                         NoveltyResult.ConfusionMatrix confu = confusionMatrices[key];
                         Log.LogMessage($"TP: {confu.TruePostive}");
@@ -777,9 +783,8 @@ namespace Classification_App
                 }
                 excel.CloseHandler();
             }
-            
+
         }
-        
         private const int numberOfTasks = 10;
         private async Task<NoveltyResult> DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
@@ -802,6 +807,7 @@ namespace Classification_App
                 s.Nu = 0.01;
                 svmParams.Push(s);
             }*/
+
             svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgressMax(svmParams.Count + 1);
             NoveltyResult bestResult = null;
@@ -814,8 +820,8 @@ namespace Classification_App
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-          /*  List<int> numberList = Enumerable.Range(1, 9).ToList();
-            List<double> nuValues = numberList.Select(x => (((double)(x) / 100)*10)).ToList();
+            List<int> numberList = Enumerable.Range(1, 99).ToList();
+            List<double> nuValues = numberList.Select(x => (((double)(x) / 100))).ToList();
             count = 1;
             foreach (double nuV in nuValues)
             {
@@ -832,7 +838,7 @@ namespace Classification_App
                 Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
                 nutasks.Add(taskT);
             }
-            await Task.WhenAll(nutasks);*/
+            await Task.WhenAll(nutasks);
             Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;
@@ -895,14 +901,14 @@ namespace Classification_App
             }
             Log.LogMessage(sensor + " done!");
         }
-    
+
 
         private List<SVMParameter> GenerateOneClassSVMParameters()
         {
             List<double> cTypes = new List<double>() { };
             List<double> gammaTypes = new List<double>() { };
             List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -4; t <= 12; t+=1)
+            for (int t = -4; t <= 12; t += 1)
             {
                 cTypes.Add(Math.Pow(2, t));
             }
@@ -916,15 +922,15 @@ namespace Classification_App
             {
                 foreach (double c in cTypes)
                 {
-                        for (int i = 0;i < gammaTypes.Count ; i++)
-                        {
-                            SVMParameter t = new SVMParameter();
-                            t.Kernel = kernel;
-                            t.C = c;
-                            t.Nu = 0.05;
-                            t.Gamma = gammaTypes[i];
-                            svmParams.Add(t);
-                        }
+                    for (int i = 0; i < gammaTypes.Count; i++)
+                    {
+                        SVMParameter t = new SVMParameter();
+                        t.Kernel = kernel;
+                        t.C = c;
+                        t.Nu = 0.05;
+                        t.Gamma = gammaTypes[i];
+                        svmParams.Add(t);
+                    }
                 }
             }
             return svmParams;
