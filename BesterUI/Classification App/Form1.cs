@@ -2666,7 +2666,7 @@ namespace Classification_App
                 File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_totals.txt", totalToWrite);
 
                 double width = 1 / (sensors.Count * 1.4);
-                double widthTime = width * 1.3;
+                double widthTime = width * 1.1;
 
                 var timeModel = new PlotModel() { Title = $"Time Groups Box Plot" };
 
