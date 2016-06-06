@@ -2889,7 +2889,7 @@ namespace Classification_App
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(stimuliTable[sensor][stimuli].Select(x => x.Item2).ToArray());
 
                         var orderedAll = stimuliTable[sensor][stimuli].Where(x => x.Item2 * 100 < (int)5).OrderBy(x => x.Item1).ToList();
-                        var boxItem = new OxyPlot.Series.BoxPlotItem(stimId + sensorId * width - (0.5 * width * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
+                        var boxItem = new OxyPlot.Series.BoxPlotItem(((1 + stimId) % 2) + sensorId * width - (0.5 * width * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
                         var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
                         boxSeries.BoxWidth = width;
                         boxSeries.WhiskerWidth = width;
