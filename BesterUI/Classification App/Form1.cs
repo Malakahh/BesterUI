@@ -2481,9 +2481,9 @@ namespace Classification_App
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
         {
-            //string corrType = "Pearson";
+            string corrType = "Pearson";
             //string corrType = "Kendall";
-            string corrType = "Spearman";
+            //string corrType = "Spearman";
 
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -2580,7 +2580,7 @@ namespace Classification_App
                                 continue;
                             }
 
-                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*'}, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
                             double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
 
                             var result = Tuple.Create(pearsCorrelation, pearsSignificance);
@@ -2649,7 +2649,14 @@ namespace Classification_App
                         double avgSignificance = timeTable[sensor][time].Average(x => x.Item2);
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Select(x => x.Item2).ToArray());
 
-                        timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        if (avgSignificance < 0.05)
+                        {
+                            timeToWrite.Add($"\\textbf{{{sensor}}}&\\textbf{{{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})}}&\\textbf{{{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")})}} \\\\");
+                        }
+                        else
+                        {
+                            timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        }
                     }
 
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
@@ -2715,7 +2722,15 @@ namespace Classification_App
                         double avgSignificance = timeTable[sensor][time].Average(x => x.Item2);
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Select(x => x.Item2).ToArray());
 
-                        timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        if (avgSignificance < 0.05)
+                        {
+                            timeToWrite.Add($"\\textbf{{{sensor}}}&\\textbf{{{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})}}&\\textbf{{{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")})}} \\\\");
+                        }
+                        else
+                        {
+                            timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        }
+
                     }
                     timeToWrite.Add("\\bottomrule");
                     timeToWrite.Add("\\end{tabular}");
@@ -2751,7 +2766,15 @@ namespace Classification_App
                         double avgSignificance = stimuliTable[sensor][stimuli].Average(x => x.Item2);
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(stimuliTable[sensor][stimuli].Select(x => x.Item2).ToArray());
 
-                        stimuliToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        if (avgSignificance < 0.05)
+                        {
+                            stimuliToWrite.Add($"\\textbf{{{sensor}}}&\\textbf{{{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})}}&\\textbf{{{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")})}} \\\\");
+                        }
+                        else
+                        {
+                            stimuliToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        }
+
                     }
                     stimuliToWrite.Add("\\bottomrule");
                     stimuliToWrite.Add("\\end{tabular}");
