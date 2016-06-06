@@ -2481,9 +2481,10 @@ namespace Classification_App
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
         {
-            //string corrType = "Pearson";
+            string corrType = "Pearson";
             //string corrType = "Kendall";
-            string corrType = "Spearman";
+            //string corrType = "Spearman";
+            double minMilliseconds = 10000;
 
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -2504,7 +2505,10 @@ namespace Classification_App
                         folder.Contains("Stimuli low") ||
                         folder.Contains("Time 0") ||
                         folder.Contains("Time 1") ||
-                        folder.Contains("Time 2"))
+                        folder.Contains("Time 2") ||
+                        folder.Split('\\').Last() == "3" ||
+                        folder.Split('\\').Last() == "6" ||
+                        folder.Split('\\').Last() == "13")
                     {
                         continue;
                     }
@@ -2553,7 +2557,10 @@ namespace Classification_App
                     }
 
                     big5List["time" + time].Add(big5);
-                    big5List["stim" + stimuli].Add(big5);
+                    if (time != 0)
+                    {
+                        big5List["stim" + stimuli].Add(big5);
+                    }
                     big5List["total"].Add(big5);
                     foreach (var folderToExamine in foldersToExamine)
                     {
@@ -2573,15 +2580,42 @@ namespace Classification_App
                             var resultLines = File.ReadAllLines(resultFile);
                             string correlationLine = resultLines.First(x => x.Contains("|" + corrType));
                             int corrId = resultLines.ToList().IndexOf(correlationLine);
-                            string significanceLine = resultLines[corrId + 2];
+                            int sigId = corrId + 2;
+                            string significanceLine = resultLines[sigId];
+                            string N = resultLines[sigId + 2];
 
-                            if (correlationLine.Contains(".a") || significanceLine.Contains(".a"))
+                            double highPassThreshold = minMilliseconds / 1000;
+
+                            if (sensor.Contains("EEG"))
                             {
+                                highPassThreshold *= 128;
+                            }
+                            else if (sensor.Contains("GSR"))
+                            {
+                                highPassThreshold *= 20;
+                            }
+                            else if (sensor.Contains("HR"))
+                            {
+                                highPassThreshold *= 1;
+                            }
+
+                            string[] Nsplit = N.Split(new char[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (correlationLine.Contains(".a") || significanceLine.Contains(".a") || int.Parse(Nsplit[2]) < highPassThreshold)
+                            {
+                                if (int.Parse(Nsplit[2]) < highPassThreshold)
+                                {
+                                    Log.LogMessage("Removing - " + Nsplit[2] + ": " + resultFile);
+                                }
+
                                 continue;
                             }
 
-                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*'}, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
-                            double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[4].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            int splitIndex = (corrType == "Pearson") ? 3 : 4;
+
+                            double pearsCorrelation = double.Parse(correlationLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[splitIndex].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+                            double pearsSignificance = double.Parse(significanceLine.Split(new char[] { '|', '*' }, StringSplitOptions.RemoveEmptyEntries)[splitIndex].Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+
 
                             var result = Tuple.Create(pearsCorrelation, pearsSignificance);
 
@@ -2637,10 +2671,59 @@ namespace Classification_App
 
                 File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_totals.txt", totalToWrite);
 
+                double width = 1 / (sensors.Count * 1.4);
+                double widthTime = width * 1.1;
+
+                var timeModel = new PlotModel() { Title = $"Time Groups Box Plot" };
+
+                var avgLineSeries = new OxyPlot.Series.LineSeries() { };
+
+                List<OxyColor> colors = new List<OxyColor>()
+                {
+                };
+
+                int small = sensors.Count / 3;
+                int mid = small * 2;
+                int stepsize = 255 / small;
+                for (int i = 0; i < sensors.Count; i++)
+                {
+                    byte increaser = (byte)((i % small) * stepsize);
+                    byte decreaser = (byte)(255 - increaser);
+
+                    if (i < small)
+                    {
+                        colors.Add(OxyColor.FromRgb(increaser, decreaser, decreaser));
+                    }
+                    else if (i < mid)
+                    {
+                        colors.Add(OxyColor.FromRgb(decreaser, increaser, decreaser));
+                    }
+                    else
+                    {
+                        colors.Add(OxyColor.FromRgb(decreaser, decreaser, increaser));
+                    }
+                }
+
+                List<string> sensorsAdded = new List<string>();
+
+                foreach (var sensor in sensors)
+                {
+                    List<string> timeAnova = new List<string>();
+                    foreach (var time in times)
+                    {
+                        timeTable[sensor][time].ForEach(x => timeAnova.Add(time + ";" + x.Item1));
+                    }
+                    File.WriteAllLines(fbd.SelectedPath + "/" + sensor + ".csv", timeAnova);
+                }
+
+
                 foreach (var time in times)
                 {
+                    int sensorId = 0;
                     List<string> timeToWrite = new List<string>();
                     timeToWrite.Add("Sensor&Avg Corr&Avg Sig. \\\\");
+
+                    List<double> avgs = new List<double>();
 
                     foreach (var sensor in sensors)
                     {
@@ -2649,11 +2732,71 @@ namespace Classification_App
                         double avgSignificance = timeTable[sensor][time].Average(x => x.Item2);
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Select(x => x.Item2).ToArray());
 
-                        timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        var orderedAll = timeTable[sensor][time].Where(x => x.Item2 * 100 < (int)5).OrderBy(x => x.Item1).ToList();
+
+                        var boxItem = new OxyPlot.Series.BoxPlotItem(time + sensorId * widthTime - (0.5 * widthTime * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
+                        var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
+                        boxSeries.BoxWidth = widthTime;
+                        boxSeries.WhiskerWidth = widthTime;
+                        boxSeries.Items.Add(boxItem);
+                        boxSeries.Fill = colors[sensorId];
+                        timeModel.Series.Add(boxSeries);
+
+                        if (!sensorsAdded.Contains(sensor))
+                        {
+                            sensorsAdded.Add(sensor);
+                            boxSeries.Title = sensor;
+                        }
+
+                        avgs.Add(orderedAll.Average(x => x.Item1));
+
+                        if (avgSignificance * 100 < (int)5)
+                        {
+                            timeToWrite.Add($"\\textbf{{{sensor}}}&\\textbf{{{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})}}&\\textbf{{{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")})}} \\\\");
+                            //var ordered = timeTable[sensor][time].OrderBy(x => x.Item1).ToList();
+                            //var boxItem = new OxyPlot.Series.BoxPlotItem(time - 0.25 + sensorId * width + 0.5 * width, ordered[0].Item1, ordered[(int)(ordered.Count * 0.25)].Item1, ordered[ordered.Count / 2].Item1, ordered[(int)(ordered.Count * 0.75)].Item1, ordered.Last().Item1);
+                            //var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
+                            //boxSeries.BoxWidth = width;
+                            //boxSeries.WhiskerWidth = width;
+                            //boxSeries.Items.Add(boxItem);
+                            //boxSeries.Fill = colors[sensorId];
+                            //boxModel.Series.Add(boxSeries);
+
+                            //if (!sensorsAdded.Contains(sensor))
+                            //{
+                            //    sensorsAdded.Add(sensor);
+                            //    boxSeries.Title = sensor;
+                            //}
+
+                            //avgs.Add(avgCorrelation);
+                        }
+                        else
+                        {
+                            timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        }
+                        sensorId++;
                     }
 
+
+                    avgLineSeries.Points.Add(new OxyPlot.DataPoint(time, avgs.Average()));
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
+
+                timeModel.LegendPlacement = LegendPlacement.Outside;
+
+                //avg ordering is reversed
+                var txt0 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(0, -1), Text = "Avg " + avgLineSeries.Points[2].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
+                var txt1 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(1, -1), Text = "Avg " + avgLineSeries.Points[1].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
+                var txt2 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(2, -1), Text = "Avg " + avgLineSeries.Points[0].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
+                timeModel.Annotations.Add(txt0);
+                timeModel.Annotations.Add(txt1);
+                timeModel.Annotations.Add(txt2);
+                timeModel.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Maximum = 1, Minimum = -1, Title = "Pearson's r" });
+                timeModel.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 2.5, Minimum = -0.5, MajorStep = 1, Title = "Time", MinorTickSize = 0 });
+                //boxModel.Series.Add(avgLineSeries);
+                PngExporter pnger = new PngExporter();
+
+                pnger.ExportToFile(timeModel, fbd.SelectedPath + "/timeBox.png");
 
                 /*
                 //correlation and reverse correlation
@@ -2715,7 +2858,15 @@ namespace Classification_App
                         double avgSignificance = timeTable[sensor][time].Average(x => x.Item2);
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Select(x => x.Item2).ToArray());
 
-                        timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        if (avgSignificance < 0.05)
+                        {
+                            timeToWrite.Add($"\\textbf{{{sensor}}}&\\textbf{{{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})}}&\\textbf{{{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")})}} \\\\");
+                        }
+                        else
+                        {
+                            timeToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        }
+
                     }
                     timeToWrite.Add("\\bottomrule");
                     timeToWrite.Add("\\end{tabular}");
@@ -2733,6 +2884,22 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
 
+                var stimModel = new PlotModel() { Title = "Stimuli Groups Box Plot" };
+                int stimId = 0;
+                sensorsAdded.Clear();
+                avgLineSeries.Points.Clear();
+
+                var Big5StimBox = new PlotModel() { Title = "Big5 Stimuli Box Plots", LegendPlacement = LegendPlacement.Outside };
+                Dictionary<Big5, OxyPlot.Series.BoxPlotSeries> big5Series = new Dictionary<Big5, OxyPlot.Series.BoxPlotSeries>();
+                foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                {
+                    big5Series.Add(item, new OxyPlot.Series.BoxPlotSeries() { Fill = colors[(int)item * 2], Title = item.ToString(), BoxWidth = 0.1, WhiskerWidth = 0.1 });
+                    Big5StimBox.Series.Add(big5Series[item]);
+                }
+
+                Big5StimBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Maximum = 50, Minimum = 10, Title = "Score" });
+                Big5StimBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 1.5, Minimum = -0.5, MajorStep = 1, Title = "Category", MinorTickSize = 0 });
+
                 foreach (var stimuli in stimulis)
                 {
                     List<string> stimuliToWrite = new List<string>();
@@ -2743,7 +2910,8 @@ namespace Classification_App
                     stimuliToWrite.Add("\\toprule");
                     stimuliToWrite.Add("Sensor&Avg Corr&Avg Sig. \\\\");
                     stimuliToWrite.Add("\\midrule");
-
+                    List<double> avgs = new List<double>();
+                    int sensorId = 0;
                     foreach (var sensor in sensors)
                     {
                         double avgCorrelation = stimuliTable[sensor][stimuli].Average(x => x.Item1);
@@ -2751,14 +2919,41 @@ namespace Classification_App
                         double avgSignificance = stimuliTable[sensor][stimuli].Average(x => x.Item2);
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(stimuliTable[sensor][stimuli].Select(x => x.Item2).ToArray());
 
-                        stimuliToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        var orderedAll = stimuliTable[sensor][stimuli].Where(x => x.Item2 * 100 < (int)5).OrderBy(x => x.Item1).ToList();
+                        var boxItem = new OxyPlot.Series.BoxPlotItem(((1 + stimId) % 2) + sensorId * width - (0.5 * width * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
+                        var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
+                        boxSeries.BoxWidth = width;
+                        boxSeries.WhiskerWidth = width;
+                        boxSeries.Items.Add(boxItem);
+                        boxSeries.Fill = colors[sensorId];
+                        stimModel.Series.Add(boxSeries);
+                        avgs.Add(orderedAll.Average(x => x.Item1));
+
+                        if (!sensorsAdded.Contains(sensor))
+                        {
+                            sensorsAdded.Add(sensor);
+                            boxSeries.Title = sensor;
+                        }
+
+                        if (avgSignificance < 0.05)
+                        {
+                            stimuliToWrite.Add($"\\textbf{{{sensor}}}&\\textbf{{{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})}}&\\textbf{{{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")})}} \\\\");
+                        }
+                        else
+                        {
+                            stimuliToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
+                        }
+                        sensorId++;
                     }
+                    avgLineSeries.Points.Add(new OxyPlot.DataPoint(0, avgs.Average()));
                     stimuliToWrite.Add("\\bottomrule");
                     stimuliToWrite.Add("\\end{tabular}");
                     stimuliToWrite.Add("\\caption{Results from stimuli " + stimuli + ".");
                     foreach (Big5 item in Enum.GetValues(typeof(Big5)))
                     {
                         stimuliToWrite.Add(item + " Mean: " + big5List["stim" + stimuli].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["stim" + stimuli].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+                        var orderino = big5List["stim" + stimuli].Select(x => x[item]).OrderBy(x => x).ToList();
+                        big5Series[item].Items.Add(new OxyPlot.Series.BoxPlotItem(((1 + stimId) % 2) - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
                     }
                     stimuliToWrite.Add("}");
                     stimuliToWrite.Add("\\label{[TABLE] res stimuli" + stimuli + "}");
@@ -2766,8 +2961,23 @@ namespace Classification_App
 
 
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_stimuli_" + stimuli + ".txt", stimuliToWrite);
+                    stimId++;
                 }
+                pnger.ExportToFile(Big5StimBox, fbd.SelectedPath + "/stimBoxBig5.png");
 
+                stimModel.LegendPlacement = LegendPlacement.Outside;
+
+                //1 = low
+                var stimTxt0 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(0, -1), Text = "Avg " + avgLineSeries.Points[1].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
+                //0 = high
+                var stimTxt1 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(1, -1), Text = "Avg " + avgLineSeries.Points[0].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
+                stimModel.Annotations.Add(stimTxt0);
+                stimModel.Annotations.Add(stimTxt1);
+                stimModel.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Maximum = 1, Minimum = -1, Title = "Pearson's r" });
+                var botAx = new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 1.5, Minimum = -0.5, MajorStep = 1, Title = "Stimuli", MinorTickSize = 0 };
+                stimModel.Axes.Add(botAx);
+
+                pnger.ExportToFile(stimModel, fbd.SelectedPath + "/stimBox.png");
 
                 Log.LogMessage("DonnoDK");
             }
