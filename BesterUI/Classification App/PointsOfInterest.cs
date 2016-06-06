@@ -51,7 +51,7 @@ namespace Classification_App
 
         public List<Tuple<int, int>> GetFlaggedAreas()
         {
-            return flaggedAreas;
+            return flaggedAreas.ToList();
         }
 
         public bool IsPointFlagged(int timePoint)
@@ -68,6 +68,7 @@ namespace Classification_App
 
         public double PercentageAreaHit(int startTime, int endTime)
         {
+            decimal hitPercentage = 0;
             foreach (Tuple<int, int> area in flaggedAreas)
             {
                 if (area.Item1 < startTime && endTime < area.Item2)
@@ -76,18 +77,19 @@ namespace Classification_App
                 }
                 else if (area.Item1 >= startTime && area.Item2 >= endTime && area.Item1 <= endTime)
                 {
-                    return (endTime - area.Item1) / (area.Item2 - area.Item1);
+                    hitPercentage += (endTime - (decimal)area.Item1) / (area.Item2 - (decimal)area.Item1);
                 }
                 else if (area.Item1 <= startTime && area.Item2 <= endTime && area.Item2 >= startTime)
                 {
-                    return (area.Item2 - startTime) / (area.Item2 - area.Item1);
+                    hitPercentage += (area.Item2 - (decimal)startTime) / (area.Item2 - (decimal)area.Item1);
                 }
                 else if (startTime  <= area.Item1 && area.Item2 <= endTime)
                 {
-                    return (endTime - startTime) / (area.Item2 - area.Item1);
+                    hitPercentage += (endTime - (decimal)startTime) / (area.Item2 - (decimal)area.Item1);
                 }
             }
-            return 0;
+            return (double)hitPercentage;
         }
     }
+
 }

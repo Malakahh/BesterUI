@@ -32,11 +32,11 @@ namespace Classification_App.Evnt
             }
         }
 
-        public Events(int startTimeStamp, int endTimestamp, string eventName)
+        public Events(int StartTimeStamp, int EndTimestamp, string EventName)
         {
-            this.startTimestamp = startTimeStamp;
-            this.endTimestamp = endTimestamp;
-            this.eventName = eventName;
+            this.startTimestamp = StartTimeStamp;
+            this.endTimestamp = EndTimestamp;
+            this.eventName = EventName;
         }
         public void SetPointOfInterest(PointsOfInterest poi)
         {

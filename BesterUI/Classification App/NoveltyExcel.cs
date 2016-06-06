@@ -16,6 +16,7 @@ namespace Classification_App
         public static object missingValue = System.Reflection.Missing.Value; //Used for filler purpose
         public bool BooksOpen { get; private set; }
         private string statsFolderPath = null;
+        public Excel.Workbook currentBook;
 
         public NoveltyExcel(string path)
         {
@@ -25,6 +26,26 @@ namespace Classification_App
             }
             statsFolderPath = path + "/" + "Stats/";
             MyApp = new Excel.Application() { Visible = false };
+            CreateOrOpenFiles();
+        }
+
+
+
+        public void Save()
+        {
+            Log.LogMessage("Saving Excel Files");
+            currentBook.Save();
+        }
+
+        public void CloseHandler()
+        {
+            Log.LogMessage("Closing, saving and quiting excel");
+            if (MyApp != null)
+            {
+                currentBook.Save();
+                MyApp.Quit();
+                MyApp = null;
+            }
         }
 
         private bool CreateOrOpenFiles()
@@ -35,7 +56,24 @@ namespace Classification_App
                 if (!Directory.Exists(statsFolderPath))
                 {
                     Directory.CreateDirectory(statsFolderPath);
-                    Excel.Workbook currentBook = MyApp.Workbooks.Add(missingValue);
+                    currentBook = MyApp.Workbooks.Add(missingValue);
+                    currentBook.SaveAs(statsFolderPath + "result");
+                    //Added Standard (Front, first, last)
+                    CreateStandardBookSetup(currentBook);
+                    //Remove default sheetBook
+                    foreach (Excel.Worksheet wS in currentBook.Worksheets)
+                    {
+                        if (wS.Name == "Sheet1")
+                        {
+                            wS.Delete();
+                        }
+                    }
+                    BooksOpen = true;
+                }
+                else if (!File.Exists(statsFolderPath + "result.xlsx"))
+                {
+                    currentBook = MyApp.Workbooks.Add(missingValue);
+                    currentBook.SaveAs(statsFolderPath + "result");
                     //Added Standard (Front, first, last)
                     CreateStandardBookSetup(currentBook);
                     //Remove default sheet
@@ -46,16 +84,34 @@ namespace Classification_App
                             wS.Delete();
                         }
                     }
+                    BooksOpen = true;
+                }
+                else
+                {
+                    currentBook = MyApp.Workbooks.Open(statsFolderPath + "result.xlsx", missingValue,
+                                                            false,
+                                                            missingValue,
+                                                            missingValue,
+                                                            missingValue,
+                                                            true,
+                                                            missingValue,
+                                                            missingValue,
+                                                            true,
+                                                            missingValue,
+                                                            missingValue,
+                                                            missingValue);
+                    BooksOpen = true;
                 }
             }
             catch (Exception ex)
             {
                 return false;
             }
+            currentBook.Save();
             return true;
         }
 
-        public static void CreateStandardBookSetup(Excel.Workbook workBook)
+        public void CreateStandardBookSetup(Excel.Workbook workBook)
         {
             //Create frontpage
             Excel.Worksheet overview = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
@@ -73,92 +129,215 @@ namespace Classification_App
 
         }
 
-        private static void WriteOverviewMeta(Excel.Worksheet workSheet)
+        public void AddPersonToBooks(string name)
         {
-            #region [Names]
-            workSheet.Cells[1, 1] = "A2High";
-            workSheet.Cells[6, 1] = "A2Low";
-            workSheet.Cells[11, 1] = "A3";
-            workSheet.Cells[16, 1] = "V2High";
-            workSheet.Cells[21, 1] = "V2Low";
-            workSheet.Cells[26, 1] = "V3";
-            #endregion
+            Log.LogMessage("Adding " + name + " to excel files");
+            try
+            {
+                if (BooksOpen)
+                {
+                    bool shouldAddPerson = true;
+                    //Get Current book
+                    foreach (Excel.Worksheet sheet in currentBook.Sheets)
+                    {
+                        if (sheet.Name == name)
+                        {
+                            Log.LogMessage("Person already exist in excel book:" + sheet.Name + ", skipping adding");
+                            shouldAddPerson = false;
+                            break;
+                        }
+                    }
+                    if (shouldAddPerson == true)
+                    {
 
+                        //Add person
+                        Excel.Worksheet lastSheet = currentBook.Sheets["Last"];
+                        Excel.Worksheet currentSheet = (Excel.Worksheet)currentBook.Sheets.Add(lastSheet);
+                        currentSheet.Name = name;
+
+                        //Write standard data
+                        WriteSheetMeta(currentSheet, name);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
+        }
+
+        public void AddDataToPerson(string name, Dictionary<SENSOR, NoveltyResult> predictResult)
+        {
+            Log.LogMessage("Writing results from " + name + " to excel files");
+            foreach (Excel.Worksheet ws in currentBook.Sheets)
+            {
+                if (ws.Name == name)
+                {
+                    WriteResult(ws, name, predictResult);
+                }
+            }
+        }
+        public void WriteSheetMeta(Excel.Worksheet workSheet, string name)
+        {
+            workSheet.Cells[1, 1] = name;
+            workSheet.Cells[3, 1] = "EventHits";
+            workSheet.Cells[4, 1] = "EventMisses";
+            workSheet.Cells[5, 1] = "EventsTotal";
+            workSheet.Cells[5, 1] = "Covered";
+            workSheet.Cells[6, 1] = "Score";
+            workSheet.Cells[7, 1] = "TP";
+            workSheet.Cells[8, 1] = "FP";
+            workSheet.Cells[9, 1] = "TN";
+            workSheet.Cells[10, 1] = "FN";
+            workSheet.Cells[11, 1] = "C";
+            workSheet.Cells[12, 1] = "Gamma";
+            workSheet.Cells[13, 1] = "Nu";
+            workSheet.Cells[14, 1] = "Kernel";
+
+        }
+
+
+
+        public void WriteResult(Excel.Worksheet workSheet, string name, Dictionary<SENSOR, NoveltyResult> result)
+        {
+            /*
+            % hit
+            % covered
+            Score value
+            Parameter
+            */
+            int counter = 3;
+            /*Numre passer ikke mere*/
+            //GSR
+            workSheet.Cells[2, 2] = "GSR";
+            /*3*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].FlaggedAreaSize();
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.C;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Gamma;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Nu;
+            /*12*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Kernel.ToString();
+            counter++;
+
+            workSheet.Cells[counter++, 2] = "EEG";
+            /*15*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].FlaggedAreaSize();
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.C;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Gamma;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Nu;
+            /*24*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Kernel.ToString();
+            counter++;
+
+            workSheet.Cells[counter++, 2] = "FACE";
+            /*27*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].FlaggedAreaSize();
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.C;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Gamma;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Nu;
+            /*36*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Kernel.ToString();
+
+            counter++;
+
+            workSheet.Cells[counter++, 2] = "HR";
+            /*39*/
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
+            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].FlaggedAreaSize();
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TruePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().FalsePostive;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TrueNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.C;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Gamma;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Nu;
+            /*48*/
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Kernel.ToString();
+
+        }
+
+
+        private void WriteOverviewMeta(Excel.Worksheet workSheet)
+        {
             #region [Average & standard deviation markers]
-            //A2High
-            workSheet.Cells[3, 1] = "AVG";
-            workSheet.Cells[4, 1] = "STD";
-            //A2Low
-            workSheet.Cells[8, 1] = "AVG";
-            workSheet.Cells[9, 1] = "STD";
-            //A3
-            workSheet.Cells[13, 1] = "AVG";
-            workSheet.Cells[14, 1] = "STD";
-            //V2High
-            workSheet.Cells[18, 1] = "AVG";
-            workSheet.Cells[19, 1] = "STD";
-            //V2Low
-            workSheet.Cells[23, 1] = "AVG";
-            workSheet.Cells[24, 1] = "STD";
-            //V3
-            workSheet.Cells[28, 1] = "AVG";
-            workSheet.Cells[29, 1] = "STD";
+            //hits, covered, Score 
+            workSheet.Cells[1, 1] = "Overview";
+            workSheet.Cells[3, 1] = "GSR";
+            workSheet.Cells[4, 1] = "HitAverage";
+            workSheet.Cells[5, 1] = "CoveredAverage";
+            workSheet.Cells[2, 2] = "Average";
+            workSheet.Cells[2, 3] = "SD";
+
+            workSheet.Cells[7, 1] = "EEG";
+            workSheet.Cells[8, 1] = "HitAverage";
+            workSheet.Cells[9, 1] = "CoveredAverage";
+
+            workSheet.Cells[11, 1] = "FACE";
+            workSheet.Cells[12, 1] = "HitAverage";
+            workSheet.Cells[13, 1] = "CoveredAverage";
+
+            workSheet.Cells[14, 1] = "HR";
+            workSheet.Cells[15, 1] = "HitAverage";
+            workSheet.Cells[16, 1] = "CoveredAverage";
             #endregion
 
-            #region [Score Labels]
-            List<string> scoring2Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "P1", "P2", "R1", "R2" };
-            List<string> scoring3Labels = new List<string> { "Accuracy", "WFScore", "F1", "F2", "F3", "P1", "P2", "P3", "R1", "R2", "R3" };
-            //A2High
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[2, i + 2] = scoring2Labels[i];
-            }
-
-            //A2Low
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[7, i + 2] = scoring2Labels[i];
-            }
-
-            //A3
-            for (int i = 0; i < scoring3Labels.Count; i++)
-            {
-                workSheet.Cells[12, i + 2] = scoring3Labels[i];
-            }
-
-            //V2High
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[17, i + 2] = scoring2Labels[i];
-            }
-
-            //V2Low
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[22, i + 2] = scoring2Labels[i];
-            }
-
-            //V3
-            for (int i = 0; i < scoring3Labels.Count; i++)
-            {
-                workSheet.Cells[27, i + 2] = scoring3Labels[i];
-            }
-
-            #endregion
-
-            #region[Score Formulas]
-         /*   string avgFormula = "=AVERAGE(First:Last!C";
-            string stdevFormula = "=STDEV.P(First:Last!C";
+            #region[Formulas]
+            string avgFormula = "=AVERAGE(First:Last!B";
+            string stdevFormula = "=STDEV.P(First:Last!B";
             string endFormula = ")";
-            //A2High AVG and Stdev
-            for (int i = 0; i < scoring2Labels.Count; i++)
-            {
-                workSheet.Cells[3, i + 2] = avgFormula + (i + A2HighStart) + endFormula;
-                workSheet.Cells[4, i + 2] = stdevFormula + (i + A2HighStart) + endFormula;
-            }
-          */ 
 
+            //Average
+            workSheet.Cells[4, 2] = $"{avgFormula}3{endFormula}";
+            workSheet.Cells[5, 2] = $"{avgFormula}4{endFormula}";
 
+            workSheet.Cells[8, 2] = $"{avgFormula}11{endFormula}";
+            workSheet.Cells[9, 2] = $"{avgFormula}12{endFormula}";
+
+            workSheet.Cells[12, 2] = $"{avgFormula}19{endFormula}";
+            workSheet.Cells[13, 2] = $"{avgFormula}20{endFormula}";
+
+            workSheet.Cells[15, 2] = $"{avgFormula}27{endFormula}";
+            workSheet.Cells[16, 2] = $"{avgFormula}28{endFormula}";
+
+            //SD
+            workSheet.Cells[4, 3] = $"{stdevFormula}3{endFormula}";
+            workSheet.Cells[5, 3] = $"{stdevFormula}4{endFormula}";
+
+            workSheet.Cells[8, 3] = $"{stdevFormula}11{endFormula}";
+            workSheet.Cells[9, 3] = $"{stdevFormula}12{endFormula}";
+
+            workSheet.Cells[12, 3] = $"{stdevFormula}19{endFormula}";
+            workSheet.Cells[13, 3] = $"{stdevFormula}20{endFormula}";
+
+            workSheet.Cells[15, 3] = $"{stdevFormula}27{endFormula}";
+            workSheet.Cells[16, 3] = $"{stdevFormula}28{endFormula}";
             #endregion
 
         }
