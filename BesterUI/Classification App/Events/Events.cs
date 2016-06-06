@@ -54,7 +54,7 @@ namespace Classification_App.Evnt
 
         protected virtual bool CalculateHit()
         {
-            return POI.PercentageAreaHit(startTimestamp, endTimestamp) > 0;
+            return POI.PercentageAreaHit(startTimestamp-500, endTimestamp+500) > 0;
         }
 
         public Events Copy()

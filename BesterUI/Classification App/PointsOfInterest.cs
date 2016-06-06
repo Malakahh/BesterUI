@@ -116,15 +116,15 @@ namespace Classification_App
                 }
                 else if (area.Item1 >= startTime && area.Item2 >= endTime && area.Item1 <= endTime)
                 {
-                    hitPercentage += (endTime - (decimal)area.Item1) / (area.Item2 - (decimal)area.Item1);
+                    hitPercentage += (endTime - (decimal)area.Item1+1) / (endTime - (decimal)startTime);
                 }
                 else if (area.Item1 <= startTime && area.Item2 <= endTime && area.Item2 >= startTime)
                 {
-                    hitPercentage += (area.Item2 - (decimal)startTime) / (area.Item2 - (decimal)area.Item1);
+                    hitPercentage += (area.Item2 - (decimal)startTime+1) / (endTime - (decimal)startTime);
                 }
                 else if (startTime  <= area.Item1 && area.Item2 <= endTime)
                 {
-                    hitPercentage += (endTime - (decimal)startTime) / (area.Item2 - (decimal)area.Item1);
+                    hitPercentage += (area.Item2 - (decimal)area.Item1+1)/(endTime - (decimal)startTime) ;
                 }
             }
             return (double)hitPercentage;

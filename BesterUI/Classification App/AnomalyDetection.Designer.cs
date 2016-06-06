@@ -165,7 +165,7 @@
             // gsrProgress
             // 
             this.gsrProgress.Location = new System.Drawing.Point(255, 103);
-            this.gsrProgress.Maximum = 1098;
+            this.gsrProgress.Maximum = 10;
             this.gsrProgress.Name = "gsrProgress";
             this.gsrProgress.Size = new System.Drawing.Size(319, 23);
             this.gsrProgress.TabIndex = 12;
@@ -173,7 +173,7 @@
             // eegProgress
             // 
             this.eegProgress.Location = new System.Drawing.Point(255, 157);
-            this.eegProgress.Maximum = 1098;
+            this.eegProgress.Maximum = 10;
             this.eegProgress.Name = "eegProgress";
             this.eegProgress.Size = new System.Drawing.Size(319, 23);
             this.eegProgress.TabIndex = 13;
@@ -181,7 +181,7 @@
             // hrProgress
             // 
             this.hrProgress.Location = new System.Drawing.Point(255, 212);
-            this.hrProgress.Maximum = 1098;
+            this.hrProgress.Maximum = 10;
             this.hrProgress.Name = "hrProgress";
             this.hrProgress.Size = new System.Drawing.Size(319, 23);
             this.hrProgress.TabIndex = 14;
@@ -189,7 +189,7 @@
             // faceProgress
             // 
             this.faceProgress.Location = new System.Drawing.Point(255, 261);
-            this.faceProgress.Maximum = 1098;
+            this.faceProgress.Maximum = 10;
             this.faceProgress.Name = "faceProgress";
             this.faceProgress.Size = new System.Drawing.Size(319, 23);
             this.faceProgress.TabIndex = 15;

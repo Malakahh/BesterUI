@@ -683,13 +683,16 @@ namespace Classification_App
         private async void button1_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
-
+            int counter = 1;
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 sw.Start();
                 NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath);
-                foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
+                var dic = Directory.GetDirectories(fbd.SelectedPath);
+                int total = dic.Count(x => !x.Contains("Stats"));
+                foreach (string folder in dic)
                 {
+                    statusLabel.Text = $"{counter}/{total}";
                     if (folder.Contains("Stats"))
                     {
                         continue;
