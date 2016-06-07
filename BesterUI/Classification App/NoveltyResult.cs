@@ -94,7 +94,8 @@ namespace Classification_App
                     }
                     _calculatedHitResult = true;
                 }
-                return new HitResults(EventHits, Hits, Misses, EventTotal);
+                _hitResult = new HitResults(EventHits, Hits, Misses, EventTotal);
+                return _hitResult;
             }
             else
             {

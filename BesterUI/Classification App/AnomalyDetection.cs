@@ -944,9 +944,13 @@ namespace Classification_App
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
                     Dictionary<SENSOR, PointsOfInterest> pois = AnomaliSerializer.LoadPointOfInterest(path);
                     LoadEvents(tmpevents);
-                    Voting vote = new Voting(start, end, pois, events, 2);
-                    NoveltyResult noveltyResult = vote.GetNoveltyResult();
-                    noveltyResult.CalculateHitResult();
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        Voting vote = new Voting(start, end, pois, events, 2);
+                        NoveltyResult noveltyResult = vote.GetNoveltyResult();
+                        noveltyResult.CalculateHitResult();
+                        Log.LogMessage("agreement: " + i + " - noveltyResult.CalculateScore())");
+                    }
                 }
             }
         }
