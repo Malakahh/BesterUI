@@ -716,17 +716,17 @@ namespace Classification_App
                     //Do gridsearch       
                     Task<NoveltyResult> gsrThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.GSR, start, end));
                     int gsrId = gsrThread.Id;
-                    Task<NoveltyResult> eegThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.EEG, start, end));
+                    /*Task<NoveltyResult> eegThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.EEG, start, end));
                     int eegId = eegThread.Id;
                     Task<NoveltyResult> hrThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.HR, start, end));
                     int hrId = hrThread.Id;
                     Task<NoveltyResult> faceThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.FACE, start, end));
-                    int faceId = faceThread.Id;
+                    int faceId = faceThread.Id;*/
                     List<Task<NoveltyResult>> threads = new List<Task<NoveltyResult>>();
                     threads.Add(gsrThread);
-                    threads.Add(eegThread);
+                   /* threads.Add(eegThread);
                     threads.Add(hrThread);
-                    threads.Add(faceThread);
+                    threads.Add(faceThread);*/
                     await Task.WhenAll(threads);
                     foreach (Task<NoveltyResult> t in threads)
                     {
@@ -735,7 +735,7 @@ namespace Classification_App
                             predictionResults.Add(SENSOR.GSR, t.Result);
                             continue;
                         }
-                        else if (t.Id == eegId)
+                       /* else if (t.Id == eegId)
                         {
                             predictionResults.Add(SENSOR.EEG, t.Result);
                             continue;
@@ -749,7 +749,7 @@ namespace Classification_App
                         {
                             predictionResults.Add(SENSOR.HR, t.Result);
                             continue;
-                        }
+                        }*/
                         else
                         {
                             Log.LogMessage("Could not match thread ID");
