@@ -2716,7 +2716,12 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/" + sensor + ".csv", timeAnova);
                 }
 
-
+                Dictionary<string, int[]> significantAmount = new Dictionary<string, int[]>();
+                foreach (var sensor in sensors)
+                {
+                    significantAmount.Add(sensor, new int[5]);
+                }
+                List<string> amountTimeSignificant = new List<string>();
                 foreach (var time in times)
                 {
                     int sensorId = 0;
@@ -2733,6 +2738,8 @@ namespace Classification_App
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(timeTable[sensor][time].Select(x => x.Item2).ToArray());
 
                         var orderedAll = timeTable[sensor][time].Where(x => x.Item2 * 100 < (int)5).OrderBy(x => x.Item1).ToList();
+                        amountTimeSignificant.Add(time + " & " + sensor + " & " + orderedAll.Count);
+                        significantAmount[sensor][time] = orderedAll.Count;
 
                         var boxItem = new OxyPlot.Series.BoxPlotItem(time + sensorId * widthTime - (0.5 * widthTime * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
                         var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
@@ -2781,7 +2788,7 @@ namespace Classification_App
                     avgLineSeries.Points.Add(new OxyPlot.DataPoint(time, avgs.Average()));
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_time" + time + ".txt", timeToWrite);
                 }
-
+                File.WriteAllLines(fbd.SelectedPath + "/significantTime.tex", amountTimeSignificant);
                 timeModel.LegendPlacement = LegendPlacement.Outside;
 
                 //avg ordering is reversed
@@ -2840,6 +2847,27 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/reverseCorrelationTime" + time + ".txt", reverseCorrelationTimeToWrite);
                 }
                 */
+                var Big5timeBox = new PlotModel() { Title = "Big5 Time Box Plots", LegendPlacement = LegendPlacement.Outside };
+                Dictionary<Big5, OxyPlot.Series.BoxPlotSeries> big5timeSeries = new Dictionary<Big5, OxyPlot.Series.BoxPlotSeries>();
+                foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                {
+                    big5timeSeries.Add(item, new OxyPlot.Series.BoxPlotSeries() { Fill = colors[(int)item * 2], Title = item.ToString(), BoxWidth = 0.1, WhiskerWidth = 0.1 });
+                    Big5timeBox.Series.Add(big5timeSeries[item]);
+                }
+
+                Big5timeBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Maximum = 50, Minimum = 10, Title = "Score" });
+                Big5timeBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 2.5, Minimum = -0.5, MajorStep = 1, Title = "Time", MinorTickSize = 0 });
+
+                foreach (var time in times)
+                {
+                    foreach (Big5 item in Enum.GetValues(typeof(Big5)))
+                    {
+                        var orderino = big5List["time" + time].Select(x => x[item]).OrderBy(x => x).ToList();
+                        big5timeSeries[item].Items.Add(new OxyPlot.Series.BoxPlotItem(time - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
+                    }
+                }
+
+                pnger.ExportToFile(Big5timeBox, fbd.SelectedPath + "/timeBoxBig5.png");
 
                 foreach (var time in times)
                 {
@@ -2899,7 +2927,7 @@ namespace Classification_App
 
                 Big5StimBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Maximum = 50, Minimum = 10, Title = "Score" });
                 Big5StimBox.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Maximum = 1.5, Minimum = -0.5, MajorStep = 1, Title = "Category", MinorTickSize = 0 });
-
+                List<string> amountStimSignificant = new List<string>();
                 foreach (var stimuli in stimulis)
                 {
                     List<string> stimuliToWrite = new List<string>();
@@ -2920,6 +2948,8 @@ namespace Classification_App
                         double stdevSignificance = MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(stimuliTable[sensor][stimuli].Select(x => x.Item2).ToArray());
 
                         var orderedAll = stimuliTable[sensor][stimuli].Where(x => x.Item2 * 100 < (int)5).OrderBy(x => x.Item1).ToList();
+                        amountStimSignificant.Add(stimuli + " & " + sensor + " & " + orderedAll.Count);
+                        significantAmount[sensor][stimuli == "low" ? 3 : 4] = orderedAll.Count;
                         var boxItem = new OxyPlot.Series.BoxPlotItem(((1 + stimId) % 2) + sensorId * width - (0.5 * width * sensors.Count), orderedAll[0].Item1, orderedAll[(int)(orderedAll.Count * 0.25)].Item1, orderedAll[orderedAll.Count / 2].Item1, orderedAll[(int)(orderedAll.Count * 0.75)].Item1, orderedAll.Last().Item1);
                         var boxSeries = new OxyPlot.Series.BoxPlotSeries() { };
                         boxSeries.BoxWidth = width;
@@ -2963,13 +2993,15 @@ namespace Classification_App
                     File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_stimuli_" + stimuli + ".txt", stimuliToWrite);
                     stimId++;
                 }
+                File.WriteAllLines(fbd.SelectedPath + "/significantStim.tex", amountStimSignificant);
+                File.WriteAllLines(fbd.SelectedPath + "/significantTable.tex", significantAmount.Select(x => $"{x.Key} & {x.Value[0]} & {x.Value[1]} & {x.Value[2]} & {x.Value[3]} & {x.Value[4]}").ToList());
                 pnger.ExportToFile(Big5StimBox, fbd.SelectedPath + "/stimBoxBig5.png");
 
                 stimModel.LegendPlacement = LegendPlacement.Outside;
 
-                //1 = low
+                //index 1 = low
                 var stimTxt0 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(0, -1), Text = "Avg " + avgLineSeries.Points[1].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
-                //0 = high
+                //index 0 = high
                 var stimTxt1 = new OxyPlot.Annotations.TextAnnotation() { TextPosition = new OxyPlot.DataPoint(1, -1), Text = "Avg " + avgLineSeries.Points[0].Y.ToString(".000").Replace(",", "."), Stroke = OxyColors.White };
                 stimModel.Annotations.Add(stimTxt0);
                 stimModel.Annotations.Add(stimTxt1);
