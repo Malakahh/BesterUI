@@ -766,11 +766,11 @@ namespace Classification_App
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
                         Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
                     }
-                    excel.AddDataToPerson(testSubjectId, predictionResults);
-                    excel.Save();
                     AnomaliSerializer.SaveAnomalis(anomalis, path, STEP_SIZE);
                     AnomaliSerializer.SaveEvents(eventResult, path);
                     AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
+                    excel.AddDataToPerson(testSubjectId, predictionResults);
+                    excel.Save();
                 }
                 excel.CloseHandler();
             }
