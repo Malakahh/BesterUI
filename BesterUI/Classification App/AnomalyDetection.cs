@@ -805,26 +805,8 @@ namespace Classification_App
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-            List<int> numberList = Enumerable.Range(1, 99).ToList();
-            List<double> nuValues = numberList.Select(x => (((double)(x) / 100))).ToList();
-            count = 1;
-            foreach (double nuV in nuValues)
-            {
-                SVMParameter svmP = bestResult.parameter.Clone();
-                svmP.Nu = nuV;
-                svmParams.Push(svmP);
-            }
-
-            SetProgressMax(nuValues.Count + 1);
-            Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
-            List<Task> nutasks = new List<Task>();
-            for (int i = 0; i < threadMAX.Value; i++)
-            {
-                Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
-                nutasks.Add(taskT);
-            }
-            await Task.WhenAll(nutasks);
-            Log.LogMessage($"After on: {sensor.ToString()} - {bestResult.CalculateScore()}");
+          
+            Log.LogMessage($"best resulter on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;
         }
@@ -865,6 +847,7 @@ namespace Classification_App
                 decimal fpr = 1 - ((decimal)cfm.TrueNegative / ((decimal)cfm.TrueNegative + cfm.FalsePostive));
                 */
                 mutex.WaitOne();
+                Log.LogMessage($"{sensor}: {tempResult.CalculateScore()}");
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
@@ -889,12 +872,12 @@ namespace Classification_App
 
         private List<SVMParameter> GenerateOneClassSVMParameters()
         {
-            List<double> cTypes = new List<double>() { };
+            List<decimal> nuTypes = new List<decimal>() { };
             List<double> gammaTypes = new List<double>() { };
             List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -4; t <= 12; t += 1)
+            for (decimal t = 0.01m; t < 0.5m; t += 0.05m)
             {
-                cTypes.Add(Math.Pow(2, t));
+                nuTypes.Add(t);
             }
             for (int t = -14; t <= 2; t += 1)
             {
@@ -904,17 +887,16 @@ namespace Classification_App
             List<SVMParameter> svmParams = new List<SVMParameter>();
             foreach (SVMKernelType kernel in kernels)
             {
-                foreach (double c in cTypes)
+                foreach (double nu in nuTypes)
                 {
                     for (int i = 0; i < gammaTypes.Count; i++)
                     {
                         SVMParameter t = new SVMParameter();
                         t.Kernel = kernel;
-                        t.C = c;
-                        t.Nu = 0.05;
-                        t.Gamma = gammaTypes[i];
+                        t.Nu = (double)nu;
+                        t.Gamma =  gammaTypes[i];
                         svmParams.Add(t);
-                    }
+                  }
                 }
             }
             return svmParams;
