@@ -133,8 +133,6 @@
     </Compile>
     <Compile Include="DataProgressHandler.cs" />
     <Compile Include="Events\Events.cs" />
-    <Compile Include="Events\InstantEvents.cs" />
-    <Compile Include="Events\SpanningEvent.cs" />
     <Compile Include="ExcelHandler.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="Classifier.cs" />
@@ -161,6 +159,7 @@
     <Compile Include="samEvents.cs" />
     <Compile Include="StdClassifier.cs" />
     <Compile Include="SVMConfiguration.cs" />
+    <Compile Include="Voting.cs" />
     <EmbeddedResource Include="AnomalyDetection.resx">
       <DependentUpon>AnomalyDetection.cs</DependentUpon>
     </EmbeddedResource>

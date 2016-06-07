@@ -11,8 +11,8 @@ namespace Classification_App.Evnt
         protected PointsOfInterest POI;
         public double percentageToHit = 1;
         private bool _POIchanged = true;
-        public int startTimestamp;
-        public int endTimestamp = 0;
+        private int startTimestamp;
+        private int endTimestamp = 0;
         public string eventName;
         private bool _isHit;
         public bool isHit
@@ -38,20 +38,39 @@ namespace Classification_App.Evnt
             this.endTimestamp = EndTimestamp;
             this.eventName = EventName;
         }
+        public Events(int StartTimeStamp, int EndTimestamp, string EventName, double PercentageHit)
+        {
+            this.startTimestamp = StartTimeStamp;
+            this.endTimestamp = EndTimestamp;
+            this.eventName = EventName;
+            this.percentageToHit = PercentageHit;
+        }
+
         public void SetPointOfInterest(PointsOfInterest poi)
         {
             POI = poi;
             _POIchanged = true;
         }
 
+        public int GetTimestampStart()
+        {
+            return startTimestamp ;
+        }
+
+        public int GetTimestampEnd()
+        {
+            return endTimestamp;
+        }
+
+
         protected virtual bool CalculateHit()
         {
-            return POI.PercentageAreaHit(endTimestamp, endTimestamp) >= percentageToHit;
+            return POI.PercentageAreaHit(GetTimestampStart(), GetTimestampEnd()) > 0;
         }
 
         public Events Copy()
         {      
-            Events e = new Events(startTimestamp, endTimestamp, eventName);
+            Events e = new Events(startTimestamp, endTimestamp, eventName, percentageToHit);
             e.SetPointOfInterest(POI);
             return e;
         }

@@ -44,6 +44,10 @@
             this.eegProgress = new System.Windows.Forms.ProgressBar();
             this.hrProgress = new System.Windows.Forms.ProgressBar();
             this.faceProgress = new System.Windows.Forms.ProgressBar();
+            this.button2 = new System.Windows.Forms.Button();
+            this.threadMAX = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.threadMAX)).BeginInit();
             this.SuspendLayout();
             // 
             // btn_loadData
@@ -164,7 +168,7 @@
             // gsrProgress
             // 
             this.gsrProgress.Location = new System.Drawing.Point(255, 103);
-            this.gsrProgress.Maximum = 1098;
+            this.gsrProgress.Maximum = 10;
             this.gsrProgress.Name = "gsrProgress";
             this.gsrProgress.Size = new System.Drawing.Size(319, 23);
             this.gsrProgress.TabIndex = 12;
@@ -172,7 +176,7 @@
             // eegProgress
             // 
             this.eegProgress.Location = new System.Drawing.Point(255, 157);
-            this.eegProgress.Maximum = 1098;
+            this.eegProgress.Maximum = 10;
             this.eegProgress.Name = "eegProgress";
             this.eegProgress.Size = new System.Drawing.Size(319, 23);
             this.eegProgress.TabIndex = 13;
@@ -180,7 +184,7 @@
             // hrProgress
             // 
             this.hrProgress.Location = new System.Drawing.Point(255, 212);
-            this.hrProgress.Maximum = 1098;
+            this.hrProgress.Maximum = 10;
             this.hrProgress.Name = "hrProgress";
             this.hrProgress.Size = new System.Drawing.Size(319, 23);
             this.hrProgress.TabIndex = 14;
@@ -188,16 +192,60 @@
             // faceProgress
             // 
             this.faceProgress.Location = new System.Drawing.Point(255, 261);
-            this.faceProgress.Maximum = 1098;
+            this.faceProgress.Maximum = 10;
             this.faceProgress.Name = "faceProgress";
             this.faceProgress.Size = new System.Drawing.Size(319, 23);
             this.faceProgress.TabIndex = 15;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(14, 215);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(137, 23);
+            this.button2.TabIndex = 16;
+            this.button2.Text = "Calculate fusion";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // threadMAX
+            // 
+            this.threadMAX.Location = new System.Drawing.Point(60, 245);
+            this.threadMAX.Maximum = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+            this.threadMAX.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.threadMAX.Name = "threadMAX";
+            this.threadMAX.Size = new System.Drawing.Size(55, 20);
+            this.threadMAX.TabIndex = 17;
+            this.threadMAX.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(18, 247);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(33, 13);
+            this.label6.TabIndex = 18;
+            this.label6.Text = "Label";
             // 
             // AnomalyDetection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(662, 368);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.threadMAX);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.faceProgress);
             this.Controls.Add(this.hrProgress);
             this.Controls.Add(this.eegProgress);
@@ -216,6 +264,7 @@
             this.Controls.Add(this.btn_loadData);
             this.Name = "AnomalyDetection";
             this.Text = "AnomalyDetection";
+            ((System.ComponentModel.ISupportInitialize)(this.threadMAX)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -239,5 +288,8 @@
         private System.Windows.Forms.ProgressBar eegProgress;
         private System.Windows.Forms.ProgressBar hrProgress;
         private System.Windows.Forms.ProgressBar faceProgress;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.NumericUpDown threadMAX;
+        private System.Windows.Forms.Label label6;
     }
 }

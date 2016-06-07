@@ -81,11 +81,11 @@ namespace Classification_App
                         }
                         foreach (Events ev in events)
                         {
-                            if (ev.endTimestamp < iterator)
+                            if (ev.GetTimestampEnd() < iterator)
                             {
                                 continue;
                             }
-                            else if (ev.startTimestamp < iterator && iterator < ev.endTimestamp)
+                            else if (ev.GetTimestampStart() < iterator && iterator < ev.GetTimestampEnd())
                             {
                                 TruePostive++;
                                 continue;
@@ -103,9 +103,11 @@ namespace Classification_App
                 {
                     if (tempPoi.Count != 0 && tempEvents.Count != 0)
                     {
-                        if (!(tempPoi.First().Item1 < time && time < tempPoi.First().Item2))
+                        if (!(tempPoi.First().Item1 <= time && time <= tempPoi.First().Item2))
                         {
-                            if (tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp)
+                            int eventTimeStampStart = tempEvents.First().GetTimestampStart();
+                            int eventTimestampEnd = tempEvents.First().GetTimestampEnd();
+                            if (eventTimeStampStart < time && time < eventTimestampEnd)
                             {
                                 FalseNegative++;
                             }
@@ -118,14 +120,14 @@ namespace Classification_App
                         {
                             tempPoi.RemoveAt(0);
                         }
-                        if (time + 1 > tempEvents.First().endTimestamp)
+                        if (time + 1 > tempEvents.First().GetTimestampEnd())
                         {
                             tempEvents.RemoveAt(0);
                         }
                     }
                     else if (tempEvents.Count != 0 && tempPoi.Count == 0)
                     {
-                        if (!(tempEvents.First().startTimestamp < time && time < tempEvents.First().endTimestamp))
+                        if (!(tempEvents.First().GetTimestampStart() <= time && time <= tempEvents.First().GetTimestampEnd()))
                         {
                             TrueNegative++;
                         }
@@ -134,14 +136,14 @@ namespace Classification_App
                             FalseNegative++;
                         }
 
-                        if (time + 1 > tempEvents.First().endTimestamp)
+                        if (time + 1 >= tempEvents.First().GetTimestampEnd())
                         {
                             tempEvents.RemoveAt(0);
                         }
                     }
                     else if (tempEvents.Count == 0 && tempPoi.Count != 0)
                     {
-                        if (tempPoi.First().Item1 < time && time < tempPoi.First().Item2)
+                        if (tempPoi.First().Item1 <= time && time <= tempPoi.First().Item2)
                         {
                             FalseNegative++;
                         }
@@ -150,7 +152,7 @@ namespace Classification_App
                             TrueNegative++;
                         }
 
-                        if (time + 1 > tempPoi.First().Item2)
+                        if (time + 1 >= tempPoi.First().Item2)
                         {
                             tempPoi.RemoveAt(0);
                         }
@@ -200,14 +202,54 @@ namespace Classification_App
         {
             if (!_scoreIsCalculated)
             {
-                double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
+                /*double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
                  double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
                  score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
                  _scoreIsCalculated = true;
-                 return score;
-                /*ConfusionMatrix conf = CalculateConfusionMatrix();
-                return ((conf.TruePostive / ((double)conf.TruePostive + conf.FalsePostive)) * (conf.TruePostive / ((double)conf.TruePostive + conf.FalseNegative))) / 2;
-    */
+                 return score;*/
+                  //ConfusionMatrix conf = CalculateConfusionMatrix();
+                  int evhits = 0;
+                  foreach (Events ev in events)
+                  {
+                      if (ev.isHit)
+                      {
+                          evhits++;
+                      }
+                  }
+                int hits = 0;
+                int misses = 0;
+                foreach(var pointOfIn in poi.GetFlaggedAreas())
+                {
+                    foreach (var ev in events)
+                    {
+                        if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
+                        {
+                            hits++;
+                        }
+                        else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
+                        {
+                            hits++;
+                        }
+                        else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
+                        {
+                            hits++;
+                        }
+                        else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
+                        {
+                            hits++;
+                        }
+                        else
+                        {
+                            misses++;
+                        }
+                    }
+                }
+
+                score = (2*(hits / ((double)misses + hits))  //Precision       
+                        * (evhits / ((double)events.Count))) //recall
+                          / 2;
+                _scoreIsCalculated = true;
+                return score;
             }
             else
             {

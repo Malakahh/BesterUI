@@ -11,6 +11,47 @@ namespace Classification_App
         private const int ANOMALI_WIDTH = 2500;
         private List<Tuple<int, int>> flaggedAreas = new List<Tuple<int, int>>();
 
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="flags">Flags has to be sorted for the constructor to work correctly</param>
+        public PointsOfInterest(List<int> flags)
+        {
+            for (int i = 0; i < flags.Count; i++)
+            {
+                flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                /*
+                if (flaggedAreas.Count == 0)
+                {
+                    flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                }
+                else
+                {
+                    Tuple<int, int> latestFlaggedArea = flaggedAreas.Last();
+                    if (flags[i] > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                        && flags[i] < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                    {
+                        continue;
+                    }
+                    else if (flags[i] > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                        && flags[i] < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
+                    {
+                        flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(flags[i] - ANOMALI_WIDTH, latestFlaggedArea.Item2);
+                    }
+                    else if (flags[i] < latestFlaggedArea.Item2 + ANOMALI_WIDTH
+                        && flags[i] > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                    {
+                        flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i] + ANOMALI_WIDTH);
+                    }
+                    else
+                    {
+                        flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                    }
+                }*/
+            }
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -19,33 +60,35 @@ namespace Classification_App
         {
             for(int i = 0; i < flags.Count; i++)
             {
-                if (flaggedAreas.Count == 0)
-                {
-                    flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
-                }
-                else
-                {
-                    Tuple<int, int> latestFlaggedArea = flaggedAreas.Last();
-                    if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
-                        && flags[i].TimeStamp < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
-                    {
-                        continue;
-                    }
-                    else if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
-                        && flags[i].TimeStamp < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
-                    {
-                        flaggedAreas[flaggedAreas.Count-1] = Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, latestFlaggedArea.Item2);
-                    }
-                    else if (flags[i].TimeStamp < latestFlaggedArea.Item2 + ANOMALI_WIDTH
-                        && flags[i].TimeStamp > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
-                    {
-                        flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i].TimeStamp + ANOMALI_WIDTH);
-                    }
-                    else
-                    {
-                        flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
-                    }
-                }
+                flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+
+                /* if (flaggedAreas.Count == 0)
+                 {
+                     flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                 }
+                 else
+                 {
+                     Tuple<int, int> latestFlaggedArea = flaggedAreas.Last();
+                     if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                         && flags[i].TimeStamp < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                     {
+                         continue;
+                     }
+                     else if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                         && flags[i].TimeStamp < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
+                     {
+                         flaggedAreas[flaggedAreas.Count-1] = Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, latestFlaggedArea.Item2);
+                     }
+                     else if (flags[i].TimeStamp < latestFlaggedArea.Item2 + ANOMALI_WIDTH
+                         && flags[i].TimeStamp > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                     {
+                         flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i].TimeStamp + ANOMALI_WIDTH);
+                     }
+                     else
+                     {
+                         flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                     }
+                 }*/
             }
         }
 

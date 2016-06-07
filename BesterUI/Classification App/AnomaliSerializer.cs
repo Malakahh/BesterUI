@@ -121,9 +121,9 @@ namespace Classification_App
                 foreach (Events ev in events[key])
                 {
                     data.Add($"{ev.eventName}, {ev.isHit}," 
-                        + ((ev.endTimestamp == 0) ? 
-                            $"{ ev.startTimestamp.ToString()} ; { ev.startTimestamp.ToString()}" :
-                            $"{ ev.startTimestamp.ToString()} + { ev.endTimestamp.ToString()}"
+                        + ((ev.GetTimestampEnd() == 0) ? 
+                            $"{ ev.GetTimestampStart().ToString()} ; { ev.GetTimestampStart().ToString()}" :
+                            $"{ ev.GetTimestampStart().ToString()} + { ev.GetTimestampEnd().ToString()}"
                             ));
                 }
                 File.WriteAllLines(path + "/Events/" + key.ToString() + ".txt", data);
@@ -131,6 +131,28 @@ namespace Classification_App
         }
         #endregion
 
+        #region [Load Results]
+        public static Dictionary<SENSOR, PointsOfInterest> LoadPointOfInterest(string path)
+        {
+            Dictionary<SENSOR, PointsOfInterest> pois = new Dictionary<SENSOR, PointsOfInterest>();
 
+            if (!Directory.Exists(path + "/POI"))
+            {
+                return null;
+            }
+            foreach (SENSOR key in Enum.GetValues(typeof(SENSOR)))
+            {
+                string[] data = File.ReadAllLines(path + "/Anomalis/" + key.ToString() + ".txt");
+                List<int> anoma = new List<int>();
+                foreach (string s in data)
+                {
+                    anoma.Add(int.Parse(s));
+                }
+                PointsOfInterest currentPoi = new PointsOfInterest(anoma);
+                pois.Add(key, currentPoi);
+            }
+            return pois;
+        }
+        #endregion
     }
 }
