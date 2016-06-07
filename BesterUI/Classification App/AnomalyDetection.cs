@@ -847,7 +847,6 @@ namespace Classification_App
                 decimal fpr = 1 - ((decimal)cfm.TrueNegative / ((decimal)cfm.TrueNegative + cfm.FalsePostive));
                 */
                 mutex.WaitOne();
-                Log.LogMessage($"{sensor}: {tempResult.CalculateScore()}");
                 if (bestResult == null)
                 {
                     bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
