@@ -946,10 +946,10 @@ namespace Classification_App
                     LoadEvents(tmpevents);
                     for (int i = 1; i <= 4; i++)
                     {
-                        Voting vote = new Voting(start, end, pois, events, 2);
+                        Voting vote = new Voting(start, end, pois, events, i);
                         NoveltyResult noveltyResult = vote.GetNoveltyResult();
                         noveltyResult.CalculateHitResult();
-                        Log.LogMessage("agreement: " + i + " - noveltyResult.CalculateScore())");
+                        Log.LogMessage("agreement: " + i + " -" +noveltyResult.CalculateScore().ToString());
                     }
                 }
             }
