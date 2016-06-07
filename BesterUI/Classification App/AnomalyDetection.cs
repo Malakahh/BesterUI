@@ -710,7 +710,6 @@ namespace Classification_App
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
-                    NuResults.Clear();
                     LoadEvents(tmpevents);
                     Dictionary<SENSOR, NoveltyResult> predictionResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
@@ -773,6 +772,7 @@ namespace Classification_App
                     excel.Save();
                 }
                 excel.CloseHandler();
+                statusLabel.Text = "donno.dk";
             }
 
         }
@@ -780,11 +780,6 @@ namespace Classification_App
         private async Task<NoveltyResult> DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
             string sensorPath = path + "/" + sensor.ToString();
-            if (!Directory.Exists(sensorPath))
-            {
-                Directory.CreateDirectory(sensorPath);
-            }
-            NuResults.TryAdd(sensor, new ConcurrentBag<string>());
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             //Debug purpose
@@ -833,8 +828,6 @@ namespace Classification_App
             bestResultMu.Dispose();
             return bestResult;
         }
-        ConcurrentDictionary<SENSOR, ConcurrentBag<string>> NuResults = new ConcurrentDictionary<SENSOR, ConcurrentBag<string>>();
-
         private void PredictionThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestResult, Mutex mutex)
         {
             OneClassClassifier occ = new OneClassClassifier(data);
@@ -858,7 +851,7 @@ namespace Classification_App
                 }
                 anomali = new List<OneClassFV>();
                 occ.CreateModel(svmParam);
-                anomali.AddRange(occ.PredictOutliers(featureVectors[sensor]));
+                anomali.AddRange(occ.PredictOutliers(featureVectors[sensor].Where(x => start < x.TimeStamp && x.TimeStamp < end).ToList()));
                 PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
 
                 foreach (Events evt in eventResult)
@@ -953,7 +946,7 @@ namespace Classification_App
                     LoadEvents(tmpevents);
                     Voting vote = new Voting(start, end, pois, events, 2);
                     NoveltyResult noveltyResult = vote.GetNoveltyResult();
-                    noveltyResult.CalculateConfusionMatrix();
+                    noveltyResult.CalculateHitResult();
                 }
             }
         }

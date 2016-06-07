@@ -211,15 +211,11 @@ namespace Classification_App
             //GSR
             workSheet.Cells[2, 2] = "GSR";
             /*3*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.GSR].events.Count;
-            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateScore();
-            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TruePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().FalsePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().TrueNegative;
-            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().misses;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Gamma;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].parameter.Nu;
@@ -229,15 +225,11 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "EEG";
             /*15*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.EEG].events.Count;
-            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateScore();
-            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TruePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().FalsePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().TrueNegative;
-            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().misses;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Gamma;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].parameter.Nu;
@@ -247,15 +239,11 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "FACE";
             /*27*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.FACE].events.Count;
-            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateScore();
-            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TruePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().FalsePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().TrueNegative;
-            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().misses;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Gamma;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].parameter.Nu;
@@ -266,15 +254,11 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "HR";
             /*39*/
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count - (double)result[SENSOR.GSR].events.Where(x => x.isHit).Count();
-            workSheet.Cells[counter++, 2] = (double)result[SENSOR.HR].events.Count;
-            workSheet.Cells[counter++, 2] = result[SENSOR.HR].FlaggedAreaSize();
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateScore();
-            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TruePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().FalsePostive;
-            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().TrueNegative;
-            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateConfusionMatrix().FalseNegative;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().misses;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.C;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Gamma;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].parameter.Nu;
