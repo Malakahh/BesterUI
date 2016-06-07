@@ -220,34 +220,38 @@ namespace Classification_App
                 int misses = 0;
                 foreach(var pointOfIn in poi.GetFlaggedAreas())
                 {
-                    foreach (var ev in events)
+                    if (pointOfIn.Item1 > start && pointOfIn.Item2 < end)
                     {
-                        if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
+                        foreach (var ev in events)
                         {
-                            hits++;
-                        }
-                        else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
-                        {
-                            hits++;
-                        }
-                        else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
-                        {
-                            hits++;
-                        }
-                        else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
-                        {
-                            hits++;
-                        }
-                        else
-                        {
-                            misses++;
+                            if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
+                            {
+                                hits++;
+                            }
+                            else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
+                            {
+                                hits++;
+                            }
+                            else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
+                            {
+                                hits++;
+                            }
+                            else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
+                            {
+                                hits++;
+                            }
+                            else
+                            {
+                                misses++;
+                            }
                         }
                     }
                 }
 
                 score = (2*(hits / ((double)misses + hits))  //Precision       
                         * (evhits / ((double)events.Count))) //recall
-                          / 2;
+                          / ((hits / ((double)misses + hits))  //Precision       
+                        + (evhits / ((double)events.Count)));//recall
                 _scoreIsCalculated = true;
                 return score;
             }

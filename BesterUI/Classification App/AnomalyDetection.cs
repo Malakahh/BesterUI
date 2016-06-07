@@ -829,7 +829,7 @@ namespace Classification_App
                 nutasks.Add(taskT);
             }
             await Task.WhenAll(nutasks);
-            Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
+            Log.LogMessage($"After on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;
         }
