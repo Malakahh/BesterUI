@@ -883,7 +883,8 @@ namespace Classification_App
                     bestResult = tempResult;
                     Log.LogMessage(bestResult.CalculateScore().ToString() + " with param ");
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
-                        + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
+                        + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu
+                        + " POI's:"+bestResult.poi.GetFlaggedAreas().Count.ToString());
                 }
                 count++;
                 SetProgress(count, sensor);
