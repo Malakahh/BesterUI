@@ -8,7 +8,7 @@ namespace Classification_App
 {
     class PointsOfInterest
     {
-        private const int ANOMALI_WIDTH = 0;
+        private const int ANOMALI_WIDTH = 2500;
         private List<Tuple<int, int>> flaggedAreas = new List<Tuple<int, int>>();
 
 
@@ -20,6 +20,8 @@ namespace Classification_App
         {
             for (int i = 0; i < flags.Count; i++)
             {
+                flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                /*
                 if (flaggedAreas.Count == 0)
                 {
                     flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
@@ -46,7 +48,7 @@ namespace Classification_App
                     {
                         flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
                     }
-                }
+                }*/
             }
         }
 
@@ -58,33 +60,35 @@ namespace Classification_App
         {
             for(int i = 0; i < flags.Count; i++)
             {
-                if (flaggedAreas.Count == 0)
-                {
-                    flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH+1));
-                }
-                else
-                {
-                    Tuple<int, int> latestFlaggedArea = flaggedAreas.Last();
-                    if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
-                        && flags[i].TimeStamp < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
-                    {
-                        continue;
-                    }
-                    else if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
-                        && flags[i].TimeStamp < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
-                    {
-                        flaggedAreas[flaggedAreas.Count-1] = Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, latestFlaggedArea.Item2);
-                    }
-                    else if (flags[i].TimeStamp < latestFlaggedArea.Item2 + ANOMALI_WIDTH
-                        && flags[i].TimeStamp > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
-                    {
-                        flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i].TimeStamp + ANOMALI_WIDTH);
-                    }
-                    else
-                    {
-                        flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH + 1));
-                    }
-                }
+                flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+
+                /* if (flaggedAreas.Count == 0)
+                 {
+                     flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                 }
+                 else
+                 {
+                     Tuple<int, int> latestFlaggedArea = flaggedAreas.Last();
+                     if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                         && flags[i].TimeStamp < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                     {
+                         continue;
+                     }
+                     else if (flags[i].TimeStamp > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                         && flags[i].TimeStamp < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
+                     {
+                         flaggedAreas[flaggedAreas.Count-1] = Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, latestFlaggedArea.Item2);
+                     }
+                     else if (flags[i].TimeStamp < latestFlaggedArea.Item2 + ANOMALI_WIDTH
+                         && flags[i].TimeStamp > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                     {
+                         flaggedAreas[flaggedAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i].TimeStamp + ANOMALI_WIDTH);
+                     }
+                     else
+                     {
+                         flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                     }
+                 }*/
             }
         }
 
@@ -116,15 +120,15 @@ namespace Classification_App
                 }
                 else if (area.Item1 >= startTime && area.Item2 >= endTime && area.Item1 <= endTime)
                 {
-                    hitPercentage += (endTime - (decimal)area.Item1+1) / (endTime - (decimal)startTime);
+                    hitPercentage += (endTime - (decimal)area.Item1) / (area.Item2 - (decimal)area.Item1);
                 }
                 else if (area.Item1 <= startTime && area.Item2 <= endTime && area.Item2 >= startTime)
                 {
-                    hitPercentage += (area.Item2 - (decimal)startTime+1) / (endTime - (decimal)startTime);
+                    hitPercentage += (area.Item2 - (decimal)startTime) / (area.Item2 - (decimal)area.Item1);
                 }
                 else if (startTime  <= area.Item1 && area.Item2 <= endTime)
                 {
-                    hitPercentage += (area.Item2 - (decimal)area.Item1+1)/(endTime - (decimal)startTime) ;
+                    hitPercentage += (endTime - (decimal)startTime) / (area.Item2 - (decimal)area.Item1);
                 }
             }
             return (double)hitPercentage;

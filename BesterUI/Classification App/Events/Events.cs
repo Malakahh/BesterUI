@@ -54,12 +54,12 @@ namespace Classification_App.Evnt
 
         public int GetTimestampStart()
         {
-            return startTimestamp - 500;
+            return startTimestamp ;
         }
 
         public int GetTimestampEnd()
         {
-            return endTimestamp + 500;
+            return endTimestamp;
         }
 
 

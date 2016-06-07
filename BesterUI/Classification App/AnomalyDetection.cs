@@ -490,7 +490,7 @@ namespace Classification_App
                 if (temp[1].Contains("AddAttachmentButtonClick:"))
                 {
                     //+2000 for delay for the failed message shown
-                    events.Add(new InstantEvents(int.Parse(temp[0]) + 2000, int.Parse(temp[0]) + 2000, temp[1]));
+                    events.Add(new Events(int.Parse(temp[0]) + 2000, int.Parse(temp[0]) + 2000, temp[1]));
                     eventList.RemoveAt(i);
                 }
             }
@@ -500,7 +500,7 @@ namespace Classification_App
                 string[] temp = eventList[i].Split('#');
                 if (temp[1].Contains("SendDraft error shown"))
                 {
-                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    events.Add(new Events(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
                     eventList.RemoveAt(i);
                 }
             }
@@ -510,7 +510,7 @@ namespace Classification_App
                 string[] temp = eventList[i].Split('#');
                 if (temp[1].Contains("NotResponding"))
                 {
-                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    events.Add(new Events(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
                     eventList.RemoveAt(i);
                 }
             }
@@ -520,7 +520,7 @@ namespace Classification_App
                 string[] temp = eventList[i].Split('#');
                 if (temp[1].Contains("RemoveContact clicked"))
                 {
-                    events.Add(new InstantEvents(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
+                    events.Add(new Events(int.Parse(temp[0]), int.Parse(temp[0]), temp[1]));
                     eventList.RemoveAt(i);
                 }
             }
@@ -551,7 +551,7 @@ namespace Classification_App
                     continue;
                 }
             }
-            events.Add(new SpanningEvent(firstContactClick, lastContactClick, "Send Draft", 0.5));
+            events.Add(new Events(firstContactClick, lastContactClick, "Send Draft", 0.5));
 
             //Caret Movement
             int firstCaretMoved = 0;
@@ -582,7 +582,7 @@ namespace Classification_App
                     eventList.RemoveAt(i);
                 }
             }
-            events.Add(new SpanningEvent(firstCaretMoved, lastCaretMoved, "CaretMoved", 0.20));
+            events.Add(new Events(firstCaretMoved, lastCaretMoved, "CaretMoved", 0.20));
 
             //Language
             int langugeChanged = 0;
@@ -602,7 +602,7 @@ namespace Classification_App
                     eventList.RemoveAt(i);
                 }
             }
-            events.Add(new SpanningEvent(langugeChanged, languageTaskDone, "Language Changed", 0.25));
+            events.Add(new Events(langugeChanged, languageTaskDone, "Language Changed", 0.25));
 
 
             #endregion
@@ -759,21 +759,12 @@ namespace Classification_App
                     Dictionary<SENSOR, List<OneClassFV>> anomalis = new Dictionary<SENSOR, List<OneClassFV>>();
                     Dictionary<SENSOR, List<Events>> eventResult = new Dictionary<SENSOR, List<Evnt.Events>>();
                     Dictionary<SENSOR, PointsOfInterest> dPointsOfInterest = new Dictionary<SENSOR, PointsOfInterest>();
-                    Dictionary<SENSOR, NoveltyResult.ConfusionMatrix> confusionMatrices = new Dictionary<SENSOR, NoveltyResult.ConfusionMatrix>();
                     foreach (var key in predictionResults.Keys)
                     {
-                        File.WriteAllLines(path+"/"+key.ToString()+"/"+key.ToString()+".txt", NuResults[key]);
-
                         anomalis.Add(key, predictionResults[key].anomalis);
                         eventResult.Add(key, predictionResults[key].events);
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
-                        confusionMatrices.Add(key, predictionResults[key].CalculateConfusionMatrix());
                         Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
-                        NoveltyResult.ConfusionMatrix confu = confusionMatrices[key];
-                        Log.LogMessage($"TP: {confu.TruePostive}");
-                        Log.LogMessage($"FP: {confu.FalsePostive}");
-                        Log.LogMessage($"TN: {confu.TrueNegative}");
-                        Log.LogMessage($"FN: {confu.FalseNegative}");
                     }
                     excel.AddDataToPerson(testSubjectId, predictionResults);
                     excel.Save();
@@ -785,7 +776,7 @@ namespace Classification_App
             }
 
         }
-        private const int numberOfTasks = 10;
+       // private int numberOfTasks = 10;
         private async Task<NoveltyResult> DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
             string sensorPath = path + "/" + sensor.ToString();
@@ -807,14 +798,13 @@ namespace Classification_App
                 s.Nu = 0.01;
                 svmParams.Push(s);
             }*/
-
             svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgressMax(svmParams.Count + 1);
             NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
             int count = 1;
             List<Task> tasks = new List<Task>();
-            for (int i = 0; i < numberOfTasks; i++)
+            for (int i = 0; i < threadMAX.Value; i++)
             {
                 Task task = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
                 tasks.Add(task);
@@ -833,7 +823,7 @@ namespace Classification_App
             SetProgressMax(nuValues.Count + 1);
             Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             List<Task> nutasks = new List<Task>();
-            for (int i = 0; i < numberOfTasks; i++)
+            for (int i = 0; i < threadMAX.Value; i++)
             {
                 Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
                 nutasks.Add(taskT);
@@ -877,10 +867,10 @@ namespace Classification_App
                 }
 
                 NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
-                NoveltyResult.ConfusionMatrix cfm = tempResult.CalculateConfusionMatrix();
+                /*NoveltyResult.ConfusionMatrix cfm = tempResult.CalculateConfusionMatrix();
                 decimal tpr = ((decimal)cfm.TruePostive) / ((decimal)cfm.TruePostive + cfm.FalseNegative);
                 decimal fpr = 1 - ((decimal)cfm.TrueNegative / ((decimal)cfm.TrueNegative + cfm.FalsePostive));
-                NuResults[sensor].Add($"{svmParam.Nu.ToString()}: {tpr} ; {fpr}");
+                */
                 mutex.WaitOne();
                 if (bestResult == null)
                 {

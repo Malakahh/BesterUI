@@ -207,16 +207,47 @@ namespace Classification_App
                  score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
                  _scoreIsCalculated = true;
                  return score;*/
-                ConfusionMatrix conf = CalculateConfusionMatrix();
+                  //ConfusionMatrix conf = CalculateConfusionMatrix();
+                  int evhits = 0;
+                  foreach (Events ev in events)
+                  {
+                      if (ev.isHit)
+                      {
+                          evhits++;
+                      }
+                  }
                 int hits = 0;
-                foreach (Events ev in events)
+                int misses = 0;
+                foreach(var pointOfIn in poi.GetFlaggedAreas())
                 {
-                    if (ev.isHit)
+                    foreach (var ev in events)
                     {
-                        hits++;
+                        if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
+                        {
+                            hits++;
+                        }
+                        else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
+                        {
+                            hits++;
+                        }
+                        else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
+                        {
+                            hits++;
+                        }
+                        else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
+                        {
+                            hits++;
+                        }
+                        else
+                        {
+                            misses++;
+                        }
                     }
                 }
-                score = (double)(((hits / (decimal)events.Count) * ((2 * (conf.TruePostive / ((decimal)conf.TruePostive + conf.FalsePostive)))) * (conf.TruePostive / ((decimal)conf.TruePostive + conf.FalseNegative))) / 2);
+
+                score = (2*(hits / ((double)misses + hits))  //Precision       
+                        * (evhits / ((double)events.Count))) //recall
+                          / 2;
                 _scoreIsCalculated = true;
                 return score;
             }
