@@ -770,6 +770,7 @@ namespace Classification_App
                     AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
                     excel.AddDataToPerson(testSubjectId, predictionResults);
                     excel.Save();
+                    counter++;
                 }
                 excel.CloseHandler();
                 statusLabel.Text = "donno.dk";
