@@ -17,16 +17,18 @@ namespace Classification_App
         public bool BooksOpen { get; private set; }
         private string statsFolderPath = null;
         public Excel.Workbook currentBook;
+        string BookString;
 
-        public NoveltyExcel(string path)
+        public NoveltyExcel(string path, string book)
         {
             foreach (var process in Process.GetProcessesByName("excel"))
             {
                 process.Kill();
             }
+            BookString = book;
             statsFolderPath = path + "/" + "Stats/";
             MyApp = new Excel.Application() { Visible = false };
-            CreateOrOpenFiles();
+            CreateOrOpenFiles(book);
         }
 
 
@@ -48,7 +50,7 @@ namespace Classification_App
             }
         }
 
-        private bool CreateOrOpenFiles()
+        private bool CreateOrOpenFiles(string book)
         {
             Log.LogMessage("Opening books");
             try
@@ -57,9 +59,9 @@ namespace Classification_App
                 {
                     Directory.CreateDirectory(statsFolderPath);
                     currentBook = MyApp.Workbooks.Add(missingValue);
-                    currentBook.SaveAs(statsFolderPath + "result");
+                    currentBook.SaveAs(statsFolderPath + book);
                     //Added Standard (Front, first, last)
-                    CreateStandardBookSetup(currentBook);
+                    CreateStandardBookSetup(currentBook, BookString);
                     //Remove default sheetBook
                     foreach (Excel.Worksheet wS in currentBook.Worksheets)
                     {
@@ -70,12 +72,12 @@ namespace Classification_App
                     }
                     BooksOpen = true;
                 }
-                else if (!File.Exists(statsFolderPath + "result.xlsx"))
+                else if (!File.Exists(statsFolderPath +book+ ".xlsx"))
                 {
                     currentBook = MyApp.Workbooks.Add(missingValue);
-                    currentBook.SaveAs(statsFolderPath + "result");
+                    currentBook.SaveAs(statsFolderPath + book);
                     //Added Standard (Front, first, last)
-                    CreateStandardBookSetup(currentBook);
+                    CreateStandardBookSetup(currentBook, BookString);
                     //Remove default sheet
                     foreach (Excel.Worksheet wS in currentBook.Worksheets)
                     {
@@ -88,7 +90,7 @@ namespace Classification_App
                 }
                 else
                 {
-                    currentBook = MyApp.Workbooks.Open(statsFolderPath + "result.xlsx", missingValue,
+                    currentBook = MyApp.Workbooks.Open(statsFolderPath + book+".xlsx", missingValue,
                                                             false,
                                                             missingValue,
                                                             missingValue,
@@ -111,7 +113,7 @@ namespace Classification_App
             return true;
         }
 
-        public void CreateStandardBookSetup(Excel.Workbook workBook)
+        public void CreateStandardBookSetup(Excel.Workbook workBook, string type)
         {
             //Create frontpage
             Excel.Worksheet overview = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
@@ -125,7 +127,14 @@ namespace Classification_App
             Excel.Worksheet last = workBook.Sheets.Add(workBook.Sheets[workBook.Sheets.Count]);
             last.Name = "Last";
 
-            WriteOverviewMeta(overview);
+            if (type == "result")
+            {
+                WriteOverviewMeta(overview);
+            }
+            else if (type == "voting")
+            {
+                WriteOverviewVoting(overview);
+            }
 
         }
 
@@ -166,6 +175,55 @@ namespace Classification_App
             }
         }
 
+        public void AddPersonToVotingBook(string name)
+        {
+            Log.LogMessage("Adding " + name + " to excel files");
+            try
+            {
+                if (BooksOpen)
+                {
+                    bool shouldAddPerson = true;
+                    //Get Current book
+                    foreach (Excel.Worksheet sheet in currentBook.Sheets)
+                    {
+                        if (sheet.Name == name)
+                        {
+                            Log.LogMessage("Person already exist in excel book:" + sheet.Name + ", skipping adding");
+                            shouldAddPerson = false;
+                            break;
+                        }
+                    }
+                    if (shouldAddPerson == true)
+                    {
+
+                        //Add person
+                        Excel.Worksheet lastSheet = currentBook.Sheets["Last"];
+                        Excel.Worksheet currentSheet = (Excel.Worksheet)currentBook.Sheets.Add(lastSheet);
+                        currentSheet.Name = name;
+
+                        //Write standard data
+                        WriteVotingSheetMeta(currentSheet, name);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
+        }
+        public void AddVotingDataToPerson(string name, Dictionary<int, NoveltyResult> predictResult)
+        {
+            Log.LogMessage("Writing voting results from " + name + " to excel files");
+            foreach (Excel.Worksheet ws in currentBook.Sheets)
+            {
+                if (ws.Name == name)
+                {
+                    WriteVotingResult(ws, predictResult);
+                }
+            }
+
+        }
+
         public void AddDataToPerson(string name, Dictionary<SENSOR, NoveltyResult> predictResult)
         {
             Log.LogMessage("Writing results from " + name + " to excel files");
@@ -195,7 +253,7 @@ namespace Classification_App
             workSheet.Cells[14, 1] = "Kernel";
 
         }
-
+        
 
 
         public void WriteResult(Excel.Worksheet workSheet, string name, Dictionary<SENSOR, NoveltyResult> result)
@@ -267,6 +325,156 @@ namespace Classification_App
 
         }
 
+        public void WriteVotingSheetMeta(Excel.Worksheet workSheet, string name)
+        {
+            workSheet.Cells[1, 1] = name;
+            workSheet.Cells[3, 1] = "Score";
+            workSheet.Cells[4, 1] = "HitsEvents";
+            workSheet.Cells[5, 1] = "TotalEvents";
+            workSheet.Cells[6, 1] = "Hits";
+            workSheet.Cells[7, 1] = "Misses";
+
+
+        }
+        public void WriteVotingResult(Excel.Worksheet workSheet, Dictionary<int, NoveltyResult> result)
+        {
+
+            int counter = 3;
+            workSheet.Cells[2, 2] = "1";
+            /*3*/
+            workSheet.Cells[counter++, 2] = result[1].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().misses;
+            /*7*/
+
+            workSheet.Cells[counter++, 2] = "2";
+            /*9*/
+            workSheet.Cells[counter++, 2] = result[2].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().misses;
+            /*13*/
+
+            workSheet.Cells[counter++, 2] = "3";
+            /*15*/
+            workSheet.Cells[counter++, 2] = result[3].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().misses;
+            /*29*/
+
+            workSheet.Cells[counter++, 2] = "4";
+            /*31*/
+            workSheet.Cells[counter++, 2] = result[4].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().eventHits;
+            workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().eventsTotal;
+            workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().hits;
+            workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().misses;
+            /*35*/
+
+        }
+        
+        private void WriteOverviewVoting(Excel.Worksheet workSheet)
+        {
+            #region [Labels]
+            workSheet.Cells[1, 1] = "Overview";
+            workSheet.Cells[3, 1] = "1";
+            workSheet.Cells[4, 1] = "Score";
+            workSheet.Cells[5, 1] = "HitsEvents";
+            workSheet.Cells[6, 1] = "TotalEvents";
+            workSheet.Cells[7, 1] = "Hits";
+            workSheet.Cells[8, 1] = "Misses";
+
+            workSheet.Cells[3, 2] = "Average";
+            workSheet.Cells[3, 3] = "SD";
+
+            workSheet.Cells[10, 1] = "2";
+            workSheet.Cells[11, 1] = "Score";
+            workSheet.Cells[12, 1] = "HitsEvents";
+            workSheet.Cells[13, 1] = "TotalEvents";
+            workSheet.Cells[14, 1] = "Hits";
+            workSheet.Cells[15, 1] = "Misses";
+
+            workSheet.Cells[17, 1] = "3";
+            workSheet.Cells[18, 1] = "Score";
+            workSheet.Cells[19, 1] = "HitsEvents";
+            workSheet.Cells[20, 1] = "TotalEvents";
+            workSheet.Cells[21, 1] = "Hits";
+            workSheet.Cells[22, 1] = "Misses";
+
+            workSheet.Cells[24, 1] = "4";
+            workSheet.Cells[25, 1] = "Score";
+            workSheet.Cells[26, 1] = "HitsEvents";
+            workSheet.Cells[27, 1] = "TotalEvents";
+            workSheet.Cells[28, 1] = "Hits";
+            workSheet.Cells[29, 1] = "Misses";
+            #endregion
+            #region [Formulas]
+            string avgFormula = "=AVERAGE(First:Last!B";
+            string stdevFormula = "=STDEV.P(First:Last!B";
+            string endFormula = ")";
+            #endregion
+            #region [Calculations]    
+            int AverageCounter = 3;
+            workSheet.Cells[4, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[5, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[6, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[7, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[8, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            AverageCounter++;
+            workSheet.Cells[11, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[12, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[13, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[14, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[15, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            AverageCounter++;
+
+            workSheet.Cells[18, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[19, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[20, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[21, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[22, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+
+            AverageCounter++;
+            workSheet.Cells[25, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[26, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[27, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[28, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+            workSheet.Cells[29, 2] = $"{avgFormula}{AverageCounter++}{endFormula}";
+
+            int SDCounter = 3;
+            workSheet.Cells[4, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[5, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[6, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[7, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[8, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            SDCounter++;
+            workSheet.Cells[11, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[12, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[13, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[14, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[15, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            SDCounter++;
+
+            workSheet.Cells[18, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[19, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[20, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[21, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[22, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+
+            SDCounter++;
+            workSheet.Cells[25, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[26, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[27, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[28, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            workSheet.Cells[29, 2] = $"{avgFormula}{SDCounter++}{endFormula}";
+            #endregion
+
+        }
 
         private void WriteOverviewMeta(Excel.Worksheet workSheet)
         {

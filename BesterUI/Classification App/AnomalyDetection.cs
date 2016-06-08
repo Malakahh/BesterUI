@@ -692,7 +692,7 @@ namespace Classification_App
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 sw.Start();
-                NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath);
+                NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath, "result");
                 var dic = Directory.GetDirectories(fbd.SelectedPath);
                 int total = dic.Count(x => !x.Contains("Stats"));
                 foreach (string folder in dic)
@@ -908,7 +908,7 @@ namespace Classification_App
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 sw.Start();
-                NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath);
+                NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath, "voting");
                 foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
                     if (folder.Contains("Stats"))
@@ -918,21 +918,25 @@ namespace Classification_App
 
                     path = folder + "/test";
                     string testSubjectId = folder.Split('\\').Last();
-                    excel.AddPersonToBooks(testSubjectId);
+                    excel.AddPersonToVotingBook(testSubjectId);
                     Log.LogMessage($"Loading Data: " + testSubjectId);
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
                     Dictionary<SENSOR, PointsOfInterest> pois = AnomaliSerializer.LoadPointOfInterest(path);
                     LoadEvents(tmpevents);
+                    Dictionary<int, NoveltyResult> results = new Dictionary<int, NoveltyResult>();
                     for (int i = 1; i <= 4; i++)
                     {
                         Voting vote = new Voting(start, end, pois, events, i);
                         NoveltyResult noveltyResult = vote.GetNoveltyResult();
                         noveltyResult.CalculateHitResult();
-                        Log.LogMessage("agreement: " + i + " -" +noveltyResult.CalculateScore().ToString());
+                        Log.LogMessage($"agreement for Person {testSubjectId}: " + i + " -" +noveltyResult.CalculateScore().ToString());
+                        results.Add(i, noveltyResult);
                     }
+                    excel.AddVotingDataToPerson(testSubjectId, results);
                 }
+                excel.CloseHandler();
             }
         }
     }
