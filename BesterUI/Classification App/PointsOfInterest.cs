@@ -10,17 +10,18 @@ namespace Classification_App
     {
         private const int ANOMALI_WIDTH = 2500;
         private List<Tuple<int, int>> flaggedAreas = new List<Tuple<int, int>>();
-
+        private List<int> flags = new List<int>();
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="flags">Flags has to be sorted for the constructor to work correctly</param>
-        public PointsOfInterest(List<int> flags)
+        /// <param name="Flags">Flags has to be sorted for the constructor to work correctly</param>
+        public PointsOfInterest(List<int> Flags)
         {
-            for (int i = 0; i < flags.Count; i++)
+            flags = Flags;
+            for (int i = 0; i < Flags.Count; i++)
             {
-                flaggedAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                flaggedAreas.Add(Tuple.Create(Flags[i] - ANOMALI_WIDTH, Flags[i] + ANOMALI_WIDTH));
                 /*
                 if (flaggedAreas.Count == 0)
                 {
@@ -55,12 +56,13 @@ namespace Classification_App
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="flags">Flags has to be sorted for the constructor to work correctly</param>
-        public PointsOfInterest(List<OneClassFV> flags)
+        /// <param name="Flags">Flags has to be sorted for the constructor to work correctly</param>
+        public PointsOfInterest(List<OneClassFV> Flags)
         {
-            for(int i = 0; i < flags.Count; i++)
+            flags = Flags.Select(x => x.TimeStamp).ToList();
+            for(int i = 0; i < Flags.Count; i++)
             {
-                flaggedAreas.Add(Tuple.Create(flags[i].TimeStamp - ANOMALI_WIDTH, flags[i].TimeStamp + ANOMALI_WIDTH));
+                flaggedAreas.Add(Tuple.Create(Flags[i].TimeStamp - ANOMALI_WIDTH, Flags[i].TimeStamp + ANOMALI_WIDTH));
 
                 /* if (flaggedAreas.Count == 0)
                  {
@@ -95,6 +97,44 @@ namespace Classification_App
         public List<Tuple<int, int>> GetFlaggedAreas()
         {
             return flaggedAreas.ToList();
+        }
+
+        public List<Tuple<int, int>> GetCoveredAreas()
+        {
+            List<Tuple<int, int>> cAreas = new List<Tuple<int, int>>();
+             for (int i = 0; i < flags.Count; i++)
+            {
+                cAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                
+                if (cAreas.Count == 0)
+                {
+                    cAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                }
+                else
+                {
+                    Tuple<int, int> latestFlaggedArea = cAreas.Last();
+                    if (flags[i] > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                        && flags[i] < latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                    {
+                        continue;
+                    }
+                    else if (flags[i] > latestFlaggedArea.Item1 + ANOMALI_WIDTH
+                        && flags[i] < latestFlaggedArea.Item1 - ANOMALI_WIDTH)
+                    {
+                        cAreas[cAreas.Count - 1] = Tuple.Create(flags[i] - ANOMALI_WIDTH, latestFlaggedArea.Item2);
+                    }
+                    else if (flags[i] < latestFlaggedArea.Item2 + ANOMALI_WIDTH
+                        && flags[i] > latestFlaggedArea.Item2 - ANOMALI_WIDTH)
+                    {
+                        cAreas[cAreas.Count - 1] = Tuple.Create(latestFlaggedArea.Item1, flags[i] + ANOMALI_WIDTH);
+                    }
+                    else
+                    {
+                        cAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
+                    }
+                }
+            }
+            return cAreas;
         }
 
         public bool IsPointFlagged(int timePoint)

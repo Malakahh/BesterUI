@@ -907,7 +907,7 @@ namespace Classification_App
                     }
 
                     string savePath = sd.FileName;
-                    savePath = savePath.Replace(savePath.Split('\\').Last(), "");
+                     savePath = savePath.Replace(savePath.Split('\\').Last(), "");
 
                     savePath += item.Key;
 

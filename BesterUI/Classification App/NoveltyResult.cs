@@ -68,28 +68,37 @@ namespace Classification_App
                 {
                     if (pointOfIn.Item1 > start && pointOfIn.Item2 < end)
                     {
+                        bool hitted = false;
                         foreach (var ev in events)
                         {
                             if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
                             {
                                 Hits++;
+                                hitted = true;
+                                break;
                             }
                             else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
                             {
                                 Hits++;
+                                hitted = true;
+                                break;
                             }
                             else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
                             {
                                 Hits++;
+                                hitted = true;
+                                break;
                             }
                             else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
                             {
                                 Hits++;
+                                hitted = true;
+                                break;
                             }
-                            else
-                            {
-                                Misses++;
-                            }
+                        }
+                        if (hitted == false)
+                        {
+                            Misses++;
                         }
                     }
                     _calculatedHitResult = true;

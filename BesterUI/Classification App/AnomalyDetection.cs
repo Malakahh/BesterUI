@@ -871,13 +871,9 @@ namespace Classification_App
 
         private List<SVMParameter> GenerateOneClassSVMParameters()
         {
-            List<decimal> nuTypes = new List<decimal>() { };
             List<double> gammaTypes = new List<double>() { };
             List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (decimal t = 0.01m; t < 0.5m; t += 0.05m)
-            {
-                nuTypes.Add(t);
-            }
+
             for (int t = -14; t <= 2; t += 1)
             {
                 gammaTypes.Add(Math.Pow(2, t));
@@ -886,16 +882,13 @@ namespace Classification_App
             List<SVMParameter> svmParams = new List<SVMParameter>();
             foreach (SVMKernelType kernel in kernels)
             {
-                foreach (double nu in nuTypes)
+                for (int i = 0; i < gammaTypes.Count; i++)
                 {
-                    for (int i = 0; i < gammaTypes.Count; i++)
-                    {
-                        SVMParameter t = new SVMParameter();
-                        t.Kernel = kernel;
-                        t.Nu = (double)nu;
-                        t.Gamma =  gammaTypes[i];
-                        svmParams.Add(t);
-                  }
+                    SVMParameter t = new SVMParameter();
+                    t.Kernel = kernel;
+                    t.Nu = 0.05;
+                    t.Gamma = gammaTypes[i];
+                    svmParams.Add(t);
                 }
             }
             return svmParams;
@@ -933,6 +926,9 @@ namespace Classification_App
                         noveltyResult.CalculateHitResult();
                         Log.LogMessage($"agreement for Person {testSubjectId}: " + i + " -" +noveltyResult.CalculateScore().ToString());
                         results.Add(i, noveltyResult);
+                        AnomaliSerializer.SaveVotingAnomalis(noveltyResult.anomalis, path, STEP_SIZE, i.ToString());
+                        AnomaliSerializer.SaveVotingEvents(noveltyResult.events, path, i.ToString());
+                        AnomaliSerializer.SaveVotingPointsOfInterest(noveltyResult.poi, path, i.ToString());
                     }
                     excel.AddVotingDataToPerson(testSubjectId, results);
                 }

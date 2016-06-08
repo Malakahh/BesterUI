@@ -90,6 +90,22 @@ namespace Classification_App
             }
         }
 
+        public static void SaveVotingAnomalis(List<OneClassFV> anomalis, string path, int stepSize, string name)
+        {
+            if (!Directory.Exists(path + "/Anomalis"))
+            {
+                Directory.CreateDirectory(path + "/Anomalis");
+            }
+                List<string> data = new List<string>();
+                data.Add($"Voting -  ???");
+
+                foreach (OneClassFV fv in anomalis)
+                {
+                    data.Add(fv.TimeStamp.ToString());
+                }
+                File.WriteAllLines(path + "/Anomalis/" + name + ".txt", data);
+        }
+
         public static void SavePointsOfInterest(Dictionary<SENSOR, PointsOfInterest> POIs, string path)
         {
             if (!Directory.Exists(path + "/POI"))
@@ -107,6 +123,22 @@ namespace Classification_App
                 File.WriteAllLines(path + "/POI/" + key.ToString() + ".txt", data);
             }
         }
+
+        public static void SaveVotingPointsOfInterest(PointsOfInterest POIs, string path, string name)
+        {
+            if (!Directory.Exists(path + "/POI"))
+            {
+                Directory.CreateDirectory(path + "/POI");
+            }
+                List<string> data = new List<string>();
+                var tempAreas = POIs.GetFlaggedAreas();
+                foreach (Tuple<int, int> area in tempAreas)
+                {
+                    data.Add($"{area.Item1}, {area.Item2}");
+                }
+                File.WriteAllLines(path + "/POI/" + name + ".txt", data);
+        }
+
 
         public static void SaveEvents(Dictionary<SENSOR, List<Events>> events, string path)
         {
@@ -128,6 +160,24 @@ namespace Classification_App
                 }
                 File.WriteAllLines(path + "/Events/" + key.ToString() + ".txt", data);
             }
+        }
+        public static void SaveVotingEvents(List<Events> events, string path, string name)
+        {
+            if (!Directory.Exists(path + "/Events"))
+            {
+                Directory.CreateDirectory(path + "/Events");
+            }
+                List<string> data = new List<string>();
+
+                foreach (Events ev in events)
+                {
+                    data.Add($"{ev.eventName}, {ev.isHit},"
+                        + ((ev.GetTimestampEnd() == 0) ?
+                            $"{ ev.GetTimestampStart().ToString()} ; { ev.GetTimestampStart().ToString()}" :
+                            $"{ ev.GetTimestampStart().ToString()} + { ev.GetTimestampEnd().ToString()}"
+                            ));
+                }
+                File.WriteAllLines(path + "/Events/" + name + ".txt", data);
         }
         #endregion
 
