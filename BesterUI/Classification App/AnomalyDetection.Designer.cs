@@ -209,7 +209,7 @@
             // 
             // threadMAX
             // 
-            this.threadMAX.Location = new System.Drawing.Point(60, 245);
+            this.threadMAX.Location = new System.Drawing.Point(15, 261);
             this.threadMAX.Maximum = new decimal(new int[] {
             20,
             0,
@@ -232,11 +232,11 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(18, 247);
+            this.label6.Location = new System.Drawing.Point(12, 245);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(33, 13);
+            this.label6.Size = new System.Drawing.Size(94, 13);
             this.label6.TabIndex = 18;
-            this.label6.Text = "Label";
+            this.label6.Text = "NumberOfThreads";
             // 
             // AnomalyDetection
             // 

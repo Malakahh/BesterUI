@@ -22,8 +22,8 @@ namespace Classification_App
         private double score;
         private bool _flaggedAreaIsCalculated = false;
         private double _area;
-        private bool _calculatedConfusionMatrix = false;
-        private ConfusionMatrix _confusionMatrix;
+        private bool _calculatedHitResult = false;
+        private HitResults _hitResult;
 
         public NoveltyResult(PointsOfInterest poi, List<Events> events, int start, int end, LibSVMsharp.SVMParameter parameter, List<OneClassFV> anomalis)
         {
@@ -49,152 +49,73 @@ namespace Classification_App
             }
         }
 
-        public ConfusionMatrix CalculateConfusionMatrix()
+        public HitResults CalculateHitResult()
         {
-            if (!_calculatedConfusionMatrix)
+            if (!_calculatedHitResult)
             {
-                int TruePostive = 0;
-                int FalsePostive = 0;
-                int FalseNegative = 0;
-                int TrueNegative = 0;
-                //Positives
-                List<Events> tempEvents = events.Select(x => x.Copy()).ToList();
-                List<Tuple<int, int>> tempPoi = poi.GetFlaggedAreas();
-                /*  foreach (Events ev in tempEvents)
-                  {
-                      if (ev.isHit)
-                      {
-                          TruePostive++;
-                      }
-                      else
-                      {
-                          FalsePostive++;
-                      }
-                  }*/
-                foreach (Tuple<int, int> pointOfInterest in tempPoi)
+                int Hits = 0;
+                int EventHits = 0;
+                int EventTotal = events.Count;
+                int Misses = 0;
+                foreach (Events ev in events)
                 {
-                    for (int iterator = pointOfInterest.Item1; iterator <= pointOfInterest.Item2; iterator++)
+                    if (ev.isHit)
                     {
-                        if (iterator < start)
-                        {
-                            continue;
-                        }
-                        foreach (Events ev in events)
-                        {
-                            if (ev.GetTimestampEnd() < iterator)
-                            {
-                                continue;
-                            }
-                            else if (ev.GetTimestampStart() < iterator && iterator < ev.GetTimestampEnd())
-                            {
-                                TruePostive++;
-                                continue;
-                            }
-                        }
-                        FalsePostive++;
+                        EventHits++;
                     }
                 }
-
-
-                tempEvents = events.Select(x => x.Copy()).ToList();
-                tempPoi = poi.GetFlaggedAreas();
-                //Negatives
-                for (int time = start; time < end; time += 1)
+                foreach (var pointOfIn in poi.GetFlaggedAreas())
                 {
-                    if (tempPoi.Count != 0 && tempEvents.Count != 0)
+                    if (pointOfIn.Item1 > start && pointOfIn.Item2 < end)
                     {
-                        if (!(tempPoi.First().Item1 <= time && time <= tempPoi.First().Item2))
+                        foreach (var ev in events)
                         {
-                            int eventTimeStampStart = tempEvents.First().GetTimestampStart();
-                            int eventTimestampEnd = tempEvents.First().GetTimestampEnd();
-                            if (eventTimeStampStart < time && time < eventTimestampEnd)
+                            if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
                             {
-                                FalseNegative++;
+                                Hits++;
+                            }
+                            else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
+                            {
+                                Hits++;
+                            }
+                            else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
+                            {
+                                Hits++;
+                            }
+                            else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
+                            {
+                                Hits++;
                             }
                             else
                             {
-                                TrueNegative++;
+                                Misses++;
                             }
                         }
-                        if (time + 1 > tempPoi.First().Item2)
-                        {
-                            tempPoi.RemoveAt(0);
-                        }
-                        if (time + 1 > tempEvents.First().GetTimestampEnd())
-                        {
-                            tempEvents.RemoveAt(0);
-                        }
                     }
-                    else if (tempEvents.Count != 0 && tempPoi.Count == 0)
-                    {
-                        if (!(tempEvents.First().GetTimestampStart() <= time && time <= tempEvents.First().GetTimestampEnd()))
-                        {
-                            TrueNegative++;
-                        }
-                        else
-                        {
-                            FalseNegative++;
-                        }
-
-                        if (time + 1 >= tempEvents.First().GetTimestampEnd())
-                        {
-                            tempEvents.RemoveAt(0);
-                        }
-                    }
-                    else if (tempEvents.Count == 0 && tempPoi.Count != 0)
-                    {
-                        if (tempPoi.First().Item1 <= time && time <= tempPoi.First().Item2)
-                        {
-                            FalseNegative++;
-                        }
-                        else
-                        {
-                            TrueNegative++;
-                        }
-
-                        if (time + 1 >= tempPoi.First().Item2)
-                        {
-                            tempPoi.RemoveAt(0);
-                        }
-                    }
-                    else
-                    {
-                        TrueNegative++;
-                    }
+                    _calculatedHitResult = true;
                 }
-                _confusionMatrix = new ConfusionMatrix(TruePostive, FalsePostive, TrueNegative, FalseNegative);
-                _calculatedConfusionMatrix = true;
-                return _confusionMatrix;
+                _hitResult = new HitResults(EventHits, Hits, Misses, EventTotal);
+                return _hitResult;
             }
             else
             {
-                return _confusionMatrix;
+                return _hitResult;
             }
         }
 
-        public class ConfusionMatrix
+        public class HitResults
         {
-            public int TruePostive { get; set; }
-            public int FalsePostive { get; set; }
-            public int FalseNegative { get; set; }
-            public int TrueNegative { get; set; }
-
-            public double CalculateTruePositiveRate()
+            public int eventHits { get; set; }
+            public int hits { get; set; }
+            public int misses { get; set; }
+            public int eventsTotal { get; set; }
+            
+            public HitResults(int EventHits, int Hits, int Misses, int EventsTotal)
             {
-                return (TruePostive) / (TruePostive + FalseNegative);
-            }
-
-            public double CalculateFalsePositiveRate()
-            {
-                return (TruePostive) / (TruePostive + FalseNegative);
-            }
-
-            public ConfusionMatrix(int TPositive, int FPositive, int TNegative, int FNegative)
-            {
-                TruePostive = TPositive;
-                FalsePostive = FPositive;
-                FalseNegative = FNegative;
-                TrueNegative = TNegative;
+                eventHits = EventHits;
+                hits = Hits;
+                misses = Misses;
+                eventsTotal = EventsTotal;
             }
         }
 
@@ -207,47 +128,12 @@ namespace Classification_App
                  score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
                  _scoreIsCalculated = true;
                  return score;*/
-                  //ConfusionMatrix conf = CalculateConfusionMatrix();
-                  int evhits = 0;
-                  foreach (Events ev in events)
-                  {
-                      if (ev.isHit)
-                      {
-                          evhits++;
-                      }
-                  }
-                int hits = 0;
-                int misses = 0;
-                foreach(var pointOfIn in poi.GetFlaggedAreas())
-                {
-                    foreach (var ev in events)
-                    {
-                        if (pointOfIn.Item1 < ev.GetTimestampStart() && ev.GetTimestampEnd() < pointOfIn.Item2)
-                        {
-                            hits++;
-                        }
-                        else if (pointOfIn.Item1 >= ev.GetTimestampStart() && pointOfIn.Item2 >= ev.GetTimestampEnd() && pointOfIn.Item1 <= ev.GetTimestampEnd())
-                        {
-                            hits++;
-                        }
-                        else if (pointOfIn.Item1 <= ev.GetTimestampStart() && pointOfIn.Item2 <= ev.GetTimestampEnd() && pointOfIn.Item2 >= ev.GetTimestampStart())
-                        {
-                            hits++;
-                        }
-                        else if (ev.GetTimestampStart() <= pointOfIn.Item1 && pointOfIn.Item2 <= ev.GetTimestampEnd())
-                        {
-                            hits++;
-                        }
-                        else
-                        {
-                            misses++;
-                        }
-                    }
-                }
+                HitResults hitResult = CalculateHitResult();
 
-                score = (2*(hits / ((double)misses + hits))  //Precision       
-                        * (evhits / ((double)events.Count))) //recall
-                          / 2;
+                score = (2*(hitResult.hits / ((double)hitResult.misses + hitResult.hits))  //Precision       
+                        * (hitResult.eventHits / ((double)hitResult.eventsTotal))) //recall
+                          / ((hitResult.hits / ((double)hitResult.misses + hitResult.hits))  //Precision       
+                        + (hitResult.eventHits / ((double)hitResult.eventsTotal)));//recall
                 _scoreIsCalculated = true;
                 return score;
             }

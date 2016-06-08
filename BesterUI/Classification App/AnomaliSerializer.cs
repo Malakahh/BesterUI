@@ -144,9 +144,9 @@ namespace Classification_App
             {
                 string[] data = File.ReadAllLines(path + "/Anomalis/" + key.ToString() + ".txt");
                 List<int> anoma = new List<int>();
-                foreach (string s in data)
+                for (int i = 1; i < data.Length; i++)
                 {
-                    anoma.Add(int.Parse(s));
+                    anoma.Add(int.Parse(data[i]));
                 }
                 PointsOfInterest currentPoi = new PointsOfInterest(anoma);
                 pois.Add(key, currentPoi);

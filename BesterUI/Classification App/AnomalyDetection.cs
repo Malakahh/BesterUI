@@ -710,23 +710,22 @@ namespace Classification_App
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
-                    NuResults.Clear();
                     LoadEvents(tmpevents);
                     Dictionary<SENSOR, NoveltyResult> predictionResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
                     Task<NoveltyResult> gsrThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.GSR, start, end));
                     int gsrId = gsrThread.Id;
-                    /*Task<NoveltyResult> eegThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.EEG, start, end));
+                    Task<NoveltyResult> eegThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.EEG, start, end));
                     int eegId = eegThread.Id;
                     Task<NoveltyResult> hrThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.HR, start, end));
                     int hrId = hrThread.Id;
                     Task<NoveltyResult> faceThread = Task.Run<NoveltyResult>(() => DoNoveltyDetection(SENSOR.FACE, start, end));
-                    int faceId = faceThread.Id;*/
+                    int faceId = faceThread.Id;
                     List<Task<NoveltyResult>> threads = new List<Task<NoveltyResult>>();
                     threads.Add(gsrThread);
-                   /* threads.Add(eegThread);
+                    threads.Add(eegThread);
                     threads.Add(hrThread);
-                    threads.Add(faceThread);*/
+                    threads.Add(faceThread);
                     await Task.WhenAll(threads);
                     foreach (Task<NoveltyResult> t in threads)
                     {
@@ -735,7 +734,7 @@ namespace Classification_App
                             predictionResults.Add(SENSOR.GSR, t.Result);
                             continue;
                         }
-                       /* else if (t.Id == eegId)
+                        else if (t.Id == eegId)
                         {
                             predictionResults.Add(SENSOR.EEG, t.Result);
                             continue;
@@ -749,7 +748,7 @@ namespace Classification_App
                         {
                             predictionResults.Add(SENSOR.HR, t.Result);
                             continue;
-                        }*/
+                        }
                         else
                         {
                             Log.LogMessage("Could not match thread ID");
@@ -766,13 +765,15 @@ namespace Classification_App
                         dPointsOfInterest.Add(key, predictionResults[key].poi);
                         Log.LogMessage($"Person done in {sw.Elapsed}, best {predictionResults[key].CalculateScore()}");
                     }
-                    excel.AddDataToPerson(testSubjectId, predictionResults);
-                    excel.Save();
                     AnomaliSerializer.SaveAnomalis(anomalis, path, STEP_SIZE);
                     AnomaliSerializer.SaveEvents(eventResult, path);
                     AnomaliSerializer.SavePointsOfInterest(dPointsOfInterest, path);
+                    excel.AddDataToPerson(testSubjectId, predictionResults);
+                    excel.Save();
+                    counter++;
                 }
                 excel.CloseHandler();
+                statusLabel.Text = "donno.dk";
             }
 
         }
@@ -780,11 +781,6 @@ namespace Classification_App
         private async Task<NoveltyResult> DoNoveltyDetection(SENSOR sensor, int start, int end)
         {
             string sensorPath = path + "/" + sensor.ToString();
-            if (!Directory.Exists(sensorPath))
-            {
-                Directory.CreateDirectory(sensorPath);
-            }
-            NuResults.TryAdd(sensor, new ConcurrentBag<string>());
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             //Debug purpose
@@ -810,31 +806,11 @@ namespace Classification_App
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-            List<int> numberList = Enumerable.Range(1, 99).ToList();
-            List<double> nuValues = numberList.Select(x => (((double)(x) / 100))).ToList();
-            count = 1;
-            foreach (double nuV in nuValues)
-            {
-                SVMParameter svmP = bestResult.parameter.Clone();
-                svmP.Nu = nuV;
-                svmParams.Push(svmP);
-            }
-
-            SetProgressMax(nuValues.Count + 1);
-            Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
-            List<Task> nutasks = new List<Task>();
-            for (int i = 0; i < threadMAX.Value; i++)
-            {
-                Task taskT = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu));
-                nutasks.Add(taskT);
-            }
-            await Task.WhenAll(nutasks);
-            Log.LogMessage($"Before on: {sensor.ToString()} - {bestResult.CalculateScore()}");
+          
+            Log.LogMessage($"best resulter on: {sensor.ToString()} - {bestResult.CalculateScore()}");
             bestResultMu.Dispose();
             return bestResult;
         }
-        ConcurrentDictionary<SENSOR, ConcurrentBag<string>> NuResults = new ConcurrentDictionary<SENSOR, ConcurrentBag<string>>();
-
         private void PredictionThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestResult, Mutex mutex)
         {
             OneClassClassifier occ = new OneClassClassifier(data);
@@ -858,7 +834,7 @@ namespace Classification_App
                 }
                 anomali = new List<OneClassFV>();
                 occ.CreateModel(svmParam);
-                anomali.AddRange(occ.PredictOutliers(featureVectors[sensor]));
+                anomali.AddRange(occ.PredictOutliers(featureVectors[sensor].Where(x => start < x.TimeStamp && x.TimeStamp < end).ToList()));
                 PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
 
                 foreach (Events evt in eventResult)
@@ -883,7 +859,8 @@ namespace Classification_App
                     bestResult = tempResult;
                     Log.LogMessage(bestResult.CalculateScore().ToString() + " with param ");
                     Log.LogMessage("C:" + bestResult.parameter.C + " Gamma" + bestResult.parameter.Gamma
-                        + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu);
+                        + " Kernel " + bestResult.parameter.Kernel + " Nu:" + bestResult.parameter.Nu
+                        + " POI's:"+bestResult.poi.GetFlaggedAreas().Count.ToString());
                 }
                 count++;
                 SetProgress(count, sensor);
@@ -895,12 +872,12 @@ namespace Classification_App
 
         private List<SVMParameter> GenerateOneClassSVMParameters()
         {
-            List<double> cTypes = new List<double>() { };
+            List<decimal> nuTypes = new List<decimal>() { };
             List<double> gammaTypes = new List<double>() { };
             List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
-            for (int t = -4; t <= 12; t += 1)
+            for (decimal t = 0.01m; t < 0.5m; t += 0.05m)
             {
-                cTypes.Add(Math.Pow(2, t));
+                nuTypes.Add(t);
             }
             for (int t = -14; t <= 2; t += 1)
             {
@@ -910,17 +887,16 @@ namespace Classification_App
             List<SVMParameter> svmParams = new List<SVMParameter>();
             foreach (SVMKernelType kernel in kernels)
             {
-                foreach (double c in cTypes)
+                foreach (double nu in nuTypes)
                 {
                     for (int i = 0; i < gammaTypes.Count; i++)
                     {
                         SVMParameter t = new SVMParameter();
                         t.Kernel = kernel;
-                        t.C = c;
-                        t.Nu = 0.05;
-                        t.Gamma = gammaTypes[i];
+                        t.Nu = (double)nu;
+                        t.Gamma =  gammaTypes[i];
                         svmParams.Add(t);
-                    }
+                  }
                 }
             }
             return svmParams;
@@ -950,9 +926,13 @@ namespace Classification_App
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
                     Dictionary<SENSOR, PointsOfInterest> pois = AnomaliSerializer.LoadPointOfInterest(path);
                     LoadEvents(tmpevents);
-                    Voting vote = new Voting(start, end, pois, events, 2);
-                    NoveltyResult noveltyResult = vote.GetNoveltyResult();
-                    noveltyResult.CalculateConfusionMatrix();
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        Voting vote = new Voting(start, end, pois, events, i);
+                        NoveltyResult noveltyResult = vote.GetNoveltyResult();
+                        noveltyResult.CalculateHitResult();
+                        Log.LogMessage("agreement: " + i + " -" +noveltyResult.CalculateScore().ToString());
+                    }
                 }
             }
         }
