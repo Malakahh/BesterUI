@@ -888,7 +888,7 @@ namespace Classification_App
             }
             await Task.WhenAll(tasks);
 
-            File.WriteAllLines(path + $"/{sensor.ToString()}CovNu.txt", hitNus.ToList());
+            File.WriteAllLines(path + $"/{sensor.ToString()}CovNu.txt", covNu.ToList());
 
 
             Log.LogMessage($"best resulter on: {sensor.ToString()} - {besthitResult.CalculateHitScore()}");
