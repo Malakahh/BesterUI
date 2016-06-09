@@ -35,11 +35,69 @@ namespace Classification_App
             this.anomalis = anomalis.ToList();
         }
 
+        private double _normalArea;
+        private bool _normalAreaCalculated = false;
+        public double CalculateTotalNormalArea()
+        {
+            if (!_normalAreaCalculated)
+            {
+                int totalArea = end - start;
+                foreach (Events e in events)
+                {
+                    totalArea -= (e.GetTimestampEnd() - e.GetTimestampStart());
+                }
+                _normalArea = totalArea;
+                _normalAreaCalculated = true;
+                return _normalArea;
+            }
+            else
+            {
+                return _normalArea;
+            }
+        }
         public double FlaggedAreaSize()
         {
             if (!_flaggedAreaIsCalculated)
             {
-                _area = (double)poi.GetFlaggedAreas().Where(x => x.Item2 > start).Sum(x => (x.Item1 < start) ? x.Item2 - start : (x.Item2 - x.Item1));
+                var areas = poi.GetCoveredAreas(start, end);
+                List<Tuple<int, int>> newAreas = new List<Tuple<int, int>>();
+                foreach (var a in areas)
+                {
+                    bool areasHit = false;
+                    Tuple<int, int> remaining = a;
+                    foreach (Events e in events)
+                    {
+                        if (remaining.Item1 < e.GetTimestampStart() && e.GetTimestampEnd() < remaining.Item2)
+                        {
+                            newAreas.Add(Tuple.Create(remaining.Item1, e.GetTimestampStart()));
+                            remaining= (Tuple.Create(e.GetTimestampEnd(), a.Item2));
+                            areasHit = true;
+                        }
+                        else if (remaining.Item1 >= e.GetTimestampStart() && remaining.Item2 >= e.GetTimestampEnd() && remaining.Item1 <= e.GetTimestampEnd())
+                        {
+                            remaining = Tuple.Create(e.GetTimestampEnd(), remaining.Item2);
+                            areasHit = true;
+                            break;
+                        }
+                        else if (remaining.Item1 <= e.GetTimestampStart() && remaining.Item2 <= e.GetTimestampEnd() && remaining.Item2 >= e.GetTimestampStart())
+                        {
+                            newAreas.Add(Tuple.Create(remaining.Item1, e.GetTimestampStart()));
+                            areasHit = true;
+                            break;
+                        }
+                        else if (e.GetTimestampStart() <= remaining.Item1 && remaining.Item2 <= e.GetTimestampEnd())
+                        {
+                            areasHit = true;
+                            break;
+                        }
+                    }
+                    if (areasHit == false)
+                    {
+                        newAreas.Add(Tuple.Create(remaining.Item1, remaining.Item2));
+                    }
+                }
+                _area = newAreas.Where(x => x.Item2 > start).Sum(x=>x.Item2 - x.Item1);
+
                 _flaggedAreaIsCalculated = true;
                 return _area;
             }
@@ -127,8 +185,9 @@ namespace Classification_App
                 eventsTotal = EventsTotal;
             }
         }
+        
 
-        public double CalculateScore()
+        public double CalculateHitScore()
         {
             if (!_scoreIsCalculated)
             {
@@ -144,6 +203,34 @@ namespace Classification_App
                           / ((hitResult.hits / ((double)hitResult.misses + hitResult.hits))  //Precision       
                         + (hitResult.eventHits / ((double)hitResult.eventsTotal)));//recall
                 _scoreIsCalculated = true;
+                return score;
+            }
+            else
+            {
+                return score;
+            }
+
+        }
+
+        private bool _scoreVotingIsCalculated = false;
+        private double _coveredScore;
+        public double CalculateCoveredScore()
+        {
+            if (!_scoreVotingIsCalculated)
+            {
+                /*double timeReduction = 1 -  (FlaggedAreaSize()/ (end - start));
+                 double eventsHit = (double)events.Where(x => x.isHit).Count() / events.Count;
+                 score = ((TIME_WEIGHT * timeReduction) * (HIT_WEIGHT * eventsHit)) / (HIT_WEIGHT + TIME_WEIGHT);
+                 _scoreIsCalculated = true;
+                 return score;*/
+                HitResults hitResult = CalculateHitResult();
+                double covered = FlaggedAreaSize();
+                double totalArea = CalculateTotalNormalArea();
+                _scoreVotingIsCalculated = true;
+                _coveredScore = (2 * (hitResult.hits / ((double)hitResult.misses + hitResult.hits))  //Precision       
+                        * (1-(covered / totalArea))) //recall
+                          / ((hitResult.hits / ((double)hitResult.misses + hitResult.hits))  //Precision       
+                        + (1 - (covered / totalArea)));//recall
                 return score;
             }
             else

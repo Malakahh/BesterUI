@@ -12,12 +12,12 @@ namespace Classification_App
 {
     class NoveltyExcel
     {
+        private enum Book { HIT, COVERED};
         private static Excel.Application MyApp = null; //The Application
         public static object missingValue = System.Reflection.Missing.Value; //Used for filler purpose
         public bool BooksOpen { get; private set; }
+        private Dictionary<Book, Excel.Workbook> books = new Dictionary<Book, Excel.Workbook>(); //Dictionary of the different books
         private string statsFolderPath = null;
-        public Excel.Workbook currentBook;
-        string BookString;
 
         public NoveltyExcel(string path, string book)
         {
@@ -25,7 +25,6 @@ namespace Classification_App
             {
                 process.Kill();
             }
-            BookString = book;
             statsFolderPath = path + "/" + "Stats/";
             MyApp = new Excel.Application() { Visible = false };
             CreateOrOpenFiles(book);
@@ -36,7 +35,10 @@ namespace Classification_App
         public void Save()
         {
             Log.LogMessage("Saving Excel Files");
-            currentBook.Save();
+            foreach (Book book in books.Keys)
+            {
+                books[book].Save();
+            }
         }
 
         public void CloseHandler()
@@ -44,72 +46,83 @@ namespace Classification_App
             Log.LogMessage("Closing, saving and quiting excel");
             if (MyApp != null)
             {
-                currentBook.Save();
+                foreach (Book book in books.Keys)
+                {
+                    books[book].Save();
+                    books[book].Close(true);
+                }
+                books.Clear();
                 MyApp.Quit();
                 MyApp = null;
             }
         }
-
+        List<Book> fileNames = new List<Book> { Book.HIT, Book.COVERED};
         private bool CreateOrOpenFiles(string book)
         {
-            Log.LogMessage("Opening books");
-            try
+            foreach (Book theBook in fileNames)
             {
-                if (!Directory.Exists(statsFolderPath))
+                Log.LogMessage("Opening books");
+                try
                 {
-                    Directory.CreateDirectory(statsFolderPath);
-                    currentBook = MyApp.Workbooks.Add(missingValue);
-                    currentBook.SaveAs(statsFolderPath + book);
-                    //Added Standard (Front, first, last)
-                    CreateStandardBookSetup(currentBook, BookString);
-                    //Remove default sheetBook
-                    foreach (Excel.Worksheet wS in currentBook.Worksheets)
+                    string BookString = theBook.ToString() + book;
+                    if (!Directory.Exists(statsFolderPath))
                     {
-                        if (wS.Name == "Sheet1")
+                        Directory.CreateDirectory(statsFolderPath);
+                        var currentBook = MyApp.Workbooks.Add(missingValue);
+                        currentBook.SaveAs(statsFolderPath + BookString);
+                        books.Add(theBook, currentBook);
+                        //Added Standard (Front, first, last)
+                        CreateStandardBookSetup(currentBook, BookString);
+                        //Remove default sheetBook
+                        foreach (Excel.Worksheet wS in currentBook.Worksheets)
                         {
-                            wS.Delete();
+                            if (wS.Name == "Sheet1")
+                            {
+                                wS.Delete();
+                            }
                         }
+                        BooksOpen = true;
                     }
-                    BooksOpen = true;
-                }
-                else if (!File.Exists(statsFolderPath +book+ ".xlsx"))
-                {
-                    currentBook = MyApp.Workbooks.Add(missingValue);
-                    currentBook.SaveAs(statsFolderPath + book);
-                    //Added Standard (Front, first, last)
-                    CreateStandardBookSetup(currentBook, BookString);
-                    //Remove default sheet
-                    foreach (Excel.Worksheet wS in currentBook.Worksheets)
+                    else if (!File.Exists(statsFolderPath + BookString + ".xlsx"))
                     {
-                        if (wS.Name == "Sheet1")
+                        var currentBook = MyApp.Workbooks.Add(missingValue);
+                        currentBook.SaveAs(statsFolderPath + BookString);
+                        books.Add(theBook, currentBook);
+                        //Added Standard (Front, first, last)
+                        CreateStandardBookSetup(currentBook, BookString);
+                        //Remove default sheet
+                        foreach (Excel.Worksheet wS in currentBook.Worksheets)
                         {
-                            wS.Delete();
+                            if (wS.Name == "Sheet1")
+                            {
+                                wS.Delete();
+                            }
                         }
+                        BooksOpen = true;
                     }
-                    BooksOpen = true;
+                    else
+                    {
+                        var currentBook = MyApp.Workbooks.Open(statsFolderPath + BookString + ".xlsx", missingValue,
+                                                                false,
+                                                                missingValue,
+                                                                missingValue,
+                                                                missingValue,
+                                                                true,
+                                                                missingValue,
+                                                                missingValue,
+                                                                true,
+                                                                missingValue,
+                                                                missingValue,
+                                                                missingValue);
+                        BooksOpen = true;
+                        books.Add(theBook, currentBook);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    currentBook = MyApp.Workbooks.Open(statsFolderPath + book+".xlsx", missingValue,
-                                                            false,
-                                                            missingValue,
-                                                            missingValue,
-                                                            missingValue,
-                                                            true,
-                                                            missingValue,
-                                                            missingValue,
-                                                            true,
-                                                            missingValue,
-                                                            missingValue,
-                                                            missingValue);
-                    BooksOpen = true;
+                    return false;
                 }
             }
-            catch (Exception ex)
-            {
-                return false;
-            }
-            currentBook.Save();
             return true;
         }
 
@@ -145,27 +158,30 @@ namespace Classification_App
             {
                 if (BooksOpen)
                 {
-                    bool shouldAddPerson = true;
-                    //Get Current book
-                    foreach (Excel.Worksheet sheet in currentBook.Sheets)
+                    foreach (Book book in fileNames)
                     {
-                        if (sheet.Name == name)
+                        bool shouldAddPerson = true;
+                        //Get Current book
+                        foreach (Excel.Worksheet sheet in books[book].Sheets)
                         {
-                            Log.LogMessage("Person already exist in excel book:" + sheet.Name + ", skipping adding");
-                            shouldAddPerson = false;
-                            break;
+                            if (sheet.Name == name)
+                            {
+                                Log.LogMessage("Person already exist in excel book:" + sheet.Name + ", skipping adding");
+                                shouldAddPerson = false;
+                                break;
+                            }
                         }
-                    }
-                    if (shouldAddPerson == true)
-                    {
+                        if (shouldAddPerson == true)
+                        {
+                            Excel.Workbook currentBook = books[book];
+                            //Add person
+                            Excel.Worksheet lastSheet = currentBook.Sheets["Last"];
+                            Excel.Worksheet currentSheet = (Excel.Worksheet)currentBook.Sheets.Add(lastSheet);
+                            currentSheet.Name = name;
 
-                        //Add person
-                        Excel.Worksheet lastSheet = currentBook.Sheets["Last"];
-                        Excel.Worksheet currentSheet = (Excel.Worksheet)currentBook.Sheets.Add(lastSheet);
-                        currentSheet.Name = name;
-
-                        //Write standard data
-                        WriteSheetMeta(currentSheet, name);
+                            //Write standard data
+                            WriteSheetMeta(currentSheet, name);
+                        }
                     }
                 }
             }
@@ -175,7 +191,7 @@ namespace Classification_App
             }
         }
 
-        public void AddPersonToVotingBook(string name)
+    /*    public void AddPersonToVotingBook(string name)
         {
             Log.LogMessage("Adding " + name + " to excel files");
             try
@@ -234,7 +250,7 @@ namespace Classification_App
                     WriteResult(ws, name, predictResult);
                 }
             }
-        }
+        }*/
         public void WriteSheetMeta(Excel.Worksheet workSheet, string name)
         {
             workSheet.Cells[1, 1] = name;
@@ -269,7 +285,7 @@ namespace Classification_App
             //GSR
             workSheet.Cells[2, 2] = "GSR";
             /*3*/
-            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[SENSOR.GSR].CalculateHitResult().hits;
@@ -283,7 +299,7 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "EEG";
             /*15*/
-            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[SENSOR.EEG].CalculateHitResult().hits;
@@ -297,7 +313,7 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "FACE";
             /*27*/
-            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[SENSOR.FACE].CalculateHitResult().hits;
@@ -312,7 +328,7 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "HR";
             /*39*/
-            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[SENSOR.HR].CalculateHitResult().hits;
@@ -342,7 +358,7 @@ namespace Classification_App
             int counter = 3;
             workSheet.Cells[2, 2] = "1";
             /*3*/
-            workSheet.Cells[counter++, 2] = result[1].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[1].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[1].CalculateHitResult().hits;
@@ -351,7 +367,7 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "2";
             /*9*/
-            workSheet.Cells[counter++, 2] = result[2].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[2].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[2].CalculateHitResult().hits;
@@ -360,7 +376,7 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "3";
             /*15*/
-            workSheet.Cells[counter++, 2] = result[3].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[3].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[3].CalculateHitResult().hits;
@@ -369,7 +385,7 @@ namespace Classification_App
 
             workSheet.Cells[counter++, 2] = "4";
             /*31*/
-            workSheet.Cells[counter++, 2] = result[4].CalculateScore();
+            workSheet.Cells[counter++, 2] = result[4].CalculateHitScore();
             workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().eventHits;
             workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().eventsTotal;
             workSheet.Cells[counter++, 2] = result[4].CalculateHitResult().hits;

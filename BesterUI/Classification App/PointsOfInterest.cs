@@ -99,13 +99,11 @@ namespace Classification_App
             return flaggedAreas.ToList();
         }
 
-        public List<Tuple<int, int>> GetCoveredAreas()
+        public List<Tuple<int, int>> GetCoveredAreas(int start, int end)
         {
             List<Tuple<int, int>> cAreas = new List<Tuple<int, int>>();
              for (int i = 0; i < flags.Count; i++)
             {
-                cAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
-                
                 if (cAreas.Count == 0)
                 {
                     cAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
@@ -132,6 +130,21 @@ namespace Classification_App
                     {
                         cAreas.Add(Tuple.Create(flags[i] - ANOMALI_WIDTH, flags[i] + ANOMALI_WIDTH));
                     }
+                }
+            }
+            if (cAreas.Count != 0)
+            {
+                if (cAreas.First().Item1 < start)
+                {
+                    cAreas.Add(Tuple.Create(start, cAreas.First().Item2));
+                    cAreas.RemoveAt(0);
+                    cAreas.OrderBy(x => x.Item1);
+                }
+                if (cAreas.Last().Item2 > end)
+                {
+                    var temp = cAreas.Last();
+                    cAreas.Remove(cAreas.Last());
+                    cAreas.Add(Tuple.Create(temp.Item1, end));
                 }
             }
             return cAreas;
