@@ -1076,6 +1076,7 @@ namespace Classification_App
                     double eegNUCov = 0.7;
                     double hrNUCov = 0.7;
                     double faceNUCov = 0.7;
+                    List<string> voteCov = new List<string>();
 
                     featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
                     LoadEvents(tmpevents);
@@ -1142,6 +1143,12 @@ namespace Classification_App
                         AnomaliSerializer.SaveVotingAnomalis(noveltyResult.anomalis, path, STEP_SIZE, i.ToString());
                         AnomaliSerializer.SaveVotingEvents(noveltyResult.events, path, i.ToString());
                         AnomaliSerializer.SaveVotingPointsOfInterest(noveltyResult.poi, path, i.ToString());
+                        double areaCovered = ((double)noveltyResult.FlaggedAreaSize() / noveltyResult.CalculateTotalNormalArea() > 1) ? 1 : noveltyResult.FlaggedAreaSize() / (double)noveltyResult.CalculateTotalNormalArea();
+
+                        voteCov.Add($"{noveltyResult.parameter.Nu.ToString()}:"
+                                  + $"{noveltyResult.CalculateHitResult().eventHits / (double)noveltyResult.CalculateHitResult().eventsTotal};"
+                                  + $"{noveltyResult.CalculateHitResult().hits / ((double)noveltyResult.CalculateHitResult().misses + noveltyResult.CalculateHitResult().hits)};"
+                                  + $"{areaCovered}");
                     }
                  //   excel.AddVotingDataToPerson(testSubjectId, results);
                 }
