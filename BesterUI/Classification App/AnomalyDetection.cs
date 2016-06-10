@@ -1048,7 +1048,7 @@ namespace Classification_App
             return svmParams;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private async void button2_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
 
@@ -1070,7 +1070,66 @@ namespace Classification_App
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
-                    Dictionary<SENSOR, PointsOfInterest> pois = AnomaliSerializer.LoadPointOfInterest(path);
+
+                    //Load data and do scoring to find best parameter from Locked nu
+                    double gsrNUCov = 0.7;
+                    double eegNUCov = 0.7;
+                    double hrNUCov = 0.7;
+                    double faceNUCov = 0.7;
+
+                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
+                    LoadEvents(tmpevents);
+                    Dictionary<SENSOR, Tuple<NoveltyResult, NoveltyResult>> predictionResults = new Dictionary<SENSOR, Tuple<NoveltyResult, NoveltyResult>>();
+                    //Do gridsearch       
+                    Task<Tuple<NoveltyResult, NoveltyResult>> gsrThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUCov));
+                    int gsrId = gsrThread.Id;
+                    Task<Tuple<NoveltyResult, NoveltyResult>> eegThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUCov));
+                    int eegId = eegThread.Id;
+                    Task<Tuple<NoveltyResult, NoveltyResult>> hrThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUCov));
+                    int hrId = hrThread.Id;
+                    Task<Tuple<NoveltyResult, NoveltyResult>> faceThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUCov));
+                    int faceId = faceThread.Id;
+                    List<Task<Tuple<NoveltyResult, NoveltyResult>>> threads = new List<Task<Tuple<NoveltyResult, NoveltyResult>>>();
+                    threads.Add(gsrThread);
+                    threads.Add(eegThread);
+                    threads.Add(hrThread);
+                    threads.Add(faceThread);
+                    await Task.WhenAll(threads);
+                    foreach (Task<Tuple<NoveltyResult, NoveltyResult>> t in threads)
+                    {
+                        if (t.Id == gsrId)
+                        {
+                            predictionResults.Add(SENSOR.GSR, t.Result);
+                            continue;
+                        }
+                        else if (t.Id == eegId)
+                        {
+                            predictionResults.Add(SENSOR.EEG, t.Result);
+                            continue;
+                        }
+                        else if (t.Id == faceId)
+                        {
+                            predictionResults.Add(SENSOR.FACE, t.Result);
+                            continue;
+                        }
+                        else if (t.Id == hrId)
+                        {
+                            predictionResults.Add(SENSOR.HR, t.Result);
+                            continue;
+                        }
+                        else
+                        {
+                            Log.LogMessage("Could not match thread ID");
+                        }
+
+                    }
+
+
+                    Dictionary<SENSOR, PointsOfInterest> pois = new Dictionary<SENSOR, PointsOfInterest>();
+                    foreach (var key in predictionResults.Keys)
+                    {
+                        pois.Add(key, predictionResults[key].Item1.poi);
+                    }
                     LoadEvents(tmpevents);
                     Dictionary<int, NoveltyResult> results = new Dictionary<int, NoveltyResult>();
                     for (int i = 1; i <= 4; i++)
@@ -1088,6 +1147,55 @@ namespace Classification_App
                 }
                // excel.CloseHandler();
             }
+        }
+
+        private List<SVMParameter> GenerateVotingSVMParameters(double nu)
+        {
+            List<double> gammaTypes = new List<double>() { };
+            List<SVMKernelType> kernels = new List<SVMKernelType> { SVMKernelType.RBF, SVMKernelType.SIGMOID };
+
+            for (int t = -14; t <= 2; t += 1)
+            {
+                gammaTypes.Add(Math.Pow(2, t));
+            }
+            //Generate SVMParams
+            List<SVMParameter> svmParams = new List<SVMParameter>();
+            foreach (SVMKernelType kernel in kernels)
+            {
+                for (int i = 0; i < gammaTypes.Count; i++)
+                {
+                    SVMParameter t = new SVMParameter();
+                    t.Kernel = kernel;
+                    t.Nu = nu;
+                    t.Gamma = gammaTypes[i];
+                    svmParams.Add(t);
+                }
+            }
+            return svmParams;
+        }
+
+        private async Task<Tuple<NoveltyResult, NoveltyResult>> DoVotingNoveltyDetection(SENSOR sensor, int start, int end, double nu)
+        {
+            string sensorPath = path + "/" + sensor.ToString();
+            var data = featureVectors[sensor].Select(x => x.Features).ToList();
+            ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
+            svmParams.PushRange(GenerateVotingSVMParameters(nu).ToArray());
+            SetProgressMax(svmParams.Count + 1);
+            NoveltyResult besthitResult = null;
+            NoveltyResult bestCoveredResult = null;
+            Mutex bestResultMu = new Mutex(false, sensor.ToString());
+            int count = 1;
+            List<Task> tasks = new List<Task>();
+            for (int i = 0; i < threadMAX.Value; i++)
+            {
+                Task task = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref besthitResult, ref bestCoveredResult, bestResultMu));
+                tasks.Add(task);
+            }
+            await Task.WhenAll(tasks);
+
+            Log.LogMessage($"best resulter on: {sensor.ToString()} - {besthitResult.CalculateHitScore()}");
+            bestResultMu.Dispose();
+            return Tuple.Create(besthitResult, bestCoveredResult);
         }
     }
 }
