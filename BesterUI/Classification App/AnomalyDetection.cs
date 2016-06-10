@@ -1048,6 +1048,10 @@ namespace Classification_App
             return svmParams;
         }
 
+        const string COVERED = "Covered";
+        const string PRES = "Precision";
+        int VoteCounter = 1;
+        int VoteCountMax = 1;
         private async void button2_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
@@ -1055,9 +1059,11 @@ namespace Classification_App
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 sw.Start();
-              //  NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath, "voting");
+                VoteCountMax = Directory.GetDirectories(fbd.SelectedPath).Count();
+                //  NoveltyExcel excel = new NoveltyExcel(fbd.SelectedPath, "voting");
                 foreach (string folder in Directory.GetDirectories(fbd.SelectedPath))
                 {
+                    statusLabel.Text = $"{VoteCounter}/{VoteCountMax}";
                     if (folder.Contains("Stats"))
                     {
                         continue;
@@ -1071,32 +1077,34 @@ namespace Classification_App
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
 
+                    //COVERED
                     //Load data and do scoring to find best parameter from Locked nu
-                    double gsrNUCov = 0.7;
-                    double eegNUCov = 0.7;
-                    double hrNUCov = 0.7;
-                    double faceNUCov = 0.7;
+                    double gsrNUCov = 0.01;
+                    double eegNUCov = 0.01;
+                    double hrNUCov = 0.01;
+                    double faceNUCov = 0.01;
                     List<string> voteCov = new List<string>();
 
+                    statusLabel.Text = $"{VoteCounter}/{VoteCountMax} (Covered)";
                     featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
                     LoadEvents(tmpevents);
-                    Dictionary<SENSOR, Tuple<NoveltyResult, NoveltyResult>> predictionResults = new Dictionary<SENSOR, Tuple<NoveltyResult, NoveltyResult>>();
+                    Dictionary<SENSOR, NoveltyResult> predictionResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
-                    Task<Tuple<NoveltyResult, NoveltyResult>> gsrThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUCov));
+                    Task<NoveltyResult> gsrThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUCov, COVERED));
                     int gsrId = gsrThread.Id;
-                    Task<Tuple<NoveltyResult, NoveltyResult>> eegThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUCov));
+                    Task<NoveltyResult> eegThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUCov, COVERED));
                     int eegId = eegThread.Id;
-                    Task<Tuple<NoveltyResult, NoveltyResult>> hrThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUCov));
+                    Task<NoveltyResult> hrThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUCov, COVERED));
                     int hrId = hrThread.Id;
-                    Task<Tuple<NoveltyResult, NoveltyResult>> faceThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUCov));
+                    Task<NoveltyResult> faceThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUCov, COVERED));
                     int faceId = faceThread.Id;
-                    List<Task<Tuple<NoveltyResult, NoveltyResult>>> threads = new List<Task<Tuple<NoveltyResult, NoveltyResult>>>();
+                    List<Task<NoveltyResult>> threads = new List<Task<NoveltyResult>>();
                     threads.Add(gsrThread);
                     threads.Add(eegThread);
                     threads.Add(hrThread);
                     threads.Add(faceThread);
                     await Task.WhenAll(threads);
-                    foreach (Task<Tuple<NoveltyResult, NoveltyResult>> t in threads)
+                    foreach (Task<NoveltyResult> t in threads)
                     {
                         if (t.Id == gsrId)
                         {
@@ -1129,30 +1137,124 @@ namespace Classification_App
                     Dictionary<SENSOR, PointsOfInterest> pois = new Dictionary<SENSOR, PointsOfInterest>();
                     foreach (var key in predictionResults.Keys)
                     {
-                        pois.Add(key, predictionResults[key].Item1.poi);
+                        pois.Add(key, predictionResults[key].poi);
                     }
                     LoadEvents(tmpevents);
+                    string covVotingPath = path + "/Cov";
                     Dictionary<int, NoveltyResult> results = new Dictionary<int, NoveltyResult>();
                     for (int i = 1; i <= 4; i++)
                     {
                         Voting vote = new Voting(start, end, pois, events, i);
                         NoveltyResult noveltyResult = vote.GetNoveltyResult();
-                        noveltyResult.CalculateHitResult();
+                        noveltyResult.CalculateCoveredScore();
                         Log.LogMessage($"agreement for Person {testSubjectId}: " + i + " -" +noveltyResult.CalculateHitScore().ToString());
                         results.Add(i, noveltyResult);
-                        AnomaliSerializer.SaveVotingAnomalis(noveltyResult.anomalis, path, STEP_SIZE, i.ToString());
-                        AnomaliSerializer.SaveVotingEvents(noveltyResult.events, path, i.ToString());
-                        AnomaliSerializer.SaveVotingPointsOfInterest(noveltyResult.poi, path, i.ToString());
+                        if (!Directory.Exists(covVotingPath))
+                        {
+                            Directory.CreateDirectory(covVotingPath);
+                        }
+                        AnomaliSerializer.SaveVotingAnomalis(noveltyResult.anomalis, covVotingPath, STEP_SIZE, i.ToString());
+                        AnomaliSerializer.SaveVotingEvents(noveltyResult.events, covVotingPath, i.ToString());
+                        AnomaliSerializer.SaveVotingPointsOfInterest(noveltyResult.poi, covVotingPath, i.ToString());
                         double areaCovered = ((double)noveltyResult.FlaggedAreaSize() / noveltyResult.CalculateTotalNormalArea() > 1) ? 1 : noveltyResult.FlaggedAreaSize() / (double)noveltyResult.CalculateTotalNormalArea();
-
-                        voteCov.Add($"{noveltyResult.parameter.Nu.ToString()}:"
+                           
+                        voteCov.Add($"{i}:"
                                   + $"{noveltyResult.CalculateHitResult().eventHits / (double)noveltyResult.CalculateHitResult().eventsTotal};"
                                   + $"{noveltyResult.CalculateHitResult().hits / ((double)noveltyResult.CalculateHitResult().misses + noveltyResult.CalculateHitResult().hits)};"
                                   + $"{areaCovered}");
                     }
-                 //   excel.AddVotingDataToPerson(testSubjectId, results);
+                    File.WriteAllLines(path + "/VotingCov.txt", voteCov);
+
+                    //Pres
+                    //Load data and do scoring to find best parameter from Locked nu
+                    double gsrNUPres = 0.01;
+                    double eegNUPres = 0.01;
+                    double hrNUPres = 0.01;
+                    double faceNUPres = 0.01;
+                    List<string> votePres = new List<string>();
+
+                    statusLabel.Text = $"{VoteCounter}/{VoteCountMax} (Pres)";
+                    LoadEvents(tmpevents);
+                    Dictionary<SENSOR, NoveltyResult> predictionPresResults = new Dictionary<SENSOR, NoveltyResult>();
+                    //Do gridsearch       
+                    Task<NoveltyResult> gsrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUPres, PRES));
+                    gsrId = gsrPresThread.Id;
+                    Task<NoveltyResult> eegPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUPres, PRES));
+                    eegId = eegPresThread.Id;
+                    Task<NoveltyResult> hrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUPres, PRES));
+                    hrId = hrPresThread.Id;
+                    Task<NoveltyResult> facePresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUPres, PRES));
+                    faceId = facePresThread.Id;
+                    List<Task<NoveltyResult>> presThreads = new List<Task<NoveltyResult>>();
+                    presThreads.Add(gsrPresThread);
+                    presThreads.Add(eegPresThread);
+                    presThreads.Add(hrPresThread);
+                    presThreads.Add(facePresThread);
+                    await Task.WhenAll(presThreads);
+                    foreach (Task<NoveltyResult> t in presThreads)
+                    {
+                        if (t.Id == gsrId)
+                        {
+                            predictionPresResults.Add(SENSOR.GSR, t.Result);
+                            continue;
+                        }
+                        else if (t.Id == eegId)
+                        {
+                            predictionPresResults.Add(SENSOR.EEG, t.Result);
+                            continue;
+                        }
+                        else if (t.Id == faceId)
+                        {
+                            predictionPresResults.Add(SENSOR.FACE, t.Result);
+                            continue;
+                        }
+                        else if (t.Id == hrId)
+                        {
+                            predictionPresResults.Add(SENSOR.HR, t.Result);
+                            continue;
+                        }
+                        else
+                        {
+                            Log.LogMessage("Could not match thread ID");
+                        }
+
+                    }
+
+
+                    Dictionary<SENSOR, PointsOfInterest> poisPres = new Dictionary<SENSOR, PointsOfInterest>();
+                    foreach (var key in predictionResults.Keys)
+                    {
+                        poisPres.Add(key, predictionResults[key].poi);
+                    }
+                    LoadEvents(tmpevents);
+                    string presVotingPath = path + "/Pres";
+                    Dictionary<int, NoveltyResult> presVotingResult = new Dictionary<int, NoveltyResult>();
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        Voting vote = new Voting(start, end, poisPres, events, i);
+                        NoveltyResult noveltyResult = vote.GetNoveltyResult();
+                        noveltyResult.CalculateHitResult();
+                        Log.LogMessage($"agreement for Person {testSubjectId}: " + i + " -" + noveltyResult.CalculateHitScore().ToString());
+                        presVotingResult.Add(i, noveltyResult);
+                        if (!Directory.Exists(presVotingPath))
+                        {
+                            Directory.CreateDirectory(presVotingPath);
+                        }
+                        AnomaliSerializer.SaveVotingAnomalis(noveltyResult.anomalis, presVotingPath, STEP_SIZE, i.ToString());
+                        AnomaliSerializer.SaveVotingEvents(noveltyResult.events, presVotingPath, i.ToString());
+                        AnomaliSerializer.SaveVotingPointsOfInterest(noveltyResult.poi, presVotingPath, i.ToString());
+                        double areaCovered = ((double)noveltyResult.FlaggedAreaSize() / noveltyResult.CalculateTotalNormalArea() > 1) ? 1 : noveltyResult.FlaggedAreaSize() / (double)noveltyResult.CalculateTotalNormalArea();
+
+                        votePres.Add($"{i}:"
+                                  + $"{noveltyResult.CalculateHitResult().eventHits / (double)noveltyResult.CalculateHitResult().eventsTotal};"
+                                  + $"{noveltyResult.CalculateHitResult().hits / ((double)noveltyResult.CalculateHitResult().misses + noveltyResult.CalculateHitResult().hits)};"
+                                  + $"{areaCovered}");
+                    }
+                    File.WriteAllLines(path + "/PresVoting.txt", votePres);
                 }
-               // excel.CloseHandler();
+                // excel.CloseHandler();
+                statusLabel.Text = "Donno.dk";
+                Log.LogMessage("Done!");
             }
         }
 
@@ -1181,28 +1283,75 @@ namespace Classification_App
             return svmParams;
         }
 
-        private async Task<Tuple<NoveltyResult, NoveltyResult>> DoVotingNoveltyDetection(SENSOR sensor, int start, int end, double nu)
+        private async Task<NoveltyResult> DoVotingNoveltyDetection(SENSOR sensor, int start, int end, double nu, string type)
         {
             string sensorPath = path + "/" + sensor.ToString();
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             svmParams.PushRange(GenerateVotingSVMParameters(nu).ToArray());
             SetProgressMax(svmParams.Count + 1);
-            NoveltyResult besthitResult = null;
-            NoveltyResult bestCoveredResult = null;
+            NoveltyResult bestResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
             int count = 1;
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < threadMAX.Value; i++)
             {
-                Task task = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref besthitResult, ref bestCoveredResult, bestResultMu));
+                Task task = Task.Run(() => PredictionVoteThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestResult, bestResultMu, type));
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-
-            Log.LogMessage($"best resulter on: {sensor.ToString()} - {besthitResult.CalculateHitScore()}");
+            
             bestResultMu.Dispose();
-            return Tuple.Create(besthitResult, bestCoveredResult);
+            return bestResult;
+        }
+
+        private void PredictionVoteThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestResult, Mutex mutex, string type)
+        {
+            OneClassClassifier occ = new OneClassClassifier(data);
+            List<OneClassFV> anomali = new List<OneClassFV>();
+            List<Events> eventResult = new List<Events>();
+            List<OneClassFV> outliersFromSam = new List<OneClassFV>();
+            int maxCount = svmCount;
+            string sensorPath = path + "/" + sensor.ToString();
+            foreach (Events p in events)
+            {
+                var evt = p.Copy();
+                eventResult.Add(evt);
+            }
+            while (!svmParams.IsEmpty)
+            {
+                SVMParameter svmParam = null;
+                svmParams.TryPop(out svmParam);
+                if (svmParam == null)
+                {
+                    break;
+                }
+                anomali = new List<OneClassFV>();
+                occ.CreateModel(svmParam);
+                anomali.AddRange(occ.PredictOutliers(featureVectors[sensor].Where(x => start < x.TimeStamp && x.TimeStamp < end).ToList()));
+                PointsOfInterest dPointsOfInterest = new PointsOfInterest(anomali);
+
+                foreach (Events evt in eventResult)
+                {
+                    evt.SetPointOfInterest(dPointsOfInterest);
+                }
+
+                NoveltyResult tempResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
+                mutex.WaitOne();
+                if (bestResult == null)
+                {
+                    bestResult = new NoveltyResult(dPointsOfInterest, eventResult, start, end, svmParam, anomali);
+                }
+                else if ((type==COVERED) ? tempResult.CalculateCoveredScore() > bestResult.CalculateCoveredScore() 
+                                         : tempResult.CalculateHitScore() > bestResult.CalculateHitScore())
+                {
+                    bestResult = tempResult;
+                }
+                count++;
+                SetProgress(count, sensor);
+                mutex.ReleaseMutex();
+            }
+            Log.LogMessage(sensor + " done!");
         }
     }
 }
