@@ -38,7 +38,11 @@ namespace Classification_App
             anomalies = new List<OneClassFV>();
             List<Tuple<int, int>> gsr = pois[SENSOR.GSR].GetFlaggedAreas();
             List<Tuple<int, int>> hr = pois[SENSOR.HR].GetFlaggedAreas();
-            List<Tuple<int, int>> eeg = pois[SENSOR.EEG].GetFlaggedAreas();
+            List<Tuple<int, int>> eeg = new List<Tuple<int, int>>();
+            if (pois.Keys.Contains(SENSOR.EEG))
+           {
+                eeg = pois[SENSOR.EEG].GetFlaggedAreas();
+            }
             List<Tuple<int, int>> face = pois[SENSOR.FACE].GetFlaggedAreas();
 
             Dictionary<string, bool> anomaliPresent = new Dictionary<string, bool>();

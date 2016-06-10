@@ -1079,10 +1079,10 @@ namespace Classification_App
 
                     //COVERED
                     //Load data and do scoring to find best parameter from Locked nu
-                    double gsrNUCov = 0.01;
-                    double eegNUCov = 0.01;
-                    double hrNUCov = 0.01;
-                    double faceNUCov = 0.01;
+                    double gsrNUCov = 0.45;
+                    double eegNUCov = 0.3;
+                    double hrNUCov = 0.35;
+                    double faceNUCov = 0.35;
                     List<string> voteCov = new List<string>();
 
                     statusLabel.Text = $"{VoteCounter}/{VoteCountMax} (Covered)";
@@ -1164,12 +1164,13 @@ namespace Classification_App
                                   + $"{areaCovered}");
                     }
                     File.WriteAllLines(path + "/VotingCov.txt", voteCov);
+                    
 
                     //Pres
                     //Load data and do scoring to find best parameter from Locked nu
-                    double gsrNUPres = 0.01;
+                    double gsrNUPres = 0.09;
                     double eegNUPres = 0.01;
-                    double hrNUPres = 0.01;
+                    double hrNUPres = 0.05;
                     double faceNUPres = 0.01;
                     List<string> votePres = new List<string>();
 
@@ -1222,9 +1223,9 @@ namespace Classification_App
 
 
                     Dictionary<SENSOR, PointsOfInterest> poisPres = new Dictionary<SENSOR, PointsOfInterest>();
-                    foreach (var key in predictionResults.Keys)
+                    foreach (var key in predictionPresResults.Keys)
                     {
-                        poisPres.Add(key, predictionResults[key].poi);
+                        poisPres.Add(key, predictionPresResults[key].poi);
                     }
                     LoadEvents(tmpevents);
                     string presVotingPath = path + "/Pres";
