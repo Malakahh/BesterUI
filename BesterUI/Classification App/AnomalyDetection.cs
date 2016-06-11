@@ -1178,13 +1178,13 @@ namespace Classification_App
                     LoadEvents(tmpevents);
                     Dictionary<SENSOR, NoveltyResult> predictionPresResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
-                    Task<NoveltyResult> gsrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUPres, PRES));
+                    Task<NoveltyResult> gsrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUPres, COV));
                     gsrId = gsrPresThread.Id;
-                    Task<NoveltyResult> eegPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUPres, PRES));
+                    Task<NoveltyResult> eegPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUPres, COV));
                     eegId = eegPresThread.Id;
-                    Task<NoveltyResult> hrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUPres, PRES));
+                    Task<NoveltyResult> hrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUPres, COV));
                     hrId = hrPresThread.Id;
-                    Task<NoveltyResult> facePresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUPres, PRES));
+                    Task<NoveltyResult> facePresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUPres, COV));
                     faceId = facePresThread.Id;
                     List<Task<NoveltyResult>> presThreads = new List<Task<NoveltyResult>>();
                     presThreads.Add(gsrPresThread);
