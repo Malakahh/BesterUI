@@ -907,7 +907,7 @@ namespace Classification_App
                     }
 
                     string savePath = sd.FileName;
-                    savePath = savePath.Replace(savePath.Split('\\').Last(), "");
+                     savePath = savePath.Replace(savePath.Split('\\').Last(), "");
 
                     savePath += item.Key;
 
@@ -2995,7 +2995,7 @@ namespace Classification_App
                     foreach (Big5 item in Enum.GetValues(typeof(Big5)))
                     {
                         var orderino = big5List["time" + time].Select(x => x[item]).OrderBy(x => x).ToList();
-                        big5timeSeries[item].Items.Add(new OxyPlot.Series.BoxPlotItem(time - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
+                            big5timeSeries[item].Items.Add(new OxyPlot.Series.BoxPlotItem(time - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
                     }
                 }
 
