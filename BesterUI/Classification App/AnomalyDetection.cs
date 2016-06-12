@@ -935,7 +935,6 @@ namespace Classification_App
                 decimal tpr = ((decimal)cfm.TruePostive) / ((decimal)cfm.TruePostive + cfm.FalseNegative);
                 decimal fpr = 1 - ((decimal)cfm.TrueNegative / ((decimal)cfm.TrueNegative + cfm.FalsePostive));
                 */
-                mutex.WaitOne();
                 double temp = tempResult.FlaggedAreaSize();
 
                 double temp2 = tempResult.CalculateTotalNormalArea();
@@ -947,7 +946,6 @@ namespace Classification_App
 
                 count++;
                 SetProgress(count, sensor);
-                mutex.ReleaseMutex();
             }
             Log.LogMessage(sensor + " done!");
         }
