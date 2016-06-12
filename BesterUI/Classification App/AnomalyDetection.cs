@@ -827,7 +827,7 @@ namespace Classification_App
                 s.Nu = 0.01;
                 svmParams.Push(s);
             }*/
-            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+           svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgressMax(svmParams.Count + 1);
             NoveltyResult besthitResult = null;
             NoveltyResult bestCoveredResult = null;
@@ -842,7 +842,7 @@ namespace Classification_App
             await Task.WhenAll(tasks);
 
             //Hits
-             List<int> integers = Enumerable.Range(1, 100).ToList();
+           /*  List<int> integers = Enumerable.Range(1, 100).ToList();
             //List<int> integers = new List<int>() { 1, 100 };
             List <double> nus = integers.Select(x => ((double)x) / 100).ToList();
             foreach (double d in nus)
@@ -890,7 +890,7 @@ namespace Classification_App
 
             File.WriteAllLines(path + $"/{sensor.ToString()}CovNu.txt", covNu.ToList());
 
-
+            */
             Log.LogMessage($"best resulter on: {sensor.ToString()} - {besthitResult.CalculateHitScore()}");
             bestResultMu.Dispose();
             return Tuple.Create(besthitResult, bestCoveredResult);
@@ -1040,7 +1040,7 @@ namespace Classification_App
                 {
                     SVMParameter t = new SVMParameter();
                     t.Kernel = kernel;
-                    t.Nu = 0.05;
+                    t.Nu = 0.25;
                     t.Gamma = gammaTypes[i];
                     svmParams.Add(t);
                 }
@@ -1076,7 +1076,9 @@ namespace Classification_App
                     string[] tmpevents = File.ReadAllLines(path + "/SecondTest.dat");
                     int start = int.Parse(tmpevents.ToList().Find(x => x.Contains("ReplyToMail")).Split('#')[0]);
                     int end = int.Parse(tmpevents.Last().Split('#')[0]);
+                    featureVectors = AnomaliSerializer.LoadFeatureVectors(path);
 
+                    /*
                     //COVERED
                     //Load data and do scoring to find best parameter from Locked nu
                     double gsrNUCov = 0.45;
@@ -1164,7 +1166,7 @@ namespace Classification_App
                                   + $"{areaCovered}");
                     }
                     File.WriteAllLines(path + "/VotingCov.txt", voteCov);
-                    
+                    */
 
                     //Pres
                     //Load data and do scoring to find best parameter from Locked nu
@@ -1178,14 +1180,14 @@ namespace Classification_App
                     LoadEvents(tmpevents);
                     Dictionary<SENSOR, NoveltyResult> predictionPresResults = new Dictionary<SENSOR, NoveltyResult>();
                     //Do gridsearch       
-                    Task<NoveltyResult> gsrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUPres, COV));
-                    gsrId = gsrPresThread.Id;
-                    Task<NoveltyResult> eegPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUPres, COV));
-                    eegId = eegPresThread.Id;
-                    Task<NoveltyResult> hrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUPres, COV));
-                    hrId = hrPresThread.Id;
-                    Task<NoveltyResult> facePresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUPres, COV));
-                    faceId = facePresThread.Id;
+                    Task<NoveltyResult> gsrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.GSR, start, end, gsrNUPres, COVERED));
+                    int gsrId = gsrPresThread.Id;
+                    Task<NoveltyResult> eegPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.EEG, start, end, eegNUPres, COVERED));
+                    int eegId = eegPresThread.Id;
+                    Task<NoveltyResult> hrPresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.HR, start, end, hrNUPres, COVERED));
+                    int hrId = hrPresThread.Id;
+                    Task<NoveltyResult> facePresThread = Task.Run(() => DoVotingNoveltyDetection(SENSOR.FACE, start, end, faceNUPres, COVERED));
+                    int faceId = facePresThread.Id;
                     List<Task<NoveltyResult>> presThreads = new List<Task<NoveltyResult>>();
                     presThreads.Add(gsrPresThread);
                     presThreads.Add(eegPresThread);

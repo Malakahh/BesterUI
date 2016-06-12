@@ -86,7 +86,7 @@ namespace Classification_App
                                 eeg.RemoveAt(0);
                             }
                             else if (key == "face")
-                            {
+                            {   
                                 centers.Add(((face.First().Item2 - face.First().Item1) / 2) + face.First().Item1);
                                 face.RemoveAt(0);
                             }
