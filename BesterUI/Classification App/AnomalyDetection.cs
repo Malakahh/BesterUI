@@ -804,7 +804,7 @@ namespace Classification_App
                 s.Nu = 0.01;
                 svmParams.Push(s);
             }*/
-           svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgressMax(svmParams.Count + 1);
             NoveltyResult bestCoveredResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
@@ -816,8 +816,7 @@ namespace Classification_App
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-
-           List<int> integers = Enumerable.Range(1, 100).ToList();
+            List<int> integers = Enumerable.Range(1, 100).ToList();
             List <double> nus = integers.Select(x => ((double)x) / 100).ToList();
             //Cover
             foreach (double d in nus)
@@ -828,6 +827,9 @@ namespace Classification_App
                 para.Kernel = bestCoveredResult.parameter.Kernel;
                 svmParams.Push(para);
             }
+
+            bestResultMu.Dispose();
+            bestResultMu = new Mutex(false, sensor.ToString());
             SetProgressMax(svmParams.Count + 1);
             List<Task> nuCov = new List<Task>();
             ConcurrentBag<string> covNu = new ConcurrentBag<string>();
