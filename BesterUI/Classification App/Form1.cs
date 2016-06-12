@@ -2481,6 +2481,10 @@ namespace Classification_App
 
         private void btn_CreateResultTable_Click(object sender, EventArgs e)
         {
+            OxyColor EEGColor = OxyColors.Cyan;
+            OxyColor EDAColor = OxyColors.LightGreen;
+            OxyColor HRColor = OxyColors.Salmon;
+
             string corrType = "Pearson";
             //string corrType = "Kendall";
             //string corrType = "Spearman";
@@ -2667,16 +2671,29 @@ namespace Classification_App
 
                     totalToWrite.Add($"{sensor}&{avgCorrelation.ToString("0.000")}({stdevCorrelation.ToString("0.000")})&{avgSignificance.ToString("0.000")}({stdevSignificance.ToString("0.000")}) \\\\");
                 }
+
+                Dictionary<Big5, List<string>> big5Anova = new Dictionary<Big5, List<string>>();
                 foreach (Big5 item in Enum.GetValues(typeof(Big5)))
                 {
+                    big5Anova.Add(item, new List<string>());
                     totalToWrite.Add(item + " Mean: " + big5List["total"].Average(x => x[item]).ToString("0.00") + ", SD: " + MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(big5List["total"].Select(x => x[item]).ToArray()).ToString("0.00") + ".");
+
+                    big5List["time0"].ForEach(x => big5Anova[item].Add("0;" + x[item]));
+                    big5List["time1"].ForEach(x => big5Anova[item].Add("1;" + x[item]));
+                    big5List["time2"].ForEach(x => big5Anova[item].Add("2;" + x[item]));
+                    big5List["stimlow"].ForEach(x => big5Anova[item].Add("3;" + x[item]));
+                    big5List["stimhigh"].ForEach(x => big5Anova[item].Add("4;" + x[item]));
+                }
+
+                foreach (var big5group in big5Anova)
+                {
+                    File.WriteAllLines(fbd.SelectedPath + "/" + big5group.Key + "_anova.csv", big5group.Value);
                 }
 
                 File.WriteAllLines(fbd.SelectedPath + "/" + corrType + "_totals.txt", totalToWrite);
 
                 double width = 1 / (sensors.Count * 1.4);
                 double widthTime = 0.3;
-
 
 
                 var timeModel = new PlotModel() { Title = $"Time Groups Box Plot" };
@@ -2722,7 +2739,7 @@ namespace Classification_App
 
                 Dictionary<string, int[]> significantAmount = new Dictionary<string, int[]>();
                 Dictionary<string, int[]> significantAmountMax = new Dictionary<string, int[]>();
-                Dictionary<string, Tuple<double, double>[]> significantCorr = new Dictionary<string, Tuple<double, double>[]>();
+                var significantCorr = new Dictionary<string, Tuple<double, double, double, double>[]>();
                 foreach (var sensor in sensors)
                 {
                     significantAmount.Add(sensor, new int[5]);
@@ -2730,14 +2747,14 @@ namespace Classification_App
                     //significantCorr.Add(sensor, new Tuple<double, double>[5]);
                 }
 
-                significantCorr.Add("EEG", new Tuple<double, double>[5]);
-                significantCorr.Add("EDA", new Tuple<double, double>[5]);
-                significantCorr.Add("HR", new Tuple<double, double>[5]);
-                significantCorr.Add("AVG", new Tuple<double, double>[5]);
+                significantCorr.Add("EEG", new Tuple<double, double, double, double>[5]);
+                significantCorr.Add("EDA", new Tuple<double, double, double, double>[5]);
+                significantCorr.Add("HR", new Tuple<double, double, double, double>[5]);
+                significantCorr.Add("AVG", new Tuple<double, double, double, double>[5]);
 
                 Action<string, int, List<Tuple<double, double>>> AddCorrelation = (sens, id, correl) =>
                 {
-                    significantCorr[sens][id] = Tuple.Create(correl.Average(x => x.Item1), MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(correl.Select(x => x.Item1).ToArray()));
+                    significantCorr[sens][id] = Tuple.Create(correl.Average(x => x.Item1), MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(correl.Select(x => x.Item1).ToArray()), correl.Average(x => x.Item2), MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(correl.Select(x => x.Item2).ToArray()));
                 };
                 List<string> amountTimeSignificant = new List<string>();
 
@@ -2835,7 +2852,7 @@ namespace Classification_App
 
                     //eeg
                     EEGAllCorrelations = EEGAllCorrelations.OrderBy(x => x.Item1).ToList();
-                    var EEGSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = OxyColors.Blue, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    var EEGSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = EEGColor, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
                     if (time == 0) EEGSeries.Title = "EEG";
                     var EEGItem = CreateBoxItem(EEGAllCorrelations);
                     EEGItem.X = time - EEGSeries.BoxWidth * 1;
@@ -2852,7 +2869,8 @@ namespace Classification_App
 
                     //gsr
                     GSRAllCorrelations = GSRAllCorrelations.OrderBy(x => x.Item1).ToList();
-                    var GSRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = OxyColors.Green, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    var GSRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = EDAColor, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    if (time == 0) GSRSeries.Title = "EDA";
                     var GSRItem = CreateBoxItem(GSRAllCorrelations);
                     GSRItem.X = time;
                     GSRSeries.Items.Add(GSRItem);
@@ -2868,7 +2886,8 @@ namespace Classification_App
 
                     //hr
                     HRAllCorrelations = HRAllCorrelations.OrderBy(x => x.Item1).ToList();
-                    var HRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = OxyColors.Red, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    var HRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = HRColor, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    if (time == 0) HRSeries.Title = "HR";
                     var HRItem = CreateBoxItem(HRAllCorrelations);
                     HRItem.X = time + HRSeries.BoxWidth * 1;
                     HRSeries.Items.Add(HRItem);
@@ -3108,7 +3127,7 @@ namespace Classification_App
 
                     //eeg
                     EEGAllCorrelations = EEGAllCorrelations.OrderBy(x => x.Item1).ToList();
-                    var EEGSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = OxyColors.Blue, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    var EEGSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = EEGColor, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
                     if (stimuli == "low") EEGSeries.Title = "EEG";
                     var EEGItem = CreateBoxItem(EEGAllCorrelations);
                     EEGItem.X = (stimuli == "low" ? 0 : 1) - EEGSeries.BoxWidth * 1;
@@ -3125,14 +3144,14 @@ namespace Classification_App
 
                     //gsr
                     GSRAllCorrelations = GSRAllCorrelations.OrderBy(x => x.Item1).ToList();
-                    var GSRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = OxyColors.Green, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    var GSRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = EDAColor, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
                     if (stimuli == "low") GSRSeries.Title = "EDA";
                     var GSRItem = CreateBoxItem(GSRAllCorrelations);
                     GSRItem.X = (stimuli == "low" ? 0 : 1);
                     GSRSeries.Items.Add(GSRItem);
                     stimModel.Series.Add(GSRSeries);
 
-                    AddCorrelation("EDA", stimuli == "low" ? 3 : 4, EEGAllCorrelations);
+                    AddCorrelation("EDA", stimuli == "low" ? 3 : 4, GSRAllCorrelations);
 
                     foreach (var cor in GSRAllCorrelations)
                     {
@@ -3142,14 +3161,14 @@ namespace Classification_App
 
                     //hr
                     HRAllCorrelations = HRAllCorrelations.OrderBy(x => x.Item1).ToList();
-                    var HRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = OxyColors.Red, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
+                    var HRSeries = new OxyPlot.Series.BoxPlotSeries() { Fill = HRColor, BoxWidth = boxWidth, WhiskerWidth = boxWidth };
                     if (stimuli == "low") HRSeries.Title = "HR";
                     var HRItem = CreateBoxItem(HRAllCorrelations);
                     HRItem.X = (stimuli == "low" ? 0 : 1) + HRSeries.BoxWidth * 1;
                     HRSeries.Items.Add(HRItem);
                     stimModel.Series.Add(HRSeries);
 
-                    AddCorrelation("HR", stimuli == "low" ? 3 : 4, EEGAllCorrelations);
+                    AddCorrelation("HR", stimuli == "low" ? 3 : 4, HRAllCorrelations);
 
                     foreach (var cor in HRAllCorrelations)
                     {
@@ -3200,6 +3219,10 @@ namespace Classification_App
                 File.WriteAllLines(fbd.SelectedPath + "/significantTable.tex", sigAmountLines);
                 //File.WriteAllLines(fbd.SelectedPath + "/significantTable.tex", significantAmount.Select(x => $"{x.Key} & {x.Value[0]} & {x.Value[1]} & {x.Value[2]} & {x.Value[3]} & {x.Value[4]}").ToList());
                 File.WriteAllLines(fbd.SelectedPath + "/significantCorrTable.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")}({x.Value[0].Item2.ToString(".000")}) & {x.Value[1].Item1.ToString(".000")}({x.Value[1].Item2.ToString(".000")}) & {x.Value[2].Item1.ToString(".000")}({x.Value[2].Item2.ToString(".000")}) & {x.Value[3].Item1.ToString(".000")}({x.Value[3].Item2.ToString(".000")}) & {x.Value[4].Item1.ToString(".000")}({x.Value[4].Item2.ToString(".000")}) \\\\"));
+
+                File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableTime.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")} (SD={x.Value[0].Item2.ToString(".000")}, p={x.Value[0].Item3.ToString(".000")}) & {x.Value[1].Item1.ToString(".000")} (SD={x.Value[1].Item2.ToString(".000")}, p={x.Value[1].Item3.ToString(".000")}) & {x.Value[2].Item1.ToString(".000")} (SD={x.Value[2].Item2.ToString(".000")}, p={x.Value[2].Item3.ToString(".000")}) \\\\"));
+                File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableStimuli.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[3].Item1.ToString(".000")} (SD={x.Value[3].Item2.ToString(".000")}, p={x.Value[3].Item3.ToString(".000")}) & {x.Value[4].Item1.ToString(".000")} (SD={x.Value[4].Item2.ToString(".000")}, p={x.Value[4].Item3.ToString(".000")}) \\\\"));
+
                 pnger.ExportToFile(Big5StimBox, fbd.SelectedPath + "/stimBoxBig5.png");
 
                 stimModel.LegendPlacement = LegendPlacement.Outside;
@@ -3446,17 +3469,82 @@ namespace Classification_App
 
         private void btn_CalcSam_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+            //FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select folder to load test subjects from" };
+
+            //if (fbd.ShowDialog() == DialogResult.OK)
+            //{
+            //    string[] dirs = Directory.GetDirectories(fbd.SelectedPath);
+            //    List<string> skipped = File.ReadAllLines(fbd.SelectedPath + "/anova_skipped.txt").Select(x => x.Split(new string[] { "_", "tp" }, StringSplitOptions.RemoveEmptyEntries).First()).Distinct().ToList();
+
+            //    foreach (var dir in dirs)
+            //    {
+            //        SAMData.LoadFromPath(dir + "/SAMData.json");
+            //    }
+            //}
+
+            var fbd = new FolderBrowserDialog();
+            List<string> groupings = new List<string>()
+            {
+                "Stimuli high",
+                "Stimuli low",
+                "Time 0",
+                "Time 1",
+                "Time 2"
+            };
+
+            //grouping -> sensor -> cost
+            var dtwCost = new Dictionary<string, Dictionary<string, List<double>>>();
+            var dtwBeforeLength = new Dictionary<string, Dictionary<string, List<int>>>();
+            var dtwBeforeCost = new Dictionary<string, Dictionary<string, List<double>>>();
+            var dtwAfterLength = new Dictionary<string, Dictionary<string, List<int>>>();
+            var dtwAfterCost = new Dictionary<string, Dictionary<string, List<double>>>();
 
             if (fbd.ShowDialog() == DialogResult.OK)
             {
-                string[] dirs = Directory.GetDirectories(fbd.SelectedPath);
-                List<string> skipped = File.ReadAllLines(fbd.SelectedPath + "/anova_skipped.txt").Select(x => x.Split(new string[] { "_", "tp" }, StringSplitOptions.RemoveEmptyEntries).First()).Distinct().ToList();
-
-                foreach (var dir in dirs)
+                foreach (var grouping in groupings)
                 {
-                    SAMData.LoadFromPath(dir + "/SAMData.json");
+                    dtwCost.Add(grouping, new Dictionary<string, List<double>>());
+                    dtwBeforeLength.Add(grouping, new Dictionary<string, List<int>>());
+                    dtwBeforeCost.Add(grouping, new Dictionary<string, List<double>>());
+                    dtwAfterLength.Add(grouping, new Dictionary<string, List<int>>());
+                    dtwAfterCost.Add(grouping, new Dictionary<string, List<double>>());
+
+                    var files = Directory.GetFiles($"{fbd.SelectedPath}/{grouping}").Where(x => x.Contains("dtw")).ToList();
+
+                    foreach (var file in files)
+                    {
+                        string sensor = file.Split('\\').Last().Split('.').First().Split('_')[2];
+                        if (!dtwCost[grouping].ContainsKey(sensor))
+                        {
+                            dtwCost[grouping].Add(sensor, new List<double>());
+                            dtwBeforeLength[grouping].Add(sensor, new List<int>());
+                            dtwBeforeCost[grouping].Add(sensor, new List<double>());
+                            dtwAfterLength[grouping].Add(sensor, new List<int>());
+                            dtwAfterCost[grouping].Add(sensor, new List<double>());
+                        }
+
+                        var lines = File.ReadAllLines(file);
+                        dtwCost[grouping][sensor].Add(lines[0].Split('=').Last().ParseDouble());
+                        dtwBeforeLength[grouping][sensor].Add(int.Parse(lines[1].Split('=').Last()));
+                        dtwBeforeCost[grouping][sensor].Add(lines[2].Split('=').Last().ParseDouble());
+                        dtwAfterLength[grouping][sensor].Add(int.Parse(lines[3].Split('=').Last()));
+                        dtwAfterCost[grouping][sensor].Add(lines[4].Split('=').Last().ParseDouble());
+                    }
                 }
+
+                foreach (var grouping in groupings)
+                {
+                    List<string> shit = new List<string>();
+                    shit.Add("Sensor & Cost & CostRatio1 & CostRatio2");
+                    foreach (var sensor in dtwCost[grouping])
+                    {
+                        shit.Add($"{sensor.Key} & {dtwCost[grouping][sensor.Key].Average()} (SD={dtwCost[grouping][sensor.Key].STDEV()}) & {dtwBeforeCost[grouping][sensor.Key].Average()} (SD={dtwBeforeCost[grouping][sensor.Key].STDEV()}) & {dtwAfterCost[grouping][sensor.Key].Average()} (SD={dtwAfterCost[grouping][sensor.Key].STDEV()})");
+                    }
+
+                    File.WriteAllLines(fbd.SelectedPath + "/dtw_" + grouping + ".tex", shit);
+                }
+
+                Log.LogMessage("DonnoDK!");
             }
         }
 
@@ -3512,5 +3600,33 @@ class TaskStartEnd
         this.start = start;
         this.end = end;
         this.filenameAppend = filenameAppend;
+    }
+}
+
+public static class Extensions
+{
+    public static double ParseDouble(this string input)
+    {
+        return double.Parse(input.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static double STDEV(this IEnumerable<double> input)
+    {
+        return input.ToArray().STDEV();
+    }
+
+    public static double STDEV(this List<double> input)
+    {
+        return input.ToArray().STDEV();
+    }
+
+    public static double STDEV(this double[] input)
+    {
+        return MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(input);
+    }
+
+    public static double STDEV(this List<int> input)
+    {
+        return input.Select(x => (double)x).ToArray().STDEV();
     }
 }
