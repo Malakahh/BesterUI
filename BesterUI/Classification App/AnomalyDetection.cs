@@ -812,7 +812,7 @@ namespace Classification_App
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < threadMAX.Value; i++)
             {
-                Task task = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestCoveredResult, bestResultMu));
+                Task task = Task.Run(() => PredictionThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestCoveredResult, ref bestResultMu));
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
@@ -835,7 +835,7 @@ namespace Classification_App
             ConcurrentBag<string> covNu = new ConcurrentBag<string>();
             for (int i = 0; i < threadMAX.Value; i++)
             {
-                Task task = Task.Run(() => PredictionNuThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestCoveredResult, bestResultMu, ref covNu));
+                Task task = Task.Run(() => PredictionNuThread(ref count, sensor, start, end, ref svmParams, data, svmParams.Count, ref bestCoveredResult, ref bestResultMu, ref covNu));
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
@@ -845,7 +845,7 @@ namespace Classification_App
             bestResultMu.Dispose();
             return bestCoveredResult;
         }
-        private void PredictionThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestCoveredResult, Mutex mutex)
+        private void PredictionThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestCoveredResult, ref Mutex mutex)
         {
             OneClassClassifier occ = new OneClassClassifier(data);
             List<OneClassFV> anomali = new List<OneClassFV>();
@@ -900,7 +900,7 @@ namespace Classification_App
             Log.LogMessage(sensor + " done!");
         }
 
-        private void PredictionNuThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestCoveredResult, Mutex mutex, ref ConcurrentBag<string> nuResults)
+        private void PredictionNuThread(ref int count, SENSOR sensor, int start, int end, ref ConcurrentStack<SVMParameter> svmParams, List<SVMNode[]> data, int svmCount, ref NoveltyResult bestCoveredResult, ref Mutex mutex, ref ConcurrentBag<string> nuResults)
         {
             OneClassClassifier occ = new OneClassClassifier(data);
             List<OneClassFV> anomali = new List<OneClassFV>();
