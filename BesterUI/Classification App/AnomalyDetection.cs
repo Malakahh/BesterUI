@@ -794,7 +794,7 @@ namespace Classification_App
             var data = featureVectors[sensor].Select(x => x.Features).ToList();
             ConcurrentStack<SVMParameter> svmParams = new ConcurrentStack<SVMParameter>();
             //Debug purpose
-            for (int i = 0; i < 10; i++)
+            /*for (int i = 0; i < 10; i++)
             {
                 SVMParameter s = new SVMParameter();
                 s.C = 100;
@@ -803,8 +803,8 @@ namespace Classification_App
                 s.Type = SVMType.ONE_CLASS;
                 s.Nu = 0.01;
                 svmParams.Push(s);
-            }
-            //svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
+            }*/
+            svmParams.PushRange(GenerateOneClassSVMParameters().ToArray());
             SetProgressMax(svmParams.Count + 1);
             NoveltyResult bestCoveredResult = null;
             Mutex bestResultMu = new Mutex(false, sensor.ToString());
@@ -828,9 +828,10 @@ namespace Classification_App
                 svmParams.Push(para);
             }
 
+            count = 1;
+            SetProgressMax(svmParams.Count + 1);
             bestResultMu.Dispose();
             bestResultMu = new Mutex(false, sensor.ToString());
-            SetProgressMax(svmParams.Count + 1);
             List<Task> nuCov = new List<Task>();
             ConcurrentBag<string> covNu = new ConcurrentBag<string>();
             for (int i = 0; i < threadMAX.Value; i++)
