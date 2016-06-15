@@ -907,7 +907,7 @@ namespace Classification_App
                     }
 
                     string savePath = sd.FileName;
-                     savePath = savePath.Replace(savePath.Split('\\').Last(), "");
+                    savePath = savePath.Replace(savePath.Split('\\').Last(), "");
 
                     savePath += item.Key;
 
@@ -2485,6 +2485,12 @@ namespace Classification_App
             OxyColor EDAColor = OxyColors.LightGreen;
             OxyColor HRColor = OxyColors.Salmon;
 
+            //var res1 = FisherCompare1(0.4, 10, 0.3, 12);
+            //var res2 = FisherCompare2(0.4, 10, 0.3, 12);
+
+            //MessageBox.Show("1)\n" + res1.Item1 + "\n" + res1.Item2 + "\n" + res1.Item3 + "\n\n2)\n" + res2.Item1 + "\n" + res2.Item2 + "\n" + res2.Item3);
+
+
             string corrType = "Pearson";
             //string corrType = "Kendall";
             //string corrType = "Spearman";
@@ -2510,6 +2516,7 @@ namespace Classification_App
                         folder.Contains("Time 0") ||
                         folder.Contains("Time 1") ||
                         folder.Contains("Time 2") ||
+                        folder.Contains(".git") ||
                         folder.Split('\\').Last() == "3" ||
                         folder.Split('\\').Last() == "6" ||
                         folder.Split('\\').Last() == "13")
@@ -2570,7 +2577,7 @@ namespace Classification_App
                     {
                         foreach (var resultFile in Directory.GetFiles(folderToExamine).Where(f => f.Split('\\').Last().StartsWith(subject) && f.Split('\\').Last().EndsWith(".txt")))
                         {
-                            if (resultFiles.Contains(resultFile.Split('\\').Last()) || !folderToExamine.Contains("Time") && !foldersToExamine.Contains("Stimuli"))
+                            if (resultFiles.Contains(resultFile.Split('\\').Last()) || !folderToExamine.Contains("Time") && !foldersToExamine.Contains("Stimuli") || resultFile.Contains("dtw"))
                             {
                                 continue;
                             }
@@ -2754,7 +2761,11 @@ namespace Classification_App
 
                 Action<string, int, List<Tuple<double, double>>> AddCorrelation = (sens, id, correl) =>
                 {
-                    significantCorr[sens][id] = Tuple.Create(correl.Average(x => x.Item1), MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(correl.Select(x => x.Item1).ToArray()), correl.Average(x => x.Item2), MathNet.Numerics.Statistics.ArrayStatistics.PopulationStandardDeviation(correl.Select(x => x.Item2).ToArray()));
+                    //old average + sd
+                    //significantCorr[sens][id] = Tuple.Create(correl.Average(x => x.Item1), correl.Select(x => x.Item1).STDEV(), correl.Average(x => x.Item2), correl.Select(x => x.Item2).STDEV());
+
+                    //new fisher algorithms
+                    significantCorr[sens][id] = Tuple.Create(FisherInverse(correl.Average(x => Fisher(x.Item1))), double.NaN, correl.Select(x => x.Item2).FisherCombineP(), double.NaN);
                 };
                 List<string> amountTimeSignificant = new List<string>();
 
@@ -2995,7 +3006,7 @@ namespace Classification_App
                     foreach (Big5 item in Enum.GetValues(typeof(Big5)))
                     {
                         var orderino = big5List["time" + time].Select(x => x[item]).OrderBy(x => x).ToList();
-                            big5timeSeries[item].Items.Add(new OxyPlot.Series.BoxPlotItem(time - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
+                        big5timeSeries[item].Items.Add(new OxyPlot.Series.BoxPlotItem(time - 0.25 + (int)item * 0.1, orderino[0], orderino[(int)(orderino.Count * 0.25)], orderino[orderino.Count / 2], orderino[(int)(orderino.Count * 0.75)], orderino.Last()));
                     }
                 }
 
@@ -3220,7 +3231,7 @@ namespace Classification_App
                 //File.WriteAllLines(fbd.SelectedPath + "/significantTable.tex", significantAmount.Select(x => $"{x.Key} & {x.Value[0]} & {x.Value[1]} & {x.Value[2]} & {x.Value[3]} & {x.Value[4]}").ToList());
                 File.WriteAllLines(fbd.SelectedPath + "/significantCorrTable.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")}({x.Value[0].Item2.ToString(".000")}) & {x.Value[1].Item1.ToString(".000")}({x.Value[1].Item2.ToString(".000")}) & {x.Value[2].Item1.ToString(".000")}({x.Value[2].Item2.ToString(".000")}) & {x.Value[3].Item1.ToString(".000")}({x.Value[3].Item2.ToString(".000")}) & {x.Value[4].Item1.ToString(".000")}({x.Value[4].Item2.ToString(".000")}) \\\\"));
 
-                File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableTime.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")} (SD={x.Value[0].Item2.ToString(".000")}, p={x.Value[0].Item3.ToString(".000")}) & {x.Value[1].Item1.ToString(".000")} (SD={x.Value[1].Item2.ToString(".000")}, p={x.Value[1].Item3.ToString(".000")}) & {x.Value[2].Item1.ToString(".000")} (SD={x.Value[2].Item2.ToString(".000")}, p={x.Value[2].Item3.ToString(".000")}) \\\\"));
+                File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableTime.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")} (SD={x.Value[0].Item2.ToString(".000")}, p={x.Value[0].Item3.ToString(".000000")}) & {x.Value[1].Item1.ToString(".000")} (SD={x.Value[1].Item2.ToString(".000")}, p={x.Value[1].Item3.ToString(".000000")}) & {x.Value[2].Item1.ToString(".000")} (SD={x.Value[2].Item2.ToString(".000")}, p={x.Value[2].Item3.ToString(".000000")}) \\\\"));
                 File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableStimuli.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[3].Item1.ToString(".000")} (SD={x.Value[3].Item2.ToString(".000")}, p={x.Value[3].Item3.ToString(".000")}) & {x.Value[4].Item1.ToString(".000")} (SD={x.Value[4].Item2.ToString(".000")}, p={x.Value[4].Item3.ToString(".000")}) \\\\"));
 
                 pnger.ExportToFile(Big5StimBox, fbd.SelectedPath + "/stimBoxBig5.png");
@@ -3538,7 +3549,8 @@ namespace Classification_App
                     shit.Add("Sensor & Cost & CostRatio1 & CostRatio2");
                     foreach (var sensor in dtwCost[grouping])
                     {
-                        shit.Add($"{sensor.Key} & {dtwCost[grouping][sensor.Key].Average()} (SD={dtwCost[grouping][sensor.Key].STDEV()}) & {dtwBeforeCost[grouping][sensor.Key].Average()} (SD={dtwBeforeCost[grouping][sensor.Key].STDEV()}) & {dtwAfterCost[grouping][sensor.Key].Average()} (SD={dtwAfterCost[grouping][sensor.Key].STDEV()})");
+                        //shit.Add($"{sensor.Key} & {dtwCost[grouping][sensor.Key].Average()} (SD={dtwCost[grouping][sensor.Key].STDEV()}) & {dtwBeforeCost[grouping][sensor.Key].Average()} (SD={dtwBeforeCost[grouping][sensor.Key].STDEV()}) & {dtwAfterCost[grouping][sensor.Key].Average()} (SD={dtwAfterCost[grouping][sensor.Key].STDEV()})");
+                        shit.Add($"{sensor.Key} & {dtwCost[grouping][sensor.Key].Average()} (SD={dtwCost[grouping][sensor.Key].STDEV()}) & {dtwCost[grouping][sensor.Key].Sum() / dtwBeforeLength[grouping][sensor.Key].Sum()} (SD={dtwBeforeCost[grouping][sensor.Key].STDEV()}) & {dtwCost[grouping][sensor.Key].Sum() / dtwAfterLength[grouping][sensor.Key].Sum()} (SD={dtwAfterCost[grouping][sensor.Key].STDEV()}) & {dtwAfterLength[grouping][sensor.Key].Sum() / (double)dtwBeforeLength[grouping][sensor.Key].Sum()}");
                     }
 
                     File.WriteAllLines(fbd.SelectedPath + "/dtw_" + grouping + ".tex", shit);
@@ -3586,6 +3598,78 @@ namespace Classification_App
                 }
             }
         }
+
+        public static double Fisher(double input)
+        {
+            return (Math.Log(1 + input) - Math.Log(1 - input)) / 2;
+        }
+
+        public static double FisherInverse(double input)
+        {
+            return (Math.Pow(Math.E, 2 * input) - 1) / (Math.Pow(Math.E, 2 * input) + 1);
+        }
+
+        /// <summary>
+        /// From http://vassarstats.net/rdiff.html.
+        /// </summary>
+        /// <param name="ra"></param>
+        /// <param name="na"></param>
+        /// <param name="rb"></param>
+        /// <param name="nb"></param>
+        /// <returns></returns>
+        public static Tuple<double, double, double> FisherCompare1(double ra, int na, double rb, int nb)
+        {
+            if (ra == 1) ra = 0.999;
+            if (rb == 1) rb = 0.999;
+
+            var raplus = ra + 1;
+            var raminus = 1 - ra;
+            var rbplus = rb + 1;
+            var rbminus = 1 - rb;
+
+            var za = (Math.Log(raplus) - Math.Log(raminus)) / 2;
+            var zb = (Math.Log(rbplus) - Math.Log(rbminus)) / 2;
+
+            var se = Math.Sqrt((1 / (na - 3)) + (1 / (nb - 3)));
+            var z = (za - zb) / se;
+            //var z = Math.Round(z * 100) / 100;
+
+            var z2 = Math.Abs(z);
+
+            var p2 = (((((.000005383 * z2 + .0000488906) * z2 + .0000380036) * z2 + .0032776263) * z2 + .0211410061) * z2 + .049867347) * z2 + 1;
+
+            p2 = Math.Pow(p2, -16);
+            var p1 = p2 / 2;
+
+            return Tuple.Create(z2, p1, p2);
+        }
+
+        /// <summary>
+        /// From http://www.quantpsy.org/corrtest/corrtest.htm.
+        /// </summary>
+        /// <param name="ra"></param>
+        /// <param name="na"></param>
+        /// <param name="rb"></param>
+        /// <param name="nb"></param>
+        /// <returns></returns>
+        public static Tuple<double, double, double> FisherCompare2(double ra, int na, double rb, int nb)
+        {
+            var x1 = ra + 1;
+            var x2 = 1 + -1 * ra;
+            var y1 = rb + 1;
+            var y2 = 1 + -1 * rb;
+
+            var zz1 = 0.5 * Math.Log(x1) - Math.Log(x2);
+            var zz2 = 0.5 * Math.Log(y1) - Math.Log(y2);
+            var zz = (zz1 - zz2) / (Math.Sqrt(1 / (na - 3) + 1 / (nb - 3)));
+
+            var chi = new MathNet.Numerics.Distributions.ChiSquared(1);
+
+            var pp2 = chi.CumulativeDistribution(zz * zz);
+            var pp1 = pp2 / 2;
+
+            return Tuple.Create(zz, pp1, pp2);
+        }
     }
 }
 
@@ -3629,4 +3713,22 @@ public static class Extensions
     {
         return input.Select(x => (double)x).ToArray().STDEV();
     }
+
+    public static double FisherCombineP(this IEnumerable<double> input)
+    {
+        int pCounter = 0;
+        double accum = 0;
+        foreach (var p in input)
+        {
+            pCounter++;
+            accum += Math.Log(Math.Max(0.00001, p));
+        }
+        accum *= -2;
+        var chi2cdf = new MathNet.Numerics.Distributions.ChiSquared(pCounter * 2);
+        var retVal = 1 - chi2cdf.CumulativeDistribution(accum);
+
+        return retVal;
+    }
+
+
 }
