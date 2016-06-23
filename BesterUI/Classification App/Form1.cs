@@ -2485,6 +2485,23 @@ namespace Classification_App
             OxyColor EDAColor = OxyColors.LightGreen;
             OxyColor HRColor = OxyColors.Salmon;
 
+            //var tester = new List<double>
+            //{
+            //    0.01
+            //};
+
+            //var tester2 = new List<double>
+            //{
+            //    0.01, 0.01
+            //};
+
+            //var tester3 = new List<double>
+            //{
+            //    0.01, 0.01, 0.01
+            //};
+
+            //MessageBox.Show(tester.FisherCombineP().ToString("0.00000000") + "\n" + tester2.FisherCombineP().ToString("0.00000000") + "\n" + tester3.FisherCombineP().ToString("0.00000000"));
+
             //var res1 = FisherCompare1(0.4, 10, 0.3, 12);
             //var res2 = FisherCompare2(0.4, 10, 0.3, 12);
 
@@ -2757,7 +2774,7 @@ namespace Classification_App
                 significantCorr.Add("EEG", new Tuple<double, double, double, double>[5]);
                 significantCorr.Add("EDA", new Tuple<double, double, double, double>[5]);
                 significantCorr.Add("HR", new Tuple<double, double, double, double>[5]);
-                significantCorr.Add("AVG", new Tuple<double, double, double, double>[5]);
+                //significantCorr.Add("AVG", new Tuple<double, double, double, double>[5]);
 
                 Action<string, int, List<Tuple<double, double>>> AddCorrelation = (sens, id, correl) =>
                 {
@@ -2765,7 +2782,7 @@ namespace Classification_App
                     //significantCorr[sens][id] = Tuple.Create(correl.Average(x => x.Item1), correl.Select(x => x.Item1).STDEV(), correl.Average(x => x.Item2), correl.Select(x => x.Item2).STDEV());
 
                     //new fisher algorithms
-                    significantCorr[sens][id] = Tuple.Create(FisherInverse(correl.Average(x => Fisher(x.Item1))), double.NaN, correl.Select(x => x.Item2).FisherCombineP(), double.NaN);
+                    significantCorr[sens][id] = Tuple.Create(FisherInverse(correl.Average(x => Fisher(x.Item1))), Math.Round((double)correl.Count), correl.Select(x => x.Item2).FisherCombineP(), Math.Round((double)correl.Count));
                 };
                 List<string> amountTimeSignificant = new List<string>();
 
@@ -2915,7 +2932,7 @@ namespace Classification_App
                     //avg
                     var AVGAllCorrelations = EEGAllCorrelations.Concat(GSRAllCorrelations.Concat(HRAllCorrelations)).ToList();
 
-                    AddCorrelation("AVG", time, AVGAllCorrelations);
+                    //AddCorrelation("AVG", time, AVGAllCorrelations);
 
                     foreach (var cor in AVGAllCorrelations)
                     {
@@ -3190,7 +3207,7 @@ namespace Classification_App
                     //avg
                     var AVGAllCorrelations = EEGAllCorrelations.Concat(GSRAllCorrelations.Concat(HRAllCorrelations)).ToList();
 
-                    AddCorrelation("AVG", stimuli == "low" ? 3 : 4, AVGAllCorrelations);
+                    //AddCorrelation("AVG", stimuli == "low" ? 3 : 4, AVGAllCorrelations);
 
                     foreach (var cor in AVGAllCorrelations)
                     {
@@ -3230,9 +3247,34 @@ namespace Classification_App
                 File.WriteAllLines(fbd.SelectedPath + "/significantTable.tex", sigAmountLines);
                 //File.WriteAllLines(fbd.SelectedPath + "/significantTable.tex", significantAmount.Select(x => $"{x.Key} & {x.Value[0]} & {x.Value[1]} & {x.Value[2]} & {x.Value[3]} & {x.Value[4]}").ToList());
                 File.WriteAllLines(fbd.SelectedPath + "/significantCorrTable.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")}({x.Value[0].Item2.ToString(".000")}) & {x.Value[1].Item1.ToString(".000")}({x.Value[1].Item2.ToString(".000")}) & {x.Value[2].Item1.ToString(".000")}({x.Value[2].Item2.ToString(".000")}) & {x.Value[3].Item1.ToString(".000")}({x.Value[3].Item2.ToString(".000")}) & {x.Value[4].Item1.ToString(".000")}({x.Value[4].Item2.ToString(".000")}) \\\\"));
-
                 File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableTime.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[0].Item1.ToString(".000")} (SD={x.Value[0].Item2.ToString(".000")}, p={x.Value[0].Item3.ToString(".000000")}) & {x.Value[1].Item1.ToString(".000")} (SD={x.Value[1].Item2.ToString(".000")}, p={x.Value[1].Item3.ToString(".000000")}) & {x.Value[2].Item1.ToString(".000")} (SD={x.Value[2].Item2.ToString(".000")}, p={x.Value[2].Item3.ToString(".000000")}) \\\\"));
                 File.WriteAllLines(fbd.SelectedPath + "/significantCorrTableStimuli.tex", significantCorr.Select(x => $"{x.Key} & {x.Value[3].Item1.ToString(".000")} (SD={x.Value[3].Item2.ToString(".000")}, p={x.Value[3].Item3.ToString(".000")}) & {x.Value[4].Item1.ToString(".000")} (SD={x.Value[4].Item2.ToString(".000")}, p={x.Value[4].Item3.ToString(".000")}) \\\\"));
+
+
+                List<string> timeLines = new List<string>() { "sensor & 0 vs 1 & 1 vs 2 & 0 vs 2" };
+                List<string> stimLines = new List<string>() { "sensor & 0 vs Low & Low vs High & 0 vs High" };
+                foreach (var item in significantCorr)
+                {
+                    var z01 = ZCalc(item.Value[0].Item1, Convert.ToInt32(item.Value[0].Item2), item.Value[1].Item1, Convert.ToInt32(item.Value[1].Item2));
+                    var z12 = ZCalc(item.Value[1].Item1, Convert.ToInt32(item.Value[1].Item2), item.Value[2].Item1, Convert.ToInt32(item.Value[2].Item2));
+                    var z02 = ZCalc(item.Value[0].Item1, Convert.ToInt32(item.Value[0].Item2), item.Value[2].Item1, Convert.ToInt32(item.Value[2].Item2));
+                    var p01 = ZtoP(z01);
+                    var p12 = ZtoP(z12);
+                    var p02 = ZtoP(z02);
+                    timeLines.Add($"{item.Key} & z: {z01} | p: {p01} & z: {z12} | p: {p12} & z: {z02} | p: {p02}");
+
+                    var z0Low = ZCalc(item.Value[0].Item1, Convert.ToInt32(item.Value[0].Item2), item.Value[3].Item1, Convert.ToInt32(item.Value[3].Item2));
+                    var zLowHigh = ZCalc(item.Value[3].Item1, Convert.ToInt32(item.Value[3].Item2), item.Value[4].Item1, Convert.ToInt32(item.Value[4].Item2));
+                    var z0High = ZCalc(item.Value[0].Item1, Convert.ToInt32(item.Value[0].Item2), item.Value[4].Item1, Convert.ToInt32(item.Value[4].Item2));
+                    var p0Low = ZtoP(z0Low);
+                    var pLowHigh = ZtoP(zLowHigh);
+                    var p0High = ZtoP(z0High);
+                    stimLines.Add($"{item.Key} & z: {z0Low} | p: {p0Low} & z: {zLowHigh} | p: {pLowHigh} & z: {z0High} | p: {p0High}");
+                }
+
+                File.WriteAllLines(fbd.SelectedPath + "/significantCorrCompareTime.tex", timeLines);
+                File.WriteAllLines(fbd.SelectedPath + "/significantCorrCompareStimuli.tex", stimLines);
+
 
                 pnger.ExportToFile(Big5StimBox, fbd.SelectedPath + "/stimBoxBig5.png");
 
@@ -3610,7 +3652,7 @@ namespace Classification_App
         }
 
         /// <summary>
-        /// From http://vassarstats.net/rdiff.html.
+        /// From http://vassarstats.net/rdiff.html, doesn't work
         /// </summary>
         /// <param name="ra"></param>
         /// <param name="na"></param>
@@ -3645,7 +3687,7 @@ namespace Classification_App
         }
 
         /// <summary>
-        /// From http://www.quantpsy.org/corrtest/corrtest.htm.
+        /// From http://www.quantpsy.org/corrtest/corrtest.htm, doesn't work
         /// </summary>
         /// <param name="ra"></param>
         /// <param name="na"></param>
@@ -3669,6 +3711,23 @@ namespace Classification_App
             var pp1 = pp2 / 2;
 
             return Tuple.Create(zz, pp1, pp2);
+        }
+
+        public static double ZtoP(double z)
+        {
+            var pstuff = MathNet.Numerics.Integrate.OnClosedInterval(t => 1 / Math.Sqrt(2 * Math.PI) * Math.Pow(Math.E, -(t * t) / 2), -99999, z);
+            var twotail = 2 * (1 - pstuff);
+            return twotail;
+        }
+
+        public static double ZCalc(double corrA, int countA, double corrB, int countB)
+        {
+            double stuff1 = Fisher(corrA);
+            double stuff2 = Fisher(corrB);
+
+            var se = Math.Sqrt((1 / (double)(countA - 3)) + (1 / (double)(countB - 3)));
+
+            return (stuff1 - stuff2) / se;
         }
     }
 }
@@ -3721,7 +3780,7 @@ public static class Extensions
         foreach (var p in input)
         {
             pCounter++;
-            accum += Math.Log(Math.Max(0.00001, p));
+            accum += Math.Log(Math.Max(0.0001, p));
         }
         accum *= -2;
         var chi2cdf = new MathNet.Numerics.Distributions.ChiSquared(pCounter * 2);
